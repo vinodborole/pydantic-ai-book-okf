@@ -1,0 +1,15 @@
+# /pages/docs/ai/models — directory listing
+
+- [Anthropic | Pydantic Docs](/pages/docs/ai/models/anthropic.md)
+- [Bedrock | Pydantic Docs](/pages/docs/ai/models/bedrock.md)
+- [Cerebras | Pydantic Docs](/pages/docs/ai/models/cerebras.md)
+- [Cohere | Pydantic Docs](/pages/docs/ai/models/cohere.md)
+- [Google | Pydantic Docs](/pages/docs/ai/models/google.md)
+- [Groq | Pydantic Docs](/pages/docs/ai/models/groq.md)
+- [Hugging Face | Pydantic Docs](/pages/docs/ai/models/huggingface.md)
+- [Mistral | Pydantic Docs](/pages/docs/ai/models/mistral.md)
+- [Ollama | Pydantic Docs](/pages/docs/ai/models/ollama.md)
+- [OpenAI | Pydantic Docs](/pages/docs/ai/models/openai.md)
+- [OpenRouter | Pydantic Docs](/pages/docs/ai/models/openrouter.md)
+- [Overview | Pydantic Docs](/pages/docs/ai/models/overview.md)
+- [xAI | Pydantic Docs](/pages/docs/ai/models/xai.md)

@@ -1,0 +1,2094 @@
+{
+  "generator": "okf-kit",
+  "okf_version": "0.1",
+  "root_url": "https://pydantic.dev/docs/ai/overview",
+  "updated_at": "2026-07-07T10:31:51.551890+00:00",
+  "config": {
+    "max_depth": 3,
+    "max_pages": 90,
+    "fetcher": "http",
+    "respect_robots": true,
+    "path_prefix": "/docs/ai/"
+  },
+  "page_count": 90,
+  "pages": [
+    {
+      "path": "pages/docs/ai/advanced-features/input.md",
+      "url": "https://pydantic.dev/docs/ai/advanced-features/input",
+      "title": "Image, Audio, Video & Document Input | Pydantic Docs",
+      "hash": "d003a161fbbad66cfba3a181dfbc61c21de40d6070f6f7bfe7da4d9ba3a3b568"
+    },
+    {
+      "path": "pages/docs/ai/advanced-features/retries.md",
+      "url": "https://pydantic.dev/docs/ai/advanced-features/retries",
+      "title": "HTTP Request Retries | Pydantic Docs",
+      "hash": "885969595969da6d5c06f18ccd104152f86c75d9021d88dea85a36cc26174062"
+    },
+    {
+      "path": "pages/docs/ai/advanced-features/thinking.md",
+      "url": "https://pydantic.dev/docs/ai/advanced-features/thinking",
+      "title": "Thinking | Pydantic Docs",
+      "hash": "585b32f3449a5e30574e9d1d1c4b220ca7d598d2b9332ee67e1113f8638e29e5"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/agent-spec.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/agent-spec",
+      "title": "Agent Specs | Pydantic Docs",
+      "hash": "f0b758dc9a3c502bdecc7a7c691bd227da076c46ec2718a5dd56b3a2c498158b"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/agent.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/agent",
+      "title": "Agents | Pydantic Docs",
+      "hash": "16d5f7d1afb0f1bea57d3167bd59e4af27c7dc67327abf62c0565dbdbe9c9568"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/capabilities.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/capabilities",
+      "title": "Capabilities | Pydantic Docs",
+      "hash": "96e9554cf1562f13f4eeb36a7930536529c075ae415c3628f6dbfb06de4c8752"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/dependencies.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/dependencies",
+      "title": "Dependencies | Pydantic Docs",
+      "hash": "5296922f2ff7ce9701039a22da9b87f6733be8f9d8055f768e39ab3d46726291"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/direct.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/direct",
+      "title": "Direct Model Requests | Pydantic Docs",
+      "hash": "5d6589f3646e0ba5af96ea849fabe5ff352306cbe4892a57961060f97528f2fb"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/hooks.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/hooks",
+      "title": "Hooks | Pydantic Docs",
+      "hash": "064c4fe47de468d2901ccbfea723b9ee32dbb18f7c7653eb1134ad9edd5832ce"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/message-history.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/message-history",
+      "title": "Messages and chat history | Pydantic Docs",
+      "hash": "8a2119c84bbca0fed444ace9a93548c69262eeb0134c5a33ce458752c35ab6be"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/output.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/output",
+      "title": "Output | Pydantic Docs",
+      "hash": "21845d08e22acefa0b43216b7d3f2f8b4ceb14bcdbd860a38c0c44b76d092e82"
+    },
+    {
+      "path": "pages/docs/ai/evals/evals.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evals",
+      "title": "Pydantic Evals",
+      "hash": "9f32f944c19649b2bfcc7123e63b925522ce118fd6c20ad6b305b31169804d9a"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/built-in.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/built-in",
+      "title": "Built-in Evaluators | Pydantic Docs",
+      "hash": "3aec7bfe820e45f34b69245493409fd382f7bf6987e4d40bf17b2cd1a4139a81"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/custom.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/custom",
+      "title": "Custom Evaluators | Pydantic Docs",
+      "hash": "58f6b75539b874f4d4b539cb54ebc00c6f939225f7c98fae35e00818268dcd8a"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/framework-integrations.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/framework-integrations",
+      "title": "Third-Party Integrations | Pydantic Docs",
+      "hash": "c0ec160171195707239efe1a0207cc36dd9cc727ca7d2502c311128f7dfb52eb"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/llm-judge.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/llm-judge",
+      "title": "LLM Judge | Pydantic Docs",
+      "hash": "662362a496708db724ba174f964dfc8ca54a491e5d2acc2a5bd1be877f525bd1"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/overview.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "74815548b0d974368c3153a9dab988c23ddfb37af38e7b944695953a1079049a"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/report-evaluators.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/report-evaluators",
+      "title": "Report Evaluators | Pydantic Docs",
+      "hash": "f18639bccd386af4fdcd382a2a637e54e3fed812361cc3b0eb6203add8fad13d"
+    },
+    {
+      "path": "pages/docs/ai/evals/evaluators/span-based.md",
+      "url": "https://pydantic.dev/docs/ai/evals/evaluators/span-based",
+      "title": "Span-Based | Pydantic Docs",
+      "hash": "df36f48789d30dbdeed8bf9ca4696b03fd479b26b303d2c15977ae50eb08f616"
+    },
+    {
+      "path": "pages/docs/ai/evals/examples/simple-validation.md",
+      "url": "https://pydantic.dev/docs/ai/evals/examples/simple-validation",
+      "title": "Simple Validation | Pydantic Docs",
+      "hash": "8fdb2633d9cdc263731cae6762464d426ea8ffe7c6d11cbd5be61c5299672f66"
+    },
+    {
+      "path": "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "url": "https://pydantic.dev/docs/ai/evals/getting-started/core-concepts",
+      "title": "Core Concepts | Pydantic Docs",
+      "hash": "2b72c1007e9a3b395fb9faaad2ba99ca5cac17829f9c06c3fbba61bf9237febb"
+    },
+    {
+      "path": "pages/docs/ai/evals/getting-started/quick-start.md",
+      "url": "https://pydantic.dev/docs/ai/evals/getting-started/quick-start",
+      "title": "Quick Start | Pydantic Docs",
+      "hash": "fda9993a6e18aee78e5946101341be39322cc21af68702a1b205a7af6d315397"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/concurrency.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/concurrency",
+      "title": "Concurrency & Performance | Pydantic Docs",
+      "hash": "3508a4439b9b408314639f2cfaf011897d51b157372d0d9ba2fd2579648acde8"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/dataset-management.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/dataset-management",
+      "title": "Dataset Management | Pydantic Docs",
+      "hash": "ca863e1a69dbbac5206b57b5cc054441c0eb30e9bd4dcfebc3ceb543d2f808cc"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/dataset-serialization.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/dataset-serialization",
+      "title": "Dataset Serialization | Pydantic Docs",
+      "hash": "8041c07255642f086b05d31610165ca5a58c21f758e494c02ade8af344e7c31f"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/lifecycle.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/lifecycle",
+      "title": "Case Lifecycle Hooks | Pydantic Docs",
+      "hash": "cd96adf62e1e99df42a93fba5eeca105c78caea6cbb336ed2342b6ba766c7b1f"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/logfire-integration.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/logfire-integration",
+      "title": "Logfire Integration | Pydantic Docs",
+      "hash": "adcb02f7f89acd831dbe4b311f539e440efe3346a12a257af17624b7d04a784d"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/metrics-attributes.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/metrics-attributes",
+      "title": "Metrics & Attributes | Pydantic Docs",
+      "hash": "65ce0c61d2d81ebb2119ebf78729d81f6ee9cb06684d0e11d0b63fb85dd0e256"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/multi-run.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/multi-run",
+      "title": "Multi-Run Evaluation | Pydantic Docs",
+      "hash": "7a867d8f2a57c77f12b850394063b25f8c77f5901d6a5183ba859e1812b16527"
+    },
+    {
+      "path": "pages/docs/ai/evals/how-to/retry-strategies.md",
+      "url": "https://pydantic.dev/docs/ai/evals/how-to/retry-strategies",
+      "title": "Retry Strategies | Pydantic Docs",
+      "hash": "d2a9ef77f64c48a454fd8ad331f2769d4cc833adfca166f73ed8efe71a39228e"
+    },
+    {
+      "path": "pages/docs/ai/evals/online-evaluation.md",
+      "url": "https://pydantic.dev/docs/ai/evals/online-evaluation",
+      "title": "Online Evaluation | Pydantic Docs",
+      "hash": "721dba548f99544c4c2ba9e2dc66d9ee80ccd78de2081c5769f45cea7f83848c"
+    },
+    {
+      "path": "pages/docs/ai/examples/conversational-agents/bank-support.md",
+      "url": "https://pydantic.dev/docs/ai/examples/conversational-agents/bank-support",
+      "title": "Bank Support | Pydantic Docs",
+      "hash": "a2dceb072184553c205eb550964e446a21428497a28592edbbddcc4f4f0b6f47"
+    },
+    {
+      "path": "pages/docs/ai/examples/conversational-agents/chat-app.md",
+      "url": "https://pydantic.dev/docs/ai/examples/conversational-agents/chat-app",
+      "title": "Chat App with FastAPI | Pydantic Docs",
+      "hash": "04a3f62d9459ff08723e4f1461c6c82ae6962e37b294fc9e69e42b187df4b5d3"
+    },
+    {
+      "path": "pages/docs/ai/examples/getting-started/pydantic-model.md",
+      "url": "https://pydantic.dev/docs/ai/examples/getting-started/pydantic-model",
+      "title": "Pydantic Model | Pydantic Docs",
+      "hash": "27c4f93f71aacf41e46ed8582881658e023c8f567f325c9a58042e4f68875136"
+    },
+    {
+      "path": "pages/docs/ai/examples/getting-started/weather-agent.md",
+      "url": "https://pydantic.dev/docs/ai/examples/getting-started/weather-agent",
+      "title": "Weather Agent | Pydantic Docs",
+      "hash": "89a2cd12c2d5be139bd8c3b0d771d24c69fa8f02d9df6cb4c7b832cfc1e390c7"
+    },
+    {
+      "path": "pages/docs/ai/examples/setup.md",
+      "url": "https://pydantic.dev/docs/ai/examples/setup",
+      "title": "Setup | Pydantic Docs",
+      "hash": "b6a992ff60b02e2eda66325112b0ded85a6836ed7db617454fb83802e956686d"
+    },
+    {
+      "path": "pages/docs/ai/graph/builder.md",
+      "url": "https://pydantic.dev/docs/ai/graph/builder",
+      "title": "Getting Started | Pydantic Docs",
+      "hash": "56c5fb7fb39f4fa20683b1d7b88eca18d6d9415c932fd48ba7d4da583b978f02"
+    },
+    {
+      "path": "pages/docs/ai/graph/builder/decisions.md",
+      "url": "https://pydantic.dev/docs/ai/graph/builder/decisions",
+      "title": "Decisions | Pydantic Docs",
+      "hash": "76611d6270f744e402b002928fa3f0eee825ac59f41a97367e392dcb52cf8e10"
+    },
+    {
+      "path": "pages/docs/ai/graph/builder/joins.md",
+      "url": "https://pydantic.dev/docs/ai/graph/builder/joins",
+      "title": "Joins & Reducers | Pydantic Docs",
+      "hash": "8081f477bbce1bf4ec4a320377a9372115d8d94f2e2a78d322aeae8c043687c4"
+    },
+    {
+      "path": "pages/docs/ai/graph/builder/parallel.md",
+      "url": "https://pydantic.dev/docs/ai/graph/builder/parallel",
+      "title": "Parallel Execution | Pydantic Docs",
+      "hash": "ce1e6a9e66270bf4da1a7cf77d76d4bab95b88288834c345965fa9d47de271ba"
+    },
+    {
+      "path": "pages/docs/ai/graph/builder/steps.md",
+      "url": "https://pydantic.dev/docs/ai/graph/builder/steps",
+      "title": "Steps | Pydantic Docs",
+      "hash": "8b1a0a9226f3cd5cb2d7aaa126171705c7312b24f3596da6453c70ebee4b1356"
+    },
+    {
+      "path": "pages/docs/ai/graph/graph.md",
+      "url": "https://pydantic.dev/docs/ai/graph/graph",
+      "title": "Overview | Pydantic Docs",
+      "hash": "ed9e03f9e3f443f83e958980686dddd327c558fc8489902c4bb4c8d76607d624"
+    },
+    {
+      "path": "pages/docs/ai/guides/embeddings.md",
+      "url": "https://pydantic.dev/docs/ai/guides/embeddings",
+      "title": "Embeddings | Pydantic Docs",
+      "hash": "e35f1c47428f50e0f198d379d205bd9d0cabc954b3b78caa80b6341b79376e10"
+    },
+    {
+      "path": "pages/docs/ai/guides/extensibility.md",
+      "url": "https://pydantic.dev/docs/ai/guides/extensibility",
+      "title": "Extensibility | Pydantic Docs",
+      "hash": "9b3307c3641b8c6f6496b2b74015923cb8dd5006b48cc9781088f6376c7c765a"
+    },
+    {
+      "path": "pages/docs/ai/guides/multi-agent-applications.md",
+      "url": "https://pydantic.dev/docs/ai/guides/multi-agent-applications",
+      "title": "Multi-Agent Patterns | Pydantic Docs",
+      "hash": "8a0f11a3258008e82c396d8c01a7121bbeb4dd130d76bf1e9b2083c926be3230"
+    },
+    {
+      "path": "pages/docs/ai/guides/testing.md",
+      "url": "https://pydantic.dev/docs/ai/guides/testing",
+      "title": "Testing | Pydantic Docs",
+      "hash": "4c32ee8c74cfb5546d8784f0306aec1ecf850b53a49bcb9a2b481b142146d852"
+    },
+    {
+      "path": "pages/docs/ai/guides/web.md",
+      "url": "https://pydantic.dev/docs/ai/guides/web",
+      "title": "Web Chat UI | Pydantic Docs",
+      "hash": "d6af83ac71bebdf1d784e1c6e581ca9268f6adeba498c09fa28648ff137a8572"
+    },
+    {
+      "path": "pages/docs/ai/harness/code-mode.md",
+      "url": "https://pydantic.dev/docs/ai/harness/code-mode",
+      "title": "Code Mode | Pydantic Docs",
+      "hash": "d5ba3b4d2d6448e585853dfbcfb45467b89e94979c191c47813993b3be816512"
+    },
+    {
+      "path": "pages/docs/ai/harness/overview.md",
+      "url": "https://pydantic.dev/docs/ai/harness/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "6b8d81f1fc60734be322555556f1e0601d475cc7c7ad69e02581532b135ee4f5"
+    },
+    {
+      "path": "pages/docs/ai/integrations/cli.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/cli",
+      "title": "Command Line Interface (CLI) | Pydantic Docs",
+      "hash": "061a9c6ee60a280f25135b889427fb5b6e0d8f3cc3a13f6a2d922f4ae60dcf1f"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/airflow.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/airflow",
+      "title": "Apache Airflow | Pydantic Docs",
+      "hash": "b750436fd5b063fc613935fd6637b8c35cc2e6af7f4f9db147d9a4bc2ccb639c"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/dbos",
+      "title": "DBOS | Pydantic Docs",
+      "hash": "bf1a501595dfe6c7b87208252c739470dcb051821356e51e3a7df94c9d7901ca"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/kitaru.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/kitaru",
+      "title": "Kitaru | Pydantic Docs",
+      "hash": "13c7df6139d7a05ac9975c09924b72057cfbb244060e624b5f11ae0bb25054dd"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/overview.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "446523c8ea13945d08f91a10cfc440fd69f71fd4cdb401b79433fba460f4e1e6"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/prefect",
+      "title": "Prefect | Pydantic Docs",
+      "hash": "f2023d18af8110d00ec020e210a7028058879b88957578f62a9762ae805dd0cc"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/restate.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/restate",
+      "title": "Restate | Pydantic Docs",
+      "hash": "4b9a369c7dec5c16445943be67a53ac581c1811ca8c7ec923d76a37183c37fde"
+    },
+    {
+      "path": "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/temporal",
+      "title": "Temporal | Pydantic Docs",
+      "hash": "eba73f00625c02e32d95836df9e4498cc7ec2798fc2efc8894278fcbd4abd816"
+    },
+    {
+      "path": "pages/docs/ai/integrations/logfire.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/logfire",
+      "title": "Debugging & Monitoring with Pydantic Logfire | Pydantic Docs",
+      "hash": "c4309e176cd15797dbb80e5ba415fa72812e46f5f621192153433847778a0eef"
+    },
+    {
+      "path": "pages/docs/ai/integrations/ui/ag-ui.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/ui/ag-ui",
+      "title": "AG-UI | Pydantic Docs",
+      "hash": "5d09443edcdfbed8e56335e1fe76ff37f935fa9b67abfb237feae75bb774411b"
+    },
+    {
+      "path": "pages/docs/ai/integrations/ui/overview.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/ui/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "f378958470ac209f3880a89f58f6336b0e0ed94b0ef5997bf63fa1830b537fde"
+    },
+    {
+      "path": "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "url": "https://pydantic.dev/docs/ai/integrations/ui/vercel-ai",
+      "title": "Vercel AI | Pydantic Docs",
+      "hash": "3c2cd0afb47146f4cd0709f652822f87a5a8d0f8fedf4a3eb4e1bfca25f6fcb8"
+    },
+    {
+      "path": "pages/docs/ai/mcp/client.md",
+      "url": "https://pydantic.dev/docs/ai/mcp/client",
+      "title": "Client | Pydantic Docs",
+      "hash": "7212a0406e1272dfb78de8fffedf4b593df31ee1546318525d686e9051ee41f0"
+    },
+    {
+      "path": "pages/docs/ai/mcp/overview.md",
+      "url": "https://pydantic.dev/docs/ai/mcp/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "e92d47f51711504fa3007553f35f8f6ccf9311b9d85f07b08706873b8c1c2f1a"
+    },
+    {
+      "path": "pages/docs/ai/mcp/server.md",
+      "url": "https://pydantic.dev/docs/ai/mcp/server",
+      "title": "Server | Pydantic Docs",
+      "hash": "551e8a311ba45e37974a8382273d672b35683bdd7203ad692698dd437557a8b6"
+    },
+    {
+      "path": "pages/docs/ai/models/anthropic.md",
+      "url": "https://pydantic.dev/docs/ai/models/anthropic",
+      "title": "Anthropic | Pydantic Docs",
+      "hash": "fd77796f2e782e5510acd4003e26bda40f378967f1c47934a30f1dba23c699c9"
+    },
+    {
+      "path": "pages/docs/ai/models/bedrock.md",
+      "url": "https://pydantic.dev/docs/ai/models/bedrock",
+      "title": "Bedrock | Pydantic Docs",
+      "hash": "bdac303e445c865a22689b9fed056ef8c1ec507a4230c53fc734a709997c5c6b"
+    },
+    {
+      "path": "pages/docs/ai/models/cerebras.md",
+      "url": "https://pydantic.dev/docs/ai/models/cerebras",
+      "title": "Cerebras | Pydantic Docs",
+      "hash": "b029817e3fd12787feec872d1424682f804048ea5b5f8e0245d255307b5fea3b"
+    },
+    {
+      "path": "pages/docs/ai/models/cohere.md",
+      "url": "https://pydantic.dev/docs/ai/models/cohere",
+      "title": "Cohere | Pydantic Docs",
+      "hash": "ab96b3d07fd70bfe57751e5329af210ca8a53afc3caee1a1b9784a4685c69e6d"
+    },
+    {
+      "path": "pages/docs/ai/models/google.md",
+      "url": "https://pydantic.dev/docs/ai/models/google",
+      "title": "Google | Pydantic Docs",
+      "hash": "cf4655cc34ff201086a24000480381bc23387a98da39b0c883326dfd43c93132"
+    },
+    {
+      "path": "pages/docs/ai/models/groq.md",
+      "url": "https://pydantic.dev/docs/ai/models/groq",
+      "title": "Groq | Pydantic Docs",
+      "hash": "9c3f0f5a140e0a13d6d6967e46bed28f708c9cb1d321ab1b2e87d1794e1a9f3c"
+    },
+    {
+      "path": "pages/docs/ai/models/huggingface.md",
+      "url": "https://pydantic.dev/docs/ai/models/huggingface",
+      "title": "Hugging Face | Pydantic Docs",
+      "hash": "4bd306768d8385b452940666eebdac9d24726ec35cfe2478f0415aa251eb3a52"
+    },
+    {
+      "path": "pages/docs/ai/models/mistral.md",
+      "url": "https://pydantic.dev/docs/ai/models/mistral",
+      "title": "Mistral | Pydantic Docs",
+      "hash": "0f0feae56babe6ee2a6d12faaa449fe2975b4a69c91136aba2f1d2d18e223e9e"
+    },
+    {
+      "path": "pages/docs/ai/models/ollama.md",
+      "url": "https://pydantic.dev/docs/ai/models/ollama",
+      "title": "Ollama | Pydantic Docs",
+      "hash": "9476b6d2e6464ee6508b4a02526a50f044834c6d7ddc355f68bcf95ad7e68499"
+    },
+    {
+      "path": "pages/docs/ai/models/openai.md",
+      "url": "https://pydantic.dev/docs/ai/models/openai",
+      "title": "OpenAI | Pydantic Docs",
+      "hash": "f89c1cb1988234fd180cb76500513481e00adaa129afc629943d35c41ed98192"
+    },
+    {
+      "path": "pages/docs/ai/models/openrouter.md",
+      "url": "https://pydantic.dev/docs/ai/models/openrouter",
+      "title": "OpenRouter | Pydantic Docs",
+      "hash": "366c60f2aa1b6db26fddf46c088b18ec6f90d4031ef23e70e76d4ff11a5b1ecf"
+    },
+    {
+      "path": "pages/docs/ai/models/overview.md",
+      "url": "https://pydantic.dev/docs/ai/models/overview",
+      "title": "Overview | Pydantic Docs",
+      "hash": "24b3d545f1ca2bdf85e7c74c2967793ab6ebd8fedb9f1504754f5cc8270e971c"
+    },
+    {
+      "path": "pages/docs/ai/models/xai.md",
+      "url": "https://pydantic.dev/docs/ai/models/xai",
+      "title": "xAI | Pydantic Docs",
+      "hash": "a6b89483a6013ba65ae750830b1094e0f36a1c547d233180872ad3ba8ee2a80d"
+    },
+    {
+      "path": "pages/docs/ai/overview.md",
+      "url": "https://pydantic.dev/docs/ai/overview",
+      "title": "Pydantic AI | Pydantic Docs",
+      "hash": "f344ab52df177c190c3d60eb99ade2c353847a58796403dc2d5c0dfafb3cc3b3"
+    },
+    {
+      "path": "pages/docs/ai/overview/coding-agent-skills.md",
+      "url": "https://pydantic.dev/docs/ai/overview/coding-agent-skills",
+      "title": "Coding Agent Skills | Pydantic Docs",
+      "hash": "800b61f85c1d5009b3dc1b746aef6c9a15b7f379b629f12c39734b076013bc5f"
+    },
+    {
+      "path": "pages/docs/ai/overview/gateway.md",
+      "url": "https://pydantic.dev/docs/ai/overview/gateway",
+      "title": "Pydantic AI Gateway | Pydantic Docs",
+      "hash": "b43a3b941916b9a22d46003897a1f1225004b31fbca87384c19ad04113274fd2"
+    },
+    {
+      "path": "pages/docs/ai/overview/help.md",
+      "url": "https://pydantic.dev/docs/ai/overview/help",
+      "title": "Getting Help | Pydantic Docs",
+      "hash": "50c481903ce7d72e4d2693f07737926628451cc763904ec330fc206b8689b409"
+    },
+    {
+      "path": "pages/docs/ai/overview/install.md",
+      "url": "https://pydantic.dev/docs/ai/overview/install",
+      "title": "Installation | Pydantic Docs",
+      "hash": "838afb518f535eaf11633cece19b10357964a2730b58db634259dc9e99d65d9e"
+    },
+    {
+      "path": "pages/docs/ai/overview/troubleshooting.md",
+      "url": "https://pydantic.dev/docs/ai/overview/troubleshooting",
+      "title": "Troubleshooting | Pydantic Docs",
+      "hash": "b524d340669598bb40d51e103f62d529582bf0aa5bf20d2ed21ec0b20c1665e6"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/common-tools.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/common-tools",
+      "title": "Common Tools | Pydantic Docs",
+      "hash": "b3d04de571efa7993ffefc263eaa9c2caeee6cc4e3a1cb29d493cd76be0da91e"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools",
+      "title": "Deferred Tools | Pydantic Docs",
+      "hash": "6e77e0b2f22afb8f8efc6c9ef13e92b9289c9cb17f3a78c116bb132886dad8d4"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/native-tools.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/native-tools",
+      "title": "Native Tools | Pydantic Docs",
+      "hash": "c0753124b81a68dc2349da8fc3da90530d67cbae61939bed5a56785c1fc991cb"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/third-party-tools",
+      "title": "Third-Party Tools | Pydantic Docs",
+      "hash": "1aaf8382a411d06ca559fd4f109c06d6175c1873462504e35f2faa1cd34a362d"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced",
+      "title": "Advanced Tool Features | Pydantic Docs",
+      "hash": "2aa8a769cc224510436bd698160416888d0afc04d1feaea2c75944f0c71f9834"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/tools.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/tools",
+      "title": "Function Tools | Pydantic Docs",
+      "hash": "f007be3e96eb359a5d7238f1b64ef1997778cd1542e3688a6f02a6c16a3de1c1"
+    },
+    {
+      "path": "pages/docs/ai/tools-toolsets/toolsets.md",
+      "url": "https://pydantic.dev/docs/ai/tools-toolsets/toolsets",
+      "title": "Toolsets | Pydantic Docs",
+      "hash": "5350455922c1535694b8002e0cbbe97c4f6a576e743d8899eda73e6183d9a96c"
+    }
+  ],
+  "edges": [
+    [
+      "pages/docs/ai/advanced-features/input.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/input.md",
+      "pages/docs/ai/models/google.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/input.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/retries.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/models/google.md"
+    ],
+    [
+      "pages/docs/ai/advanced-features/thinking.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent-spec.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/evals/evals.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/advanced-features/thinking.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/guides/extensibility.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/harness/overview.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/integrations/ui/ag-ui.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/mcp/overview.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/tools-toolsets/common-tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/capabilities.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/dependencies.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/direct.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/hooks.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/hooks.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/hooks.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/message-history.md",
+      "pages/docs/ai/advanced-features/input.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/message-history.md",
+      "pages/docs/ai/guides/multi-agent-applications.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/message-history.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/message-history.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/advanced-features/thinking.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/evaluators/llm-judge.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/evaluators/overview.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/examples/simple-validation.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/lifecycle.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/metrics-attributes.md"
+    ],
+    [
+      "pages/docs/ai/evals/evals.md",
+      "pages/docs/ai/evals/how-to/retry-strategies.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/built-in.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/built-in.md",
+      "pages/docs/ai/evals/evaluators/llm-judge.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/built-in.md",
+      "pages/docs/ai/evals/evaluators/report-evaluators.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/built-in.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/built-in.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/custom.md",
+      "pages/docs/ai/evals/evaluators/report-evaluators.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/custom.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/custom.md",
+      "pages/docs/ai/evals/examples/simple-validation.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/custom.md",
+      "pages/docs/ai/evals/how-to/metrics-attributes.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/llm-judge.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/llm-judge.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/framework-integrations.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/llm-judge.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/report-evaluators.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/overview.md",
+      "pages/docs/ai/evals/how-to/retry-strategies.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/report-evaluators.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/report-evaluators.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/report-evaluators.md",
+      "pages/docs/ai/evals/evaluators/overview.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/report-evaluators.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/span-based.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/span-based.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/evaluators/span-based.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/examples/simple-validation.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/examples/simple-validation.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/examples/simple-validation.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/examples/simple-validation.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "pages/docs/ai/evals/evaluators/overview.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "pages/docs/ai/evals/evaluators/report-evaluators.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/core-concepts.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/quick-start.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/quick-start.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/quick-start.md",
+      "pages/docs/ai/evals/examples/simple-validation.md"
+    ],
+    [
+      "pages/docs/ai/evals/getting-started/quick-start.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/concurrency.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/concurrency.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/concurrency.md",
+      "pages/docs/ai/evals/how-to/retry-strategies.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/dataset-management.md",
+      "pages/docs/ai/evals/evaluators/overview.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/dataset-management.md",
+      "pages/docs/ai/evals/examples/simple-validation.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/dataset-management.md",
+      "pages/docs/ai/evals/how-to/dataset-serialization.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/dataset-serialization.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/dataset-serialization.md",
+      "pages/docs/ai/evals/how-to/dataset-management.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/lifecycle.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/lifecycle.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/lifecycle.md",
+      "pages/docs/ai/evals/how-to/metrics-attributes.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/logfire-integration.md",
+      "pages/docs/ai/evals/evaluators/span-based.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/logfire-integration.md",
+      "pages/docs/ai/evals/how-to/metrics-attributes.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/metrics-attributes.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/metrics-attributes.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/metrics-attributes.md",
+      "pages/docs/ai/evals/how-to/lifecycle.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/metrics-attributes.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/multi-run.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/multi-run.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/multi-run.md",
+      "pages/docs/ai/evals/how-to/metrics-attributes.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/retry-strategies.md",
+      "pages/docs/ai/evals/how-to/concurrency.md"
+    ],
+    [
+      "pages/docs/ai/evals/how-to/retry-strategies.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/online-evaluation.md",
+      "pages/docs/ai/evals/evaluators/built-in.md"
+    ],
+    [
+      "pages/docs/ai/evals/online-evaluation.md",
+      "pages/docs/ai/evals/evaluators/custom.md"
+    ],
+    [
+      "pages/docs/ai/evals/online-evaluation.md",
+      "pages/docs/ai/evals/how-to/logfire-integration.md"
+    ],
+    [
+      "pages/docs/ai/evals/online-evaluation.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/bank-support.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/bank-support.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/bank-support.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/bank-support.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/chat-app.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/chat-app.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/examples/conversational-agents/chat-app.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/pydantic-model.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/pydantic-model.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/weather-agent.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/weather-agent.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/weather-agent.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/examples/getting-started/weather-agent.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/examples/setup.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/graph/builder/decisions.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/graph/builder/joins.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/graph/builder/parallel.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/graph/builder/steps.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/graph/graph.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder.md",
+      "pages/docs/ai/integrations/durable_execution/overview.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/decisions.md",
+      "pages/docs/ai/graph/builder/joins.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/decisions.md",
+      "pages/docs/ai/graph/builder/parallel.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/joins.md",
+      "pages/docs/ai/graph/builder/decisions.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/joins.md",
+      "pages/docs/ai/graph/builder/parallel.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/parallel.md",
+      "pages/docs/ai/graph/builder/decisions.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/parallel.md",
+      "pages/docs/ai/graph/builder/joins.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/parallel.md",
+      "pages/docs/ai/graph/builder/steps.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/steps.md",
+      "pages/docs/ai/graph/builder/decisions.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/steps.md",
+      "pages/docs/ai/graph/builder/joins.md"
+    ],
+    [
+      "pages/docs/ai/graph/builder/steps.md",
+      "pages/docs/ai/graph/builder/parallel.md"
+    ],
+    [
+      "pages/docs/ai/graph/graph.md",
+      "pages/docs/ai/graph/builder.md"
+    ],
+    [
+      "pages/docs/ai/graph/graph.md",
+      "pages/docs/ai/graph/builder/steps.md"
+    ],
+    [
+      "pages/docs/ai/graph/graph.md",
+      "pages/docs/ai/overview/install.md"
+    ],
+    [
+      "pages/docs/ai/guides/embeddings.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/guides/embeddings.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/guides/embeddings.md",
+      "pages/docs/ai/models/google.md"
+    ],
+    [
+      "pages/docs/ai/guides/embeddings.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/harness/overview.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/guides/extensibility.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/graph/graph.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/integrations/durable_execution/overview.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/guides/multi-agent-applications.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/guides/web.md",
+      "pages/docs/ai/integrations/cli.md"
+    ],
+    [
+      "pages/docs/ai/harness/code-mode.md",
+      "pages/docs/ai/harness/overview.md"
+    ],
+    [
+      "pages/docs/ai/harness/overview.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/harness/overview.md",
+      "pages/docs/ai/guides/extensibility.md"
+    ],
+    [
+      "pages/docs/ai/harness/overview.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/integrations/cli.md",
+      "pages/docs/ai/guides/web.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/advanced-features/retries.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/dbos.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/kitaru.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/kitaru.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/airflow.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/dbos.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/kitaru.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/prefect.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/restate.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/integrations/durable_execution/temporal.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/overview.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/advanced-features/retries.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/prefect.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/advanced-features/retries.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/integrations/durable_execution/temporal.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/integrations/logfire.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/logfire.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/ag-ui.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/ag-ui.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/ag-ui.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/ag-ui.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/ag-ui.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/overview.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/overview.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/overview.md",
+      "pages/docs/ai/integrations/ui/ag-ui.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/overview.md",
+      "pages/docs/ai/integrations/ui/vercel-ai.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "pages/docs/ai/advanced-features/input.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/integrations/ui/vercel-ai.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/mcp/client.md",
+      "pages/docs/ai/mcp/server.md"
+    ],
+    [
+      "pages/docs/ai/mcp/client.md",
+      "pages/docs/ai/overview/install.md"
+    ],
+    [
+      "pages/docs/ai/mcp/client.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/mcp/overview.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/mcp/overview.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/mcp/overview.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/mcp/overview.md",
+      "pages/docs/ai/mcp/server.md"
+    ],
+    [
+      "pages/docs/ai/mcp/server.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/models/anthropic.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/models/anthropic.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/models/anthropic.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/models/bedrock.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/models/google.md",
+      "pages/docs/ai/advanced-features/input.md"
+    ],
+    [
+      "pages/docs/ai/models/google.md",
+      "pages/docs/ai/advanced-features/thinking.md"
+    ],
+    [
+      "pages/docs/ai/models/openai.md",
+      "pages/docs/ai/models/ollama.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/cerebras.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/cohere.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/google.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/groq.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/huggingface.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/mistral.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/openrouter.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/xai.md"
+    ],
+    [
+      "pages/docs/ai/models/xai.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/models/xai.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/evals/evals.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/graph/graph.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/guides/extensibility.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/guides/testing.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/harness/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/integrations/durable_execution/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/mcp/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/overview/install.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/overview.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/guides/multi-agent-applications.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/guides/testing.md"
+    ],
+    [
+      "pages/docs/ai/overview/coding-agent-skills.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/advanced-features/retries.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/evals/evals.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/examples/setup.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/guides/embeddings.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/cli.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/durable_execution/dbos.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/durable_execution/prefect.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/durable_execution/temporal.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/ui/ag-ui.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/integrations/ui/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/bedrock.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/cohere.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/google.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/groq.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/huggingface.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/mistral.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/openrouter.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/models/xai.md"
+    ],
+    [
+      "pages/docs/ai/overview/install.md",
+      "pages/docs/ai/tools-toolsets/common-tools.md"
+    ],
+    [
+      "pages/docs/ai/overview/troubleshooting.md",
+      "pages/docs/ai/integrations/logfire.md"
+    ],
+    [
+      "pages/docs/ai/overview/troubleshooting.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/overview/troubleshooting.md",
+      "pages/docs/ai/overview/help.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/common-tools.md",
+      "pages/docs/ai/overview/install.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/deferred-tools.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/models/anthropic.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/tools-toolsets/common-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/native-tools.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "pages/docs/ai/guides/extensibility.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/third-party-tools.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/advanced-features/input.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/core-concepts/direct.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/tools-toolsets/third-party-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/tools-toolsets/common-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/tools-toolsets/third-party-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/core-concepts/capabilities.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/guides/extensibility.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/guides/multi-agent-applications.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/mcp/client.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/mcp/overview.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
+    ]
+  ]
+}
