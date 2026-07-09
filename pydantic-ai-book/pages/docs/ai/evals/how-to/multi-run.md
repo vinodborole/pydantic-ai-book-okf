@@ -2,7 +2,7 @@
 type: Web Page
 title: Multi-Run Evaluation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/multi-run
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Multi-Run Evaluation
@@ -11,9 +11,11 @@ Run each case multiple times to measure variability and get more reliable aggreg
 
 AI systems are inherently stochastic — the same input can produce different outputs across runs. The `repeat` parameter lets you run each case multiple times and automatically aggregates the results, giving you a clearer picture of your system’s typical behavior.
 
-Pass `repeat` to `evaluate()` or `evaluate_sync()`:
+Pass `repeat` to [ evaluate()](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate) or 
 
-```
+[:](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate_sync)
+
+`evaluate_sync()````
 from pydantic_evals import Case, Dataset
 dataset = Dataset(
     name='multi_run_basic',
@@ -30,9 +32,9 @@ report = dataset.evaluate_sync(task, repeat=5)
 print(len(report.cases))
 #> 10
 ```
-When `repeat > 1`, each run gets an indexed name like `greeting [1/5]`, `greeting [2/5]`, etc., while the original case name is preserved in `source_case_name` for grouping.
+When `repeat > 1`, each run gets an indexed name like `greeting [1/5]`, `greeting [2/5]`, etc., while the original case name is preserved in [ source_case_name](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.ReportCase.source_case_name) for grouping.
 
-Use `case_groups()` to access runs organized by original case, with per-group aggregated statistics:
+Use [ case_groups()](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.EvaluationReport.case_groups) to access runs organized by original case, with per-group aggregated statistics:
 
 ```
 from pydantic_evals import Case, Dataset
@@ -59,12 +61,12 @@ for group in groups:
     assert len(group.failures) == 0
     assert group.summary.task_duration > 0
 ```
-Each `ReportCaseGroup` contains:
+Each [ ReportCaseGroup](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.ReportCaseGroup) contains:
 
 - `name`— the original case name
-- `runs`— the individual- `ReportCase`results
+- `runs`— the individual- `ReportCase`
 - `failures`— any runs that raised exceptions
-- `summary`— a- `ReportCaseAggregate`with averaged scores, metrics, labels, assertions, and durations
+- `summary`— a- `ReportCaseAggregate`
 
 With `repeat > 1`, the report’s `averages()` uses a two-level aggregation strategy:
 
@@ -103,9 +105,9 @@ report = dataset.evaluate_sync(task)  # repeat=1 by default
 assert report.case_groups() is None
 assert all(c.source_case_name is None for c in report.cases)
 ```
-- **Concurrency & Performance**— Control parallel execution with- `max_concurrency`
-- **Metrics & Attributes**— Track custom metrics across runs
-- **Logfire Integration**— Visualize multi-run results
+- [Concurrency & Performance](/docs/ai/evals/how-to/concurrency)- `max_concurrency`
+- [Metrics & Attributes](/docs/ai/evals/how-to/metrics-attributes)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
 
 # Citations
 

@@ -2,12 +2,12 @@
 type: Web Page
 title: LLM Judge | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/llm-judge
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # LLM Judge
 
-The `LLMJudge` evaluator uses an LLM to assess subjective qualities of outputs based on a rubric.
+The [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) evaluator uses an LLM to assess subjective qualities of outputs based on a rubric.
 
 LLM judges are ideal for evaluating qualities that require understanding and judgment:
 
@@ -23,9 +23,9 @@ LLM judges are ideal for evaluating qualities that require understanding and jud
 
 **Poor Use Cases:**
 
-- Format validation (use `IsInstance`instead)
-- Exact matching (use `EqualsExpected`)
-- Performance checks (use `MaxDuration`)
+- Format validation (use `IsInstance`
+- Exact matching (use `EqualsExpected`
+- Performance checks (use `MaxDuration`
 - Deterministic logic (write a custom evaluator)
 
 ```
@@ -465,8 +465,8 @@ set_default_judge_model('anthropic:claude-sonnet-4-6')
 # Now all LLMJudge instances use Claude by default
 LLMJudge(rubric='...')  # Uses Claude
 ```
-- **Custom Evaluators**- Write custom evaluation logic
-- **Native Evaluators**- Complete evaluator reference
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
 
 # Citations
 

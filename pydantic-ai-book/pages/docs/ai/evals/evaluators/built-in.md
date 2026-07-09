@@ -2,7 +2,7 @@
 type: Web Page
 title: Built-in Evaluators | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/built-in
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Built-in Evaluators
@@ -92,7 +92,7 @@ Contains(
 - `as_strings`(bool): Convert both values to strings before checking (default:- `False`)
 - `evaluation_name`(str | None): Custom name for this evaluation in reports
 
-**Returns:** `EvaluationReason` - Pass/fail with explanation
+**Returns:** [ EvaluationReason](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationReason) - Pass/fail with explanation
 
 **Behavior:**
 
@@ -150,7 +150,7 @@ IsInstance(type_name='str')
 - `type_name`(str): The type name to check (uses- `__name__`or- `__qualname__`)
 - `evaluation_name`(str | None): Custom name for this evaluation in reports
 
-**Returns:** `EvaluationReason` - Pass/fail with type information
+**Returns:** [ EvaluationReason](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationReason) - Pass/fail with type information
 
 **Example:**
 
@@ -222,7 +222,7 @@ dataset = Dataset(
 - Latency requirements
 - Timeout validation
 
-**See Also:** Concurrency & Performance
+**See Also:** [Concurrency & Performance](/docs/ai/evals/how-to/concurrency)
 
 Use an LLM to evaluate subjective qualities based on a rubric.
 
@@ -306,7 +306,7 @@ dataset = Dataset(
     ],
 )
 ```
-**See Also:** LLM Judge Deep Dive
+**See Also:** [LLM Judge Deep Dive](/docs/ai/evals/evaluators/llm-judge)
 
 Chain-of-thought evaluation following the G-Eval method (Liu et al., 2023): the judge applies
 explicit evaluation steps and returns an integer score in `score_range` with a reasoning trace.
@@ -336,7 +336,7 @@ GEval(
 
 **Returns:** `EvaluationReason` with the integer score and the judge’s reasoning
 
-**See Also:** Standard Quality Metrics
+**See Also:** [Standard Quality Metrics](/docs/ai/evals/evaluators/standard-quality-metrics)
 
 Check if OpenTelemetry spans match a query (requires Logfire configuration).
 
@@ -349,7 +349,7 @@ HasMatchingSpan(
 ```
 **Parameters:**
 
-- `query`(- `SpanQuery`): Query to match against spans
+- `query`(- `SpanQuery`
 - `evaluation_name`(str | None): Custom name for this evaluation in reports
 
 **Returns:** `bool` - `True` if any span matches the query
@@ -384,7 +384,7 @@ dataset = Dataset(
     ],
 )
 ```
-**See Also:** Span-Based Evaluation
+**See Also:** [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
 
 In addition to the case-level evaluators above, Pydantic Evals provides report evaluators that
 analyze entire experiment results. These are passed via the `report_evaluators` parameter on `Dataset`.
@@ -394,7 +394,7 @@ analyze entire experiment results. These are passed via the `report_evaluators` 
 | `ConfusionMatrixEvaluator` | Classification confusion matrix | `ConfusionMatrix` | 
 | `PrecisionRecallEvaluator` | PR curve with AUC | `PrecisionRecall` | 
 
-**See:** Report Evaluators for full documentation, parameters, and examples,
+**See:** [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators) for full documentation, parameters, and examples,
 including how to write custom report evaluators that produce `ScalarResult` and `TableResult` analyses.
 
 | Evaluator | Purpose | Return Type | Cost | Speed | 
@@ -443,10 +443,10 @@ This approach:
 - Only runs expensive LLM evaluation if basic checks pass
 - Provides comprehensive quality assessment
 
-- **LLM Judge**- Deep dive on LLM-as-a-Judge evaluation
-- **Custom Evaluators**- Write your own evaluation logic
-- **Report Evaluators**- Experiment-wide analyses (confusion matrices, PR curves, etc.)
-- **Span-Based Evaluation**- Using OpenTelemetry spans for behavioral checks
+- [LLM Judge](/docs/ai/evals/evaluators/llm-judge)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators)
+- [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
 
 # Citations
 

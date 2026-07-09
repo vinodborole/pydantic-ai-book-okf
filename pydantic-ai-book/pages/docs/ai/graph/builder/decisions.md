@@ -2,7 +2,7 @@
 type: Web Page
 title: Decisions | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/graph/builder/decisions
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Decisions
@@ -17,15 +17,17 @@ A decision node evaluates incoming data and routes it to different branches base
 
 The first matching branch is taken, similar to pattern matching or `if-elif-else` chains.
 
-Use `g.decision()` to create a decision node, then add branches with `g.match()`:
+Use [ g.decision()](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.decision) to create a decision node, then add branches with 
 
-*(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
+[:](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.match)
+
+`g.match()`*(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
 Match by type using regular Python types:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-For more complex type expressions like unions, you need to use `TypeExpression` because Python’s type system doesn’t allow union types to be used directly as runtime values:
+For more complex type expressions like unions, you need to use [ TypeExpression](/docs/ai/api/pydantic_graph/util/#pydantic_graph.util.TypeExpression) because Python’s type system doesn’t allow union types to be used directly as runtime values:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
@@ -51,9 +53,9 @@ Add labels to branches for documentation and diagram generation:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-- Learn about parallel execution with broadcasting and mapping
-- Understand join nodes for aggregating parallel results
-- See the API reference for complete decision documentation
+- Learn about [parallel execution](/docs/ai/graph/builder/parallel)with broadcasting and mapping
+- Understand [join nodes](/docs/ai/graph/builder/joins)for aggregating parallel results
+- See the [API reference](/docs/ai/api/pydantic_graph/decision/#pydantic_graph.decision)for complete decision documentation
 
 # Citations
 

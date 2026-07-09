@@ -2,16 +2,16 @@
 type: Web Page
 title: Report Evaluators | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/report-evaluators
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Report Evaluators
 
 Report evaluators analyze entire experiment results rather than individual cases. Use them to compute experiment-wide statistics like confusion matrices, precision-recall curves, accuracy scores, or custom summary tables.
 
-Regular evaluators run once per case and assess individual outputs.
+Regular [evaluators](/docs/ai/evals/evaluators/overview) run once per case and assess individual outputs.
 Report evaluators run once per experiment *after* all cases have been evaluated,
-receiving the full `EvaluationReport` as input.
+receiving the full [ EvaluationReport](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.EvaluationReport) as input.
 
 ```
 Cases executed → Case evaluators run → Report evaluators run → Final report
@@ -151,9 +151,11 @@ PrecisionRecallEvaluator(
 | `title` | `str` | `'Precision-Recall Curve'` | Title shown in reports | 
 | `n_thresholds` | `int` | `100` | Number of threshold points on the curve | 
 
-**Returns:** `PrecisionRecall` + `ScalarResult` (AUC)
+**Returns:** [ PrecisionRecall](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.PrecisionRecall) + 
 
-The AUC is computed at full resolution (using every unique score as a threshold) for accuracy,
+[(AUC)](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.ScalarResult)
+
+`ScalarResult`The AUC is computed at full resolution (using every unique score as a threshold) for accuracy,
 then the curve points are downsampled to `n_thresholds` for display. The AUC is returned both
 on the curve (for chart rendering) and as a separate `ScalarResult` for querying and sorting.
 
@@ -227,11 +229,13 @@ ROCAUCEvaluator(
 | `title` | `str` | `'ROC Curve'` | Title shown in reports | 
 | `n_thresholds` | `int` | `100` | Number of threshold points on the curve | 
 
-**Returns:** `LinePlot` + `ScalarResult` (AUC)
+**Returns:** [ LinePlot](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.LinePlot) + 
 
-The AUC is computed at full resolution. The chart includes a dashed “Random” baseline diagonal from (0, 0) to (1, 1) for visual comparison.
+[(AUC)](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.ScalarResult)
 
-**Score and Positive Sources:** Same as `PrecisionRecallEvaluator`.
+`ScalarResult`The AUC is computed at full resolution. The chart includes a dashed “Random” baseline diagonal from (0, 0) to (1, 1) for visual comparison.
+
+**Score and Positive Sources:** Same as [ PrecisionRecallEvaluator](#precisionrecallevaluator).
 
 Computes a Kolmogorov-Smirnov plot and KS statistic from numeric scores and binary ground-truth labels. The KS plot shows the empirical CDFs (cumulative distribution functions) of the score distribution for positive and negative cases. The KS statistic is the maximum vertical distance between the two CDFs — higher values indicate better class separation.
 
@@ -254,14 +258,16 @@ KolmogorovSmirnovEvaluator(
 | `title` | `str` | `'KS Plot'` | Title shown in reports | 
 | `n_thresholds` | `int` | `100` | Number of threshold points on the curve | 
 
-**Returns:** `LinePlot` + `ScalarResult` (KS Statistic)
+**Returns:** [ LinePlot](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.LinePlot) + 
 
-**Score and Positive Sources:** Same as `PrecisionRecallEvaluator`.
+[(KS Statistic)](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.ScalarResult)
 
-Write custom report evaluators by inheriting from `ReportEvaluator`
-and implementing the `evaluate` method:
+`ScalarResult`**Score and Positive Sources:** Same as [ PrecisionRecallEvaluator](#precisionrecallevaluator).
 
-```
+Write custom report evaluators by inheriting from [ ReportEvaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.ReportEvaluator)
+and implementing the 
+
+`evaluate` method:```
 from dataclasses import dataclass
 from pydantic_evals.evaluators import ReportEvaluator, ReportEvaluatorContext
 from pydantic_evals.reporting.analyses import ScalarResult
@@ -282,7 +288,7 @@ class AccuracyEvaluator(ReportEvaluator):
 The context passed to `evaluate()` contains:
 
 - `ctx.name`— the experiment name
-- `ctx.report`— the full- `EvaluationReport`with all case results
+- `ctx.report`— the full- `EvaluationReport`
 - `ctx.experiment_metadata`— optional experiment-level metadata dict
 
 Through `ctx.report.cases`, you can access each case’s inputs, outputs, expected outputs, scores,
@@ -497,7 +503,7 @@ dataset.to_file(
     custom_report_evaluator_types=[MyCustomReportEvaluator],
 )
 ```
-When Logfire is configured, analyses are automatically attached
+When [Logfire is configured](/docs/ai/evals/how-to/logfire-integration), analyses are automatically attached
 to the experiment span as the `logfire.experiment.analyses` attribute. The Logfire UI renders them
 as interactive visualizations:
 
@@ -606,9 +612,9 @@ for analysis in report.analyses:
     #> scalar: KS Statistic
     #> scalar: Accuracy
 ```
-- **Native Evaluators**— Case-level evaluator reference
-- **Custom Evaluators**— Writing case-level evaluators
-- **Logfire Integration**— Viewing analyses in the Logfire UI
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
 
 # Citations
 

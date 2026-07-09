@@ -2,7 +2,7 @@
 type: Web Page
 title: Logfire Integration | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/logfire-integration
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Logfire Integration
@@ -11,7 +11,7 @@ Visualize and analyze evaluation results using Pydantic Logfire.
 
 Pydantic Evals uses OpenTelemetry to record traces of the evaluation process. These traces contain all the information from your evaluation reports, plus full tracing from the execution of your task function.
 
-You can send these traces to any OpenTelemetry-compatible backend, including Pydantic Logfire.
+You can send these traces to any OpenTelemetry-compatible backend, including [Pydantic Logfire](https://logfire.pydantic.dev/docs/guides/web-ui/evals/).
 
 Install the optional logfire dependency:
 
@@ -83,7 +83,7 @@ Find failed cases quickly:
 - View the full span tree to see where the failure occurred
 - Inspect attributes and logs for error messages
 
-Logfire integration enables powerful span-based evaluators. See Span-Based Evaluation for details.
+Logfire integration enables powerful span-based evaluators. See [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based) for details.
 
 Example: Verify specific tools were called:
 
@@ -149,9 +149,9 @@ logfire.configure(
 - Analyze performance trends
 - Adjust evaluators based on insights
 
-- **Span-Based Evaluation**- Use OpenTelemetry spans in evaluators
-- **Logfire Documentation**- Complete Logfire guide
-- **Metrics & Attributes**- Add custom data to traces
+- [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
+- [Logfire Documentation](https://logfire.pydantic.dev/docs/guides/web-ui/evals/)
+- [Metrics & Attributes](/docs/ai/evals/how-to/metrics-attributes)
 
 # Citations
 

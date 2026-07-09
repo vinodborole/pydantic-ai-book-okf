@@ -2,7 +2,7 @@
 type: Web Page
 title: Quick Start | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/getting-started/quick-start
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Quick Start
@@ -88,7 +88,7 @@ Understanding a few core concepts will help you get the most out of Pydantic Eva
 - `Evaluator`
 - `EvaluationReport`
 
-For a deeper dive, see Core Concepts.
+For a deeper dive, see [Core Concepts](/docs/ai/evals/core-concepts).
 
 Test that your AI system produces correctly-structured outputs:
 
@@ -142,11 +142,11 @@ dataset = Dataset(
 ```
 Explore the documentation to learn more:
 
-- **Core Concepts**- Understand the data model and evaluation flow
-- **Native Evaluators**- Learn about all available evaluators
-- **Custom Evaluators**- Write your own evaluation logic
-- **Dataset Management**- Save, load, and generate datasets
-- **Examples**- Practical examples for common scenarios
+- [Core Concepts](/docs/ai/evals/core-concepts)
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Dataset Management](/docs/ai/evals/how-to/dataset-management)
+- [Examples](/docs/ai/evals/examples/simple-validation)
 
 # Citations
 

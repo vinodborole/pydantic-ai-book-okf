@@ -2,7 +2,7 @@
 type: Web Page
 title: Retry Strategies | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/retry-strategies
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Retry Strategies
@@ -21,7 +21,7 @@ Pydantic Evals supports retry configuration for both:
 - **Task execution**- The function being evaluated
 - **Evaluator execution**- The evaluators themselves
 
-Pass a retry configuration to `evaluate()` or `evaluate_sync()` using Tenacity parameters:
+Pass a retry configuration to `evaluate()` or `evaluate_sync()` using [Tenacity](https://tenacity.readthedocs.io/) parameters:
 
 ```
 from tenacity import stop_after_attempt
@@ -35,7 +35,7 @@ report = dataset.evaluate_sync(
     retry_evaluators={'stop': stop_after_attempt(2)},
 )
 ```
-Retry configurations use Tenacity and support the same options as Pydantic AI’s `RetryConfig`:
+Retry configurations use [Tenacity](https://tenacity.readthedocs.io/) and support the same options as Pydantic AI’s [ RetryConfig](/docs/ai/api/pydantic-ai/retries/#pydantic_ai.retries.RetryConfig):
 
 ```
 from tenacity import stop_after_attempt, wait_exponential
@@ -63,7 +63,7 @@ The retry configuration accepts any parameters from the tenacity `retry` decorat
 | `reraise` | `bool` | Whether to reraise the original exception (default: `False`) | 
 | `before_sleep` | `Callable` | Callback before sleeping between retries | 
 
-See the Tenacity documentation for all available options.
+See the [Tenacity documentation](https://tenacity.readthedocs.io/) for all available options.
 
 Retry the task function when it fails:
 
@@ -155,7 +155,7 @@ class APIEvaluator(Evaluator):
         result = await external_api_call(ctx.output)
         return result
 ```
-If an evaluator fails after all retries, it’s recorded as an `EvaluatorFailure`:
+If an evaluator fails after all retries, it’s recorded as an [ EvaluatorFailure](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorFailure):
 
 ```
 from tenacity import stop_after_attempt
@@ -371,8 +371,8 @@ report = dataset.evaluate_sync(
     max_concurrency=2,  # Only 2 concurrent tasks
 )
 ```
-- **Concurrency & Performance**- Optimize evaluation performance
-- **Logfire Integration**- View retries in Logfire
+- [Concurrency & Performance](/docs/ai/evals/how-to/concurrency)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
 
 # Citations
 

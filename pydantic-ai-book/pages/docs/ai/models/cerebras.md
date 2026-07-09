@@ -2,16 +2,16 @@
 type: Web Page
 title: Cerebras | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/cerebras
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Cerebras
 
 To use `CerebrasModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `cerebras` optional group:
 
-To use Cerebras through their API, go to cloud.cerebras.ai and generate an API key.
+To use [Cerebras](https://cerebras.ai/) through their API, go to [cloud.cerebras.ai](https://cloud.cerebras.ai/?utm_source=3pi_pydantic-ai&utm_campaign=partner_doc) and generate an API key.
 
-For a list of available models, see the Cerebras models documentation.
+For a list of available models, see the [Cerebras models documentation](https://inference-docs.cerebras.ai/models).
 
 Once you have the API key, you can set it as an environment variable:
 

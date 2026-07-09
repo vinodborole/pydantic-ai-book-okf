@@ -2,7 +2,7 @@
 type: Web Page
 title: Multi-Agent Patterns | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/guides/multi-agent-applications
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Multi-Agent Patterns
@@ -10,28 +10,31 @@ timestamp: '2026-07-07T10:31:51.511921+00:00'
 There are roughly five levels of complexity when building applications with Pydantic AI:
 
 - Single agent workflows — what most of the `pydantic_ai`documentation covers
-- Agent delegation — agents using another agent via tools
-- Programmatic agent hand-off — one agent runs, then application code calls another agent
-- Graph based control flow — for the most complex cases, a graph-based state machine can be used to control the execution of multiple agents
-- Deep Agents — autonomous agents with planning, file operations, task delegation, and sandboxed code execution
+- [Agent delegation](#agent-delegation)— agents using another agent via tools
+- [Programmatic agent hand-off](#programmatic-agent-hand-off)— one agent runs, then application code calls another agent
+- [Graph based control flow](/docs/ai/graph/graph)— for the most complex cases, a graph-based state machine can be used to control the execution of multiple agents
+- [Deep Agents](#deep-agents)— autonomous agents with planning, file operations, task delegation, and sandboxed code execution
 
 Of course, you can combine multiple strategies in a single application.
 
-“Agent delegation” refers to the scenario where an agent delegates work to another agent, then takes back control when the delegate agent (the agent called from within a tool) finishes. If you want to hand off control to another agent completely, without coming back to the first agent, you can use an output function.
+“Agent delegation” refers to the scenario where an agent delegates work to another agent, then takes back control when the delegate agent (the agent called from within a tool) finishes.
+If you want to hand off control to another agent completely, without coming back to the first agent, you can use an [output function](/docs/ai/core-concepts/output#output-functions).
 
-Since agents are stateless and designed to be global, you do not need to include the agent itself in agent dependencies.
+Since agents are stateless and designed to be global, you do not need to include the agent itself in agent [dependencies](/docs/ai/core-concepts/dependencies).
 
-You’ll generally want to pass `ctx.usage` to the `usage` keyword argument of the delegate agent run so usage within that run counts towards the total usage of the parent agent run.
+You’ll generally want to pass [ ctx.usage](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage) to the 
 
-The "parent" or controlling agent.
+[keyword argument of the delegate agent run so usage within that run counts towards the total usage of the parent agent run.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run)
 
-Passing `name` is optional but recommended when you run more than one agent: it labels each agent's run span, so naming both lets you tell the parent and delegate apart in Logfire. When omitted, the name is inferred from the variable the agent is assigned to and falls back to `'agent'` when it can't be (e.g. agents kept in a list or dict).
+`usage`The "parent" or controlling agent.
+
+Passing `name` is optional but recommended when you run more than one agent: it labels each agent's run span, so naming both lets you tell the parent and delegate apart in [Logfire](/docs/ai/integrations/logfire). When omitted, the name is inferred from the variable the agent is assigned to and falls back to `'agent'` when it can't be (e.g. agents kept in a list or dict).
 
 The "delegate" agent, which is called from within a tool of the parent agent.
 
 Call the delegate agent from within a tool of the parent agent.
 
-Pass the usage from the parent agent to the delegate agent so the final `result.usage` includes the usage from both agents.
+Pass the usage from the parent agent to the delegate agent so the final [ result.usage](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult.usage) includes the usage from both agents.
 
 Since the function returns `list[str]`, and the `output_type` of `joke_generation_agent` is also `list[str]`, we can simply return `r.output` from the tool.
 
@@ -48,7 +51,7 @@ graph TD
   joke_factory --> joke_selection_agent
   joke_selection_agent --> END
 ```
-Generally the delegate agent needs to either have the same dependencies as the calling agent, or dependencies which are a subset of the calling agent’s dependencies.
+Generally the delegate agent needs to either have the same [dependencies](/docs/ai/core-concepts/dependencies) as the calling agent, or dependencies which are a subset of the calling agent’s dependencies.
 
 Define a dataclass to hold the client and API key dependencies.
 
@@ -85,7 +88,7 @@ Here agents don’t need to use the same deps.
 
 Here we show two agents used in succession, the first to find a flight and the second to extract the user’s seat preference.
 
-Define the first agent, which finds a flight. We use an explicit type annotation until PEP-747 lands, see structured output. We use a union as the output type so the model can communicate if it's unable to find a satisfactory choice; internally, each member of the union will be registered as a separate tool.
+Define the first agent, which finds a flight. We use an explicit type annotation until [PEP-747](https://peps.python.org/pep-0747/) lands, see [structured output](/docs/ai/core-concepts/output#structured-output). We use a union as the output type so the model can communicate if it's unable to find a satisfactory choice; internally, each member of the union will be registered as a separate tool.
 
 Define a tool on the agent to find a flight. In this simple case we could dispense with the tool and just define the agent to return structured data, then search for a flight, but in more complex scenarios the tool would be necessary.
 
@@ -118,23 +121,23 @@ graph TB
   end
   seat_preference_agent --> END
 ```
-See the graph documentation on when and how to use graphs.
+See the [graph](/docs/ai/graph/graph) documentation on when and how to use graphs.
 
 Deep agents are autonomous agents that combine multiple architectural patterns and capabilities to handle complex, multi-step tasks reliably. These patterns can be implemented using Pydantic AI’s built-in features and (third-party) toolsets:
 
-- **Planning and progress tracking**— agents break down complex tasks into steps and track their progress, giving users visibility into what the agent is working on. See Task Management toolsets.
-- **File system operations**— reading, writing, and editing files with proper abstraction layers that work across in-memory storage, real file systems, and sandboxed containers. See File Operations toolsets.
-- **Task delegation**— spawning specialized sub-agents for specific tasks, with isolated context to prevent recursive delegation issues. See Agent Delegation above.
-- **Sandboxed code execution**— running AI-generated code in isolated environments (typically Docker containers) to prevent accidents. See Code Execution toolsets.
-- **Context management**— automatic conversation summarization to handle long sessions that would otherwise exceed token limits. See Processing Message History.
-- **Human-in-the-loop**— approval workflows for dangerous operations like code execution or file deletion. See Requiring Tool Approval.
-- **Durable execution**— preserving agent state across transient API failures and application errors or restarts. See Durable Execution.
+- **Planning and progress tracking**— agents break down complex tasks into steps and track their progress, giving users visibility into what the agent is working on. See- [Task Management toolsets](/docs/ai/tools-toolsets/toolsets#task-management).
+- **File system operations**— reading, writing, and editing files with proper abstraction layers that work across in-memory storage, real file systems, and sandboxed containers. See- [File Operations toolsets](/docs/ai/tools-toolsets/toolsets#file-operations).
+- **Task delegation**— spawning specialized sub-agents for specific tasks, with isolated context to prevent recursive delegation issues. See- [Agent Delegation](#agent-delegation)above.
+- **Sandboxed code execution**— running AI-generated code in isolated environments (typically Docker containers) to prevent accidents. See- [Code Execution toolsets](/docs/ai/tools-toolsets/toolsets#code-execution).
+- **Context management**— automatic conversation summarization to handle long sessions that would otherwise exceed token limits. See- [Processing Message History](/docs/ai/core-concepts/message-history#processing-message-history).
+- **Human-in-the-loop**— approval workflows for dangerous operations like code execution or file deletion. See- [Requiring Tool Approval](/docs/ai/tools-toolsets/toolsets#requiring-tool-approval).
+- **Durable execution**— preserving agent state across transient API failures and application errors or restarts. See- [Durable Execution](/docs/ai/integrations/durable_execution/overview).
 
 In addition, the community maintains packages that bring these concepts together in a more opinionated way:
 
 Multi-agent systems can be challenging to debug due to their complexity; when multiple agents interact, understanding the flow of execution becomes essential.
 
-With Logfire, you can trace the entire flow across multiple agents:
+With [Logfire](/docs/ai/integrations/logfire), you can trace the entire flow across multiple agents:
 
 ```
 import logfire
@@ -153,9 +156,9 @@ Logfire shows you:
 
 This is essential for understanding and optimizing complex agent workflows. When something goes wrong in a multi-agent system, you’ll see exactly which agent failed and what it was trying to do, and whether the problem was in the agent’s reasoning or in the backend systems it called.
 
-If your Pydantic AI application includes a TypeScript frontend, API gateway, or services in other languages, Logfire can trace them too—Logfire provides SDKs for Python, JavaScript/TypeScript, and Rust, plus compatibility with any OpenTelemetry-instrumented application. See traces from your entire stack in a unified view. For details on sending data from other languages using standard OpenTelemetry, see the alternative clients guide.
+If your Pydantic AI application includes a TypeScript frontend, API gateway, or services in other languages, Logfire can trace them too—Logfire provides SDKs for Python, JavaScript/TypeScript, and Rust, plus compatibility with any OpenTelemetry-instrumented application. See traces from your entire stack in a unified view. For details on sending data from other languages using standard OpenTelemetry, see the [alternative clients guide](https://logfire.pydantic.dev/docs/how-to-guides/alternative-clients/).
 
-Pydantic AI’s instrumentation is built on OpenTelemetry, so you can also use any OTel-compatible backend. See the Logfire integration guide for details.
+Pydantic AI’s instrumentation is built on [OpenTelemetry](https://opentelemetry.io/), so you can also use any OTel-compatible backend. See the [Logfire integration guide](/docs/ai/integrations/logfire) for details.
 
 The following examples demonstrate how to use multi-agent patterns in Pydantic AI:
 

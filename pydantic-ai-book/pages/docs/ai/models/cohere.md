@@ -2,14 +2,14 @@
 type: Web Page
 title: Cohere | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/cohere
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Cohere
 
 To use `CohereModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `cohere` optional group:
 
-To use Cohere through their API, go to dashboard.cohere.com/api-keys and follow your nose until you find the place to generate an API key.
+To use [Cohere](https://cohere.com/) through their API, go to [dashboard.cohere.com/api-keys](https://dashboard.cohere.com/api-keys) and follow your nose until you find the place to generate an API key.
 
 `CohereModelName` contains a list of the most popular Cohere models.
 
@@ -56,7 +56,7 @@ model = CohereModel(
 agent = Agent(model)
 ...
 ```
-You can customize model behavior using `CohereModelSettings`:
+You can customize model behavior using [ CohereModelSettings](/docs/ai/api/models/cohere/#pydantic_ai.models.cohere.CohereModelSettings):
 
 ```
 from pydantic_ai import Agent

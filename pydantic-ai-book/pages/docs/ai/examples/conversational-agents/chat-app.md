@@ -2,7 +2,7 @@
 type: Web Page
 title: Chat App with FastAPI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/examples/conversational-agents/chat-app
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Chat App with FastAPI
@@ -16,9 +16,9 @@ This demonstrates storing chat history between requests and using it to give the
 Most of the complex logic here is between `chat_app.py` which streams the response to the browser,
 and `chat_app.ts` which renders messages in the browser.
 
-With dependencies installed and environment variables set, run:
+With [dependencies installed and environment variables set](/docs/ai/examples/setup#usage), run:
 
-Then open the app at localhost:8000.
+Then open the app at [localhost:8000](http://localhost:8000).
 
 Python code that runs the chat app:
 

@@ -2,14 +2,14 @@
 type: Web Page
 title: Mistral | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/mistral
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Mistral
 
 To use `MistralModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `mistral` optional group:
 
-To use Mistral through their API, go to console.mistral.ai/api-keys/ and follow your nose until you find the place to generate an API key.
+To use [Mistral](https://mistral.ai) through their API, go to [console.mistral.ai/api-keys/](https://console.mistral.ai/api-keys/) and follow your nose until you find the place to generate an API key.
 
 `LatestMistralModelNames` contains a list of the most popular Mistral models.
 

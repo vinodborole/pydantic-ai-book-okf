@@ -2,18 +2,18 @@
 type: Web Page
 title: Web Chat UI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/guides/web
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Web Chat UI
 
 Pydantic AI includes a built-in web chat interface that you can use to interact with your agents through a browser.
 
-For CLI usage with `clai web`, see the CLI - Web Chat UI documentation.
+For CLI usage with `clai web`, see the [CLI - Web Chat UI documentation](/docs/ai/integrations/cli#web-chat-ui).
 
 Install the `web` extra (installs Starlette and Uvicorn):
 
-Create a web app from an agent instance using `Agent.to_web()`:
+Create a web app from an agent instance using [ Agent.to_web()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.to_web):
 
 ```
 from pydantic_ai import Agent
@@ -41,7 +41,7 @@ app = agent.to_web(
     models={'GPT 5.2': 'openai:gpt-5.2', 'Claude': anthropic_model},
 )
 ```
-Configure native tools on the agent with `capabilities=[NativeTool(...)]` to expose them as options in the UI (shown only for models that support each tool):
+Configure [native tools](/docs/ai/overview/native-tools) on the agent with `capabilities=[NativeTool(...)]` to expose them as options in the UI (shown only for models that support each tool):
 
 ```
 from pydantic_ai import Agent

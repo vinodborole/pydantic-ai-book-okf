@@ -2,7 +2,7 @@
 type: Web Page
 title: Concurrency & Performance | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/concurrency
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Concurrency & Performance
@@ -91,7 +91,7 @@ report = dataset.evaluate_sync(
     max_concurrency=10,
 )
 ```
-If your evaluators are expensive (e.g., `LLMJudge`), limiting concurrency helps manage:
+If your evaluators are expensive (e.g., [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge)), limiting concurrency helps manage:
 
 - API rate limits
 - Cost (fewer concurrent API calls)
@@ -152,11 +152,11 @@ report = dataset.evaluate_sync(
     max_concurrency=5,  # Stay under rate limit
 )
 ```
-See Retry Strategies for handling transient failures.
+See [Retry Strategies](/docs/ai/evals/how-to/retry-strategies) for handling transient failures.
 
-- **Retry Strategies**- Handle transient failures
-- **Dataset Management**- Work with large datasets
-- **Logfire Integration**- Monitor performance
+- [Retry Strategies](/docs/ai/evals/how-to/retry-strategies)
+- [Dataset Management](/docs/ai/evals/how-to/dataset-management)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
 
 # Citations
 

@@ -2,12 +2,12 @@
 type: Web Page
 title: Extensibility | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/guides/extensibility
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Extensibility
 
-Pydantic AI is designed to be extended. Capabilities are the primary extension point — they bundle tools, lifecycle hooks, instructions, and model settings into reusable units that can be shared across agents, packaged as libraries, and loaded from spec files.
+Pydantic AI is designed to be extended. [Capabilities](/docs/ai/core-concepts/capabilities) are the primary extension point — they bundle tools, lifecycle hooks, instructions, and model settings into reusable units that can be shared across agents, packaged as libraries, and loaded from [spec files](/docs/ai/core-concepts/agent-spec).
 
 Beyond capabilities, Pydantic AI provides several other extension mechanisms for specialized needs.
 
@@ -17,9 +17,9 @@ Capabilities are the recommended way to extend Pydantic AI. They are useful for:
 - **Package authors**shipping extensions that work across models and agents
 - **Community contributors**sharing solutions to common problems
 
-See Capabilities for using and building capabilities, and Hooks for the lightweight decorator-based approach.
+See [Capabilities](/docs/ai/core-concepts/capabilities) for using and building capabilities, and [Hooks](/docs/ai/core-concepts/hooks) for the lightweight decorator-based approach.
 
-To make a capability installable and usable in agent specs:
+To make a capability installable and usable in [agent specs](/docs/ai/core-concepts/agent-spec):
 
 - 
 **Implement**— defaults to the class name. Return`get_serialization_name()``None`to opt out of spec support.
@@ -28,39 +28,47 @@ To make a capability installable and usable in agent specs:
 - 
 **Package naming**— use the`pydantic-ai-`prefix (e.g.`pydantic-ai-guardrails`) so users can find your package.
 - 
-**Registration**— users pass custom capability types via`custom_capability_types`on`Agent.from_spec`or`Agent.from_file`.
+**Registration**— users pass custom capability types via`custom_capability_types`on`Agent.from_spec``Agent.from_file`
 
 ```
 from pydantic_ai import Agent
 from my_package import MyCapability
 agent = Agent.from_file('agent.yaml', custom_capability_types=[MyCapability])
 ```
-See Custom capabilities in specs for implementation details.
+See [Custom capabilities in specs](/docs/ai/core-concepts/agent-spec#custom-capabilities-in-specs) for implementation details.
 
-**Pydantic AI Harness** is the official capability library for Pydantic AI — standalone capabilities like memory, guardrails, and context management live there rather than in core. See What goes where? for the full breakdown, or jump to the capability matrix.
+[ Pydantic AI Harness](/docs/ai/harness/overview) is the official capability library for Pydantic AI — standalone capabilities like memory, guardrails, and context management live there rather than in core. See 
 
-Capabilities are the recommended extension mechanism for packages that need to bundle tools with hooks, instructions, or model settings. See Third-party capabilities for community packages.
+[What goes where?](/docs/ai/harness/overview#what-goes-where)for the full breakdown, or jump to the
 
-Many third-party extensions are available as toolsets, which can also be wrapped as capabilities to take advantage of hooks, instructions, and model settings. See Third-party toolsets for the full list.
+[capability matrix](https://github.com/pydantic/pydantic-ai-harness#capability-matrix).
 
-For specialized tool execution needs (custom transport, tool filtering, execution wrapping), implement `AbstractToolset` or subclass `WrapperToolset`:
+[Capabilities](/docs/ai/core-concepts/capabilities) are the recommended extension mechanism for packages that need to bundle tools with hooks, instructions, or model settings. See [Third-party capabilities](/docs/ai/core-concepts/capabilities#third-party-capabilities) for community packages.
 
-- `AbstractToolset`— full control over tool definitions and execution
-- `WrapperToolset`— delegates to a wrapped toolset, override specific methods
+Many third-party extensions are available as [toolsets](/docs/ai/tools-toolsets/toolsets), which can also be wrapped as [capabilities](/docs/ai/core-concepts/capabilities) to take advantage of hooks, instructions, and model settings. See [Third-party toolsets](/docs/ai/tools-toolsets/toolsets#third-party-toolsets) for the full list.
 
-See Building a Custom Toolset for details.
+For specialized tool execution needs (custom transport, tool filtering, execution wrapping), implement [ AbstractToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset) or subclass 
 
-For connecting to model providers not yet supported by Pydantic AI, implement `Model`:
+[:](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.WrapperToolset)
 
-- `Model`— the base interface for model implementations
-- `WrapperModel`— delegates to a wrapped model, useful for adding instrumentation or transformations
+`WrapperToolset`- `AbstractToolset`
+- `WrapperToolset`
 
-See Custom Models for details.
+See [Building a Custom Toolset](/docs/ai/tools-toolsets/toolsets#building-a-custom-toolset) for details.
 
-For custom agent behavior, subclass `AbstractAgent` or `WrapperAgent`:
+For connecting to model providers not yet supported by Pydantic AI, implement [ Model](/docs/ai/api/models/base/#pydantic_ai.models.Model):
 
-- `AbstractAgent`— the base interface for agent implementations, providing- `run`,- `run_sync`, and- `run_stream`
-- `WrapperAgent`— delegates to a wrapped agent, useful for adding pre/post-processing or context management
+- `Model`
+- `WrapperModel`
+
+See [Custom Models](/docs/ai/models/overview#custom-models) for details.
+
+For custom agent behavior, subclass [ AbstractAgent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent) or 
+
+[:](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.WrapperAgent)
+
+`WrapperAgent`- `AbstractAgent`- `run`,- `run_sync`, and- `run_stream`
+- `WrapperAgent`
 
 # Citations
 

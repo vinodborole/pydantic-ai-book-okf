@@ -2,23 +2,27 @@
 type: Web Page
 title: Online Evaluation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/online-evaluation
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Online Evaluation
 
-Online evaluation lets you attach evaluators to production (or staging) functions so that every call (or a sampled subset) is automatically evaluated in the background. The same `Evaluator` classes used with `Dataset.evaluate()` work here; the difference is just in how they’re wired up.
+Online evaluation lets you attach evaluators to production (or staging) functions so that every call (or a sampled subset) is automatically evaluated in the background. The same [ Evaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator) classes used with 
 
-Online evaluation is useful when you want to:
+[work here; the difference is just in how they’re wired up.](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate)
+
+`Dataset.evaluate()`Online evaluation is useful when you want to:
 
 - **Monitor production quality:**continuously score LLM outputs against rubrics
 - **Catch regressions:**detect degradation in agent behavior across deploys
 - **Collect evaluation data:**build datasets from real traffic for offline analysis
 - **Control costs:**sample expensive LLM judges on a fraction of traffic while running cheap checks on everything
 
-For testing against curated datasets before deployment, use offline evaluation with `Dataset.evaluate()` instead.
+For testing against curated datasets before deployment, use [offline evaluation](/docs/ai/evals/quick-start) with [ Dataset.evaluate()](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate) instead.
 
-The `evaluate()` decorator attaches evaluators to any function. Evaluators run in the background without blocking the caller, and results are emitted as OpenTelemetry events:
+The [ evaluate()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.evaluate) decorator attaches evaluators to any function. Evaluators run in the background without blocking the caller, and results are emitted as 
+
+[OpenTelemetry events](#default-otel-event-emission):
 
 ```
 from dataclasses import dataclass
@@ -32,13 +36,23 @@ class OutputNotEmpty(Evaluator):
 async def summarize(text: str) -> str:
     return f'Summary of: {text}'
 ```
-Wire up OTel export (e.g. `logfire.configure()`) elsewhere in your application startup so that the emitted `gen_ai.evaluation.result` events reach your backend. When using Pydantic Logfire, these events surface in the **Live Evaluations** view, where you can browse results by target, drill into the originating trace, and watch scores over a time window.
+Wire up OTel export (e.g. [ logfire.configure()](/docs/ai/integrations/logfire#using-logfire)) elsewhere in your application startup so that the emitted 
 
-Each decorated call emits one `gen_ai.evaluation.result` OTel event per evaluator result, following the OTel GenAI evaluation semconv. This mirrors how offline evaluation emits OTel spans via `logfire.span`: if any OTel SDK is configured in the process (via `logfire.configure()`, the OTel SDK directly, or a vendor instrumentation), events flow to your backend; if not, emission is a cheap no-op.
+`gen_ai.evaluation.result` events reach your backend. When using [Pydantic Logfire](https://pydantic.dev/docs/logfire/evaluate/live-evals/), these events surface in the
 
-To additionally handle results in Python code — for alerting, bespoke aggregation, in-memory test capture, or non-OTel destinations — register a sink. Sinks run *in addition to* OTel event emission.
+**Live Evaluations**view, where you can browse results by target, drill into the originating trace, and watch scores over a time window.
 
-The module-level `configure()` and `evaluate()` functions delegate to a global `OnlineEvalConfig`. For multiple configurations or isolated setups, create your own config instances (see OnlineEvalConfig below).
+Each decorated call emits one `gen_ai.evaluation.result` OTel event per evaluator result, following the [OTel GenAI evaluation semconv](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-events/#event-gen_aievaluationresult). This mirrors how offline evaluation emits OTel spans via `logfire.span`: if any OTel SDK is configured in the process (via [ logfire.configure()](/docs/ai/integrations/logfire#using-logfire), the OTel SDK directly, or a vendor instrumentation), events flow to your backend; if not, emission is a cheap no-op.
+
+To additionally handle results in Python code — for alerting, bespoke aggregation, in-memory test capture, or non-OTel destinations — register a [sink](#sinks). Sinks run *in addition to* OTel event emission.
+
+The module-level [ configure()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.configure) and 
+
+[functions delegate to a global](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.evaluate)
+
+`evaluate()`[. For multiple configurations or isolated setups, create your own config instances (see](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvalConfig)
+
+`OnlineEvalConfig`[OnlineEvalConfig](#onlineevalconfig)below).
 
 Each decorated function (or agent) emits results tagged with a **target** — a name that groups results in downstream sinks and dashboards. By default the target is the decorated function’s `__name__`, but you can override it with `target=...`:
 
@@ -59,11 +73,13 @@ async def run_agent(prompt: str) -> str: ...
 ```
 The target name is supplied to sinks on every `submit()` call as a plain `str` — a single sink instance handles any number of decorated functions or agents.
 
-For agent capabilities, the target name is taken from the agent’s own `name` attribute (see Agent Integration); to categorize or route on agent-ness, add metadata on the config (e.g., `metadata={'kind': 'agent'}`).
+For agent capabilities, the target name is taken from the agent’s own `name` attribute (see [Agent Integration](#agent-integration)); to categorize or route on agent-ness, add metadata on the config (e.g., `metadata={'kind': 'agent'}`).
 
-Different evaluators need different settings. A cheap heuristic could run on 100% of traffic; an expensive LLM judge might run on 1%. `OnlineEvaluator` wraps an `Evaluator` with per-evaluator configuration:
+Different evaluators need different settings. A cheap heuristic could run on 100% of traffic; an expensive LLM judge might run on 1%. [ OnlineEvaluator](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator) wraps an 
 
-```
+[with per-evaluator configuration:](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator)
+
+`Evaluator````
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext, LLMJudge
 from pydantic_evals.online import OnlineEvaluator
@@ -80,9 +96,13 @@ rare_check = OnlineEvaluator(
     max_concurrency=5,
 )
 ```
-When you pass a bare `Evaluator` to the `evaluate()` decorator, it’s automatically wrapped in an `OnlineEvaluator` with the config’s default sample rate.
+When you pass a bare [ Evaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator) to the 
 
-`OnlineEvalConfig` holds cross-evaluator defaults (sample rate, metadata, optional additional sinks, OTel-emission toggle). There’s a global default instance, plus you can create custom instances for different configurations:
+[decorator, it’s automatically wrapped in an](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.evaluate)
+
+`evaluate()`[with the config’s default sample rate.](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator)
+
+`OnlineEvaluator`[ OnlineEvalConfig](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvalConfig) holds cross-evaluator defaults (sample rate, metadata, optional additional sinks, OTel-emission toggle). There’s a global default instance, plus you can create custom instances for different configurations:
 
 ```
 import asyncio
@@ -124,13 +144,17 @@ async def main():
     #> ['IsNonEmpty=True']
 asyncio.run(main())
 ```
-OTel event emission is the default observability surface for online evaluation (see Default OTel event emission). Sinks are for *additional* handling in Python code — in-memory test capture, alerting, fan-out to non-OTel destinations, or bespoke aggregation. `EvaluationSink` is the protocol; multiple sinks can be registered on a single config.
+OTel event emission is the default observability surface for online evaluation (see [Default OTel event emission](#default-otel-event-emission)). Sinks are for *additional* handling in Python code — in-memory test capture, alerting, fan-out to non-OTel destinations, or bespoke aggregation. [ EvaluationSink](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.EvaluationSink) is the protocol; multiple sinks can be registered on a single config.
 
-The built-in `CallbackSink` wraps any callable (sync or async) that accepts results, failures, and context. You can also pass a bare callable wherever a sink is expected — it’s auto-wrapped in a `CallbackSink`.
+The built-in [ CallbackSink](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.CallbackSink) wraps any callable (sync or async) that accepts results, failures, and context. You can also pass a bare callable wherever a sink is expected — it’s auto-wrapped in a 
 
-For custom sinks, implement the `EvaluationSink` protocol. Each `submit()` call receives a `SinkPayload` bundling the results, failures, context, span reference, and target from one or more evaluators that ran for a given function call:
+[.](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.CallbackSink)
 
-```
+`CallbackSink`For custom sinks, implement the [ EvaluationSink](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.EvaluationSink) protocol. Each 
+
+`submit()` call receives a [bundling the results, failures, context, span reference, and target from one or more evaluators that ran for a given function call:](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.SinkPayload)
+
+`SinkPayload````
 from pydantic_evals.online import SinkPayload
 class PrintSink:
     """Prints evaluation results to stdout."""
@@ -142,22 +166,30 @@ class PrintSink:
             version = f' ({f.evaluator_version})' if f.evaluator_version else ''
             print(f'  [{payload.target}] FAILED {f.name}{version}: {f.error_message}')
 ```
-`payload.results` and `payload.failures` may cover one or more evaluators from a single function call — when multiple evaluators share a sink, their results are batched into a single `submit()` call. Each result carries its own attribution (name, `evaluator_version` on `EvaluationResult` and `EvaluatorFailure`, and source spec), so sinks can separate them downstream; see Evaluator Versioning. The `payload.target` identifies the function or agent being evaluated (see Target).
+`payload.results` and `payload.failures` may cover one or more evaluators from a single function call — when multiple evaluators share a sink, their results are batched into a single `submit()` call. Each result carries its own attribution (name, `evaluator_version` on [ EvaluationResult](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationResult) and 
 
-Every dispatched evaluator emits one `gen_ai.evaluation.result` OTel log event per `EvaluationResult` or `EvaluatorFailure`, unconditionally — no sink registration required. Events are parented to the span that produced them, so they appear nested under the original function call in the trace. If no OTel SDK is configured in the process, emission is a cheap no-op.
+[, and source spec), so sinks can separate them downstream; see](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorFailure)
 
-Each event has `event.name = 'gen_ai.evaluation.result'` and a short human-readable body (e.g. `evaluation: accuracy=0.87`, or `evaluation: accuracy failed: <error>`). Emission follows the OpenTelemetry GenAI evaluation semconv, with these attributes:
+`EvaluatorFailure`[Evaluator Versioning](#evaluator-versioning). The
 
-- `gen_ai.evaluation.name`— the evaluator class name when- `evaluate()`returns a scalar, or the mapping key when it returns- `{'accuracy': ..., 'score': ...}`. Source:- `EvaluationResult.name`/- `EvaluatorFailure.name`.
+`payload.target` identifies the function or agent being evaluated (see [Target](#target)).
+
+Every dispatched evaluator emits one `gen_ai.evaluation.result` OTel log event per [ EvaluationResult](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationResult) or 
+
+[, unconditionally — no sink registration required. Events are parented to the span that produced them, so they appear nested under the original function call in the trace. If no OTel SDK is configured in the process, emission is a cheap no-op.](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorFailure)
+
+`EvaluatorFailure`Each event has `event.name = 'gen_ai.evaluation.result'` and a short human-readable body (e.g. `evaluation: accuracy=0.87`, or `evaluation: accuracy failed: <error>`). Emission follows the [OpenTelemetry GenAI evaluation semconv](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-events/#event-gen_aievaluationresult), with these attributes:
+
+- `gen_ai.evaluation.name`— the evaluator class name when- `evaluate()`returns a scalar, or the mapping key when it returns- `{'accuracy': ..., 'score': ...}`. Source:- `EvaluationResult.name`- `EvaluatorFailure.name`
 - `gen_ai.evaluation.score.value`— populated for- `bool`(- `True`→- `1.0`,- `False`→- `0.0`) and numeric returns. Omitted for- `str`returns.
 - `gen_ai.evaluation.score.label`— populated for- `bool`(- `True`→- `'pass'`,- `False`→- `'fail'`) and- `str`returns (used directly as the label). Omitted for numeric returns.
 - `gen_ai.evaluation.explanation`—- `EvaluationResult.reason`on success or- `EvaluatorFailure.error_message`on failure. Omitted when absent. Set via- `reason=...`when constructing an- `EvaluationResult`inside a custom evaluator.
 - `error.type`(failure events only) — the exception class name (e.g.- `'ValueError'`) when the failure was built from a caught exception; falls back to- `'pydantic_evals.EvaluatorFailure'`for- `EvaluatorFailure`instances constructed without it. Absent on successful evaluations. Source:- `EvaluatorFailure.error_type`.
-- `gen_ai.evaluation.target`—- `@evaluate(target=...)`or agent- `name`. See Target.
-- `gen_ai.evaluation.evaluator.version`—- `Evaluator.evaluator_version`class attribute; omitted when the class doesn’t set it. See Evaluator Versioning.
-- `gen_ai.evaluation.evaluator.source`— JSON-serialized- `EvaluatorSpec`identifying the evaluator class and its constructor arguments, so downstream queries can group by evaluator identity without relying on- `name`alone (two different- `LLMJudge(rubric=...)`instances share a name but have different sources).
+- `gen_ai.evaluation.target`—- `@evaluate(target=...)`or agent- `name`. See- [Target](#target).
+- `gen_ai.evaluation.evaluator.version`—- `Evaluator.evaluator_version`class attribute; omitted when the class doesn’t set it. See- [Evaluator Versioning](#evaluator-versioning).
+- `gen_ai.evaluation.evaluator.source`— JSON-serialized- `EvaluatorSpec`- `name`alone (two different- `LLMJudge(rubric=...)`instances share a name but have different sources).
 
-OTel baggage entries (if any) are also attached to each event as attributes — configurable via `include_baggage` on the config. The `gen_ai.*` and `error.type` attributes above always win on conflict with baggage.
+[OTel baggage](https://pydantic.dev/docs/logfire/reference/baggage/) entries (if any) are also attached to each event as attributes — configurable via `include_baggage` on the config. The `gen_ai.*` and `error.type` attributes above always win on conflict with baggage.
 
 For example, the `OutputNotEmpty` evaluator above, decorated as `@evaluate(OutputNotEmpty(), target='customer_support')` and returning `True` for a given call, emits one event with:
 
@@ -167,9 +199,9 @@ For example, the `OutputNotEmpty` evaluator above, decorated as `@evaluate(Outpu
 - `gen_ai.evaluation.target = 'customer_support'`
 - `gen_ai.evaluation.evaluator.source = '{"name":"OutputNotEmpty","arguments":null}'`
 
-An evaluator with constructor arguments gets those rendered into `source` — e.g. `LLMJudge(rubric='Is the response helpful?')` emits `gen_ai.evaluation.evaluator.source = '{"name":"LLMJudge","arguments":["Is the response helpful?"]}'`, so two `LLMJudge` instances with different rubrics remain distinguishable downstream.
+An evaluator with constructor arguments gets those rendered into `source` — e.g. [ LLMJudge(rubric='Is the response helpful?')](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) emits 
 
-Attributes under `gen_ai.evaluation.evaluator.*` are pydantic-evals extensions — they aren’t in the current OTel GenAI semconv, and their names may change to align with future semconv additions.
+`gen_ai.evaluation.evaluator.source = '{"name":"LLMJudge","arguments":["Is the response helpful?"]}'`, so two `LLMJudge` instances with different rubrics remain distinguishable downstream.Attributes under `gen_ai.evaluation.evaluator.*` are pydantic-evals extensions — they aren’t in the current OTel GenAI semconv, and their names may change to align with future semconv additions.
 
 To disable the default emission (e.g. in a test harness that only wants to assert on a custom sink), set `emit_otel_events=False` on the config:
 
@@ -177,9 +209,15 @@ To disable the default emission (e.g. in a test harness that only wants to asser
 from pydantic_evals.online import OnlineEvalConfig
 config = OnlineEvalConfig(emit_otel_events=False)
 ```
-Override `get_evaluator_version` on an `Evaluator` subclass to stamp every result it emits with a version string — surfaced as `gen_ai.evaluation.evaluator.version` on emitted events and as `evaluator_version` on each `EvaluationResult` and `EvaluatorFailure`. This lets trend lines and dashboards filter out results produced by retired evaluator versions without deleting historical rows — useful when you change an LLM judge’s prompt or rework a heuristic in a way that invalidates prior scores:
+Override [ get_evaluator_version](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator.get_evaluator_version) on an 
 
-```
+[subclass to stamp every result it emits with a version string — surfaced as](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator)
+
+`Evaluator``gen_ai.evaluation.evaluator.version` on emitted events and as `evaluator_version` on each [and](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationResult)
+
+`EvaluationResult`[. This lets trend lines and dashboards filter out results produced by retired evaluator versions without deleting historical rows — useful when you change an LLM judge’s prompt or rework a heuristic in a way that invalidates prior scores:](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorFailure)
+
+`EvaluatorFailure````
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 @dataclass
@@ -210,9 +248,9 @@ sometimes = OnlineEvaluator(evaluator=QuickCheck(), sample_rate=0.1)
 # Never run (effectively disabled)
 never = OnlineEvaluator(evaluator=QuickCheck(), sample_rate=0.0)
 ```
-Pass a callable to enable runtime-configurable or input-dependent sampling. The callable receives a `SamplingContext` with the evaluator instance, function inputs, config metadata, and a per-call random seed, and returns a `float` (probability) or `bool` (always/never):
+Pass a callable to enable runtime-configurable or input-dependent sampling. The callable receives a [ SamplingContext](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.SamplingContext) with the evaluator instance, function inputs, config metadata, and a per-call random seed, and returns a 
 
-```
+`float` (probability) or `bool` (always/never):```
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 from pydantic_evals.online import OnlineEvaluator, SamplingContext
@@ -224,9 +262,9 @@ class QuickCheck(Evaluator):
         return bool(ctx.output)
 dynamic = OnlineEvaluator(evaluator=QuickCheck(), sample_rate=get_current_rate)
 ```
-This enables integration with feature flags, managed variables, or configuration systems — for example, you could replace `get_current_rate` with a function that reads from a remote config service (such as Logfire managed variables) at runtime, allowing you to change the probability without redeploying the application.
+This enables integration with feature flags, managed variables, or configuration systems — for example, you could replace `get_current_rate` with a function that reads from a remote config service (such as [Logfire managed variables](https://logfire.pydantic.dev/docs/reference/advanced/managed-variables/)) at runtime, allowing you to change the probability without redeploying the application.
 
-You can also use the `SamplingContext` to make sampling decisions based on the function inputs:
+You can also use the [ SamplingContext](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.SamplingContext) to make sampling decisions based on the function inputs:
 
 ```
 from dataclasses import dataclass
@@ -265,9 +303,9 @@ check_b = OnlineEvaluator(evaluator=CheckB(), sample_rate=0.1)
 ```
 In correlated mode, a single random `call_seed` (uniformly distributed between 0.0 and 1.0) is generated per function call and shared across all evaluators. An evaluator runs when `call_seed < sample_rate`, so lower-rate evaluators’ calls are always a subset of higher-rate ones, and the total overhead probability equals the maximum rate rather than accumulating.
 
-The `call_seed` is also available on `SamplingContext` for custom `sample_rate` callables that want to implement their own correlated logic regardless of mode.
+The `call_seed` is also available on [ SamplingContext](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.SamplingContext) for custom 
 
-Use `disable_evaluation()` to suppress all online evaluation in a scope. This may be useful in tests:
+`sample_rate` callables that want to implement their own correlated logic regardless of mode.Use [ disable_evaluation()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.disable_evaluation) to suppress all online evaluation in a scope. This may be useful in tests:
 
 ```
 import asyncio
@@ -371,7 +409,7 @@ asyncio.run(main())
 ```
 This pattern lets you combine cheap and expensive checks in one evaluator, avoiding unnecessary work when conditions aren’t met.
 
-The `evaluate()` decorator works with both async and sync functions:
+The [ evaluate()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.evaluate) decorator works with both async and sync functions:
 
 ```
 import asyncio
@@ -471,9 +509,11 @@ asyncio.run(main())
 ```
 A key capability of online evaluation is re-running evaluators without re-executing the original function. This is useful when you want to evaluate historical data with updated rubrics, or run additional evaluators on existing traces.
 
-`run_evaluators()` runs a list of evaluators against an `EvaluatorContext` and returns the results:
+[ run_evaluators()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.run_evaluators) runs a list of evaluators against an 
 
-```
+[and returns the results:](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext)
+
+`EvaluatorContext````
 import asyncio
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
@@ -517,9 +557,11 @@ async def main():
     #> failures: 0
 asyncio.run(main())
 ```
-For fetching context data from external storage (like Pydantic Logfire), implement the `EvaluatorContextSource` protocol. It defines `fetch()` and `fetch_many()` methods that return `EvaluatorContext` objects from stored data:
+For fetching context data from external storage (like Pydantic Logfire), implement the [ EvaluatorContextSource](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.EvaluatorContextSource) protocol. It defines 
 
-```
+`fetch()` and `fetch_many()` methods that return [objects from stored data:](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext)
+
+`EvaluatorContext````
 import asyncio
 from collections.abc import Sequence
 from pydantic_evals.evaluators import EvaluatorContext
@@ -584,9 +626,11 @@ async def main():
     #> batch size: 2
 asyncio.run(main())
 ```
-To populate a store like the one above, you need to serialize an `EvaluatorContext` to JSON (and read it back). `EvaluatorContext` is a Pydantic-serializable dataclass, so a `TypeAdapter` handles both directions. Bind it to the concrete `inputs`, `output`, and `metadata` types your contexts carry so those fields are reconstructed faithfully:
+To populate a store like the one above, you need to serialize an [ EvaluatorContext](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext) to JSON (and read it back). 
 
-```
+`EvaluatorContext` is a Pydantic-serializable dataclass, so a [handles both directions. Bind it to the concrete](https://docs.pydantic.dev/latest/api/pydantic/type_adapter/#pydantic.type_adapter.TypeAdapter)
+
+`TypeAdapter``inputs`, `output`, and `metadata` types your contexts carry so those fields are reconstructed faithfully:```
 from pydantic import TypeAdapter
 from pydantic_evals.evaluators import EvaluatorContext
 from pydantic_evals.otel.span_tree import SpanTree
@@ -607,7 +651,9 @@ restored = context_adapter.validate_json(json_bytes)
 print(restored.output)
 #> AI is artificial intelligence.
 ```
-Each `OnlineEvaluator` has a `max_concurrency` limit (default: 10). When the limit is reached, new evaluation requests for that evaluator are **dropped** (not queued). This prevents expensive evaluators from consuming unbounded resources:
+Each [ OnlineEvaluator](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator) has a 
+
+`max_concurrency` limit (default: 10). When the limit is reached, new evaluation requests for that evaluator are **dropped**(not queued). This prevents expensive evaluators from consuming unbounded resources:
 
 ```
 from dataclasses import dataclass
@@ -625,9 +671,13 @@ limited = OnlineEvaluator(
     max_concurrency=3,
 )
 ```
-To react to dropped evaluations, set `on_max_concurrency` on the `OnlineEvaluator` or as a default on `OnlineEvalConfig`. The callback receives the `EvaluatorContext` that would have been evaluated, and can be sync or async:
+To react to dropped evaluations, set `on_max_concurrency` on the [ OnlineEvaluator](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator) or as a default on 
 
-```
+[. The callback receives the](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvalConfig)
+
+`OnlineEvalConfig`[that would have been evaluated, and can be sync or async:](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext)
+
+`EvaluatorContext````
 import warnings
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
@@ -649,12 +699,14 @@ config = OnlineEvalConfig(on_max_concurrency=warn_on_drop)
 ```
 There are two types of error handling:
 
-- `on_sampling_error`- `sample_rate`callable raises. Receives the exception and the- `Evaluator`. Must be sync (not async). If set, the evaluator is skipped. If not set, the exception- **propagates to the caller**.
-- `on_error`- `sink`or- `on_max_concurrency`callback. Receives the exception,- `EvaluatorContext`,- `Evaluator`, and a- `OnErrorLocation`string. Can be sync or async. If not set, exceptions are- **silently suppressed**. The- `'sink'`location is broad — it covers both custom sink failures and the rarer default OTel event emission failures, so handlers that branch on location should treat- `'sink'`as “result delivery went wrong”.
+- `on_sampling_error`- `sample_rate`callable raises. Receives the exception and the- `Evaluator`- **propagates to the caller**.
+- `on_error`- `sink`or- `on_max_concurrency`callback. Receives the exception,- `EvaluatorContext`- `Evaluator`- `OnErrorLocation`- **silently suppressed**. The- `'sink'`location is broad — it covers both custom sink failures and the rarer default OTel event emission failures, so handlers that branch on location should treat- `'sink'`as “result delivery went wrong”.
 
-Set these on `OnlineEvalConfig` for global defaults, or on `OnlineEvaluator` to override per-evaluator:
+Set these on [ OnlineEvalConfig](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvalConfig) for global defaults, or on 
 
-```
+[to override per-evaluator:](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator)
+
+`OnlineEvaluator````
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 from pydantic_evals.online import OnErrorLocation, OnlineEvalConfig, OnlineEvaluator
@@ -679,7 +731,7 @@ custom = OnlineEvaluator(evaluator=MyCheck(), on_error=log_errors)
 ```
 Key behaviors:
 
-- **Evaluator exceptions**are handled by converting them to- `EvaluatorFailure`objects passed to sinks — they do not go through- `on_error`.
+- **Evaluator exceptions**are handled by converting them to- `EvaluatorFailure`- `on_error`.
 - **One evaluator’s error doesn’t affect siblings**— each evaluator runs in its own task with isolated error handling.
 - **One sink’s error doesn’t affect other sinks**— each sink submission is wrapped individually.
 - **If**, the exception is silently suppressed to protect sibling evaluators.- `on_error`itself raises
@@ -687,9 +739,9 @@ Key behaviors:
 
 By default, when the decorated function or wrapped agent run raises, **no evaluators are dispatched** — only successful results reach evaluators. The exception propagates to the caller as usual.
 
-To score failure modes (e.g. classify exception types, count tool errors, alert on regressions), opt an evaluator in by setting `run_on_errors=True` on its `OnlineEvaluator`. When the call raises, those evaluators are dispatched with the exception as `EvaluatorContext.output`; the exception still propagates after dispatch:
+To score failure modes (e.g. classify exception types, count tool errors, alert on regressions), opt an evaluator in by setting `run_on_errors=True` on its [ OnlineEvaluator](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvaluator). When the call raises, those evaluators are dispatched with the exception as 
 
-```
+`EvaluatorContext.output`; the exception still propagates after dispatch:```
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 from pydantic_evals.online import OnlineEvaluator, evaluate
@@ -706,11 +758,11 @@ async def my_function(x: int) -> int:
         raise ValueError('negative input')
     return x * 2
 ```
-Evaluators sampled for the call but without `run_on_errors=True` are skipped on the error path, so a cheap success-only check can sit alongside a dedicated error categorizer in the same decorator. The flag is also honored by the `OnlineEvaluation` agent capability.
+Evaluators sampled for the call but without `run_on_errors=True` are skipped on the error path, so a cheap success-only check can sit alongside a dedicated error categorizer in the same decorator. The flag is also honored by the [ OnlineEvaluation](/docs/ai/api/pydantic_evals/online_capability/#pydantic_evals.online_capability.OnlineEvaluation) agent capability.
 
-The `OnlineEvaluation` capability brings online evaluation to Pydantic AI agents. Instead of decorating a function, you add the capability to your agent. As with the `@evaluate` decorator, evaluators dispatch in the background and results are emitted as OTel events by default — no sink registration required:
+The [ OnlineEvaluation](/docs/ai/api/pydantic_evals/online_capability/#pydantic_evals.online_capability.OnlineEvaluation) capability brings online evaluation to Pydantic AI agents. Instead of decorating a function, you add the capability to your agent. As with the 
 
-```
+`@evaluate` decorator, evaluators dispatch in the background and results are emitted as OTel events by default — no sink registration required:```
 from dataclasses import dataclass
 from pydantic_ai import Agent
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
@@ -730,21 +782,23 @@ The target name written to each emitted event is the agent’s own `name` attrib
 After each completed agent run, the capability:
 
 - Samples evaluators based on their `sample_rate`configuration
-- Builds an `EvaluatorContext`from the run result (output, prompt, token usage, duration, span tree) —`context.name`is populated with the agent run’s`run_id`
+- Builds an `EvaluatorContext``context.name`is populated with the agent run’s`run_id`
 - Dispatches evaluators asynchronously in the background
 - Returns control to the caller without waiting for evaluators to finish
 
-To attach additional sinks or override sampling defaults, pass an `OnlineEvalConfig` — same as with the `@evaluate` decorator: `OnlineEvaluation(evaluators=[...], config=OnlineEvalConfig(default_sample_rate=0.1))`.
+To attach additional sinks or override sampling defaults, pass an [ OnlineEvalConfig](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.OnlineEvalConfig) — same as with the 
 
-The capability supports all the same features as the `@evaluate()` decorator: sampling, per-evaluator sinks, concurrency control, and error handling. The `config` parameter is optional and defaults to the global `DEFAULT_CONFIG`.
+`@evaluate` decorator: `OnlineEvaluation(evaluators=[...], config=OnlineEvalConfig(default_sample_rate=0.1))`.The capability supports all the same features as the [ @evaluate()](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.evaluate) decorator: sampling, per-evaluator sinks, concurrency control, and error handling. The 
 
-The complete API for the `pydantic_evals.online` module is documented in the API reference.
+`config` parameter is optional and defaults to the global [.](/docs/ai/api/pydantic_evals/online/#pydantic_evals.online.DEFAULT_CONFIG)
 
-- **Custom Evaluators**— Write evaluators for your domain
-- **Native Evaluators**— Use ready-made evaluators
-- **Live Evaluations in Logfire**— Browse, filter, and trend online evaluation results in the Logfire web UI
-- **Logfire Integration**— Visualize evaluation results in Logfire
-- **Quick Start**— Offline evaluation with- `Dataset.evaluate()`
+`DEFAULT_CONFIG`The complete API for the `pydantic_evals.online` module is documented in the [API reference](/docs/ai/api/pydantic-evals/online).
+
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [Live Evaluations in Logfire](https://pydantic.dev/docs/logfire/evaluate/live-evals/)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
+- [Quick Start](/docs/ai/evals/quick-start)- `Dataset.evaluate()`
 
 # Citations
 

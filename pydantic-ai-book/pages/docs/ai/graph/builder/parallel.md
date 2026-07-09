@@ -2,7 +2,7 @@
 type: Web Page
 title: Parallel Execution | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/graph/builder/parallel
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Parallel Execution
@@ -12,7 +12,7 @@ The graph builder API provides two powerful mechanisms for parallel execution: *
 - **Broadcasting**- Send the same data to multiple parallel paths
 - **Spreading**- Fan out items from an iterable to parallel paths
 
-Both create “forks” in the execution graph that can later be synchronized with join nodes.
+Both create “forks” in the execution graph that can later be synchronized with [join nodes](/docs/ai/graph/builder/joins).
 
 Broadcasting sends identical data to multiple destinations simultaneously:
 
@@ -30,7 +30,7 @@ The `.map()` operation also works with `AsyncIterable` values. When mapping over
 
 This allows for progressive processing where downstream steps can start working on early results while later results are still being generated.
 
-The convenience method `add_mapping_edge()` provides a simpler syntax:
+The convenience method [ add_mapping_edge()](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.add_mapping_edge) provides a simpler syntax:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
@@ -61,7 +61,7 @@ You can transform data inline as it flows along edges using the `.transform()` m
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-The transform function receives a `StepContext` with the current inputs and has access to state and dependencies. This is useful for:
+The transform function receives a [ StepContext](/docs/ai/api/pydantic_graph/step/#pydantic_graph.step.StepContext) with the current inputs and has access to state and dependencies. This is useful for:
 
 - Converting data types between incompatible steps
 - Extracting specific fields from complex objects
@@ -72,9 +72,9 @@ Transforms can be chained and combined with other edge operations like `.map()` 
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-- Learn about join nodes for aggregating parallel results
-- Explore conditional branching with decision nodes
-- See the steps documentation for more on step execution
+- Learn about [join nodes](/docs/ai/graph/builder/joins)for aggregating parallel results
+- Explore [conditional branching](/docs/ai/graph/builder/decisions)with decision nodes
+- See the [steps documentation](/docs/ai/graph/builder/steps)for more on step execution
 
 # Citations
 

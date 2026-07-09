@@ -2,7 +2,7 @@
 type: Web Page
 title: Agents | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Agents
@@ -11,71 +11,85 @@ Agents are Pydantic AI’s primary interface for interacting with LLMs.
 
 In some use cases a single Agent will control an entire application or component, but multiple agents can also interact to embody more complex workflows.
 
-The `Agent` class has full API documentation, but conceptually you can think of an agent as a container for:
+The [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) class has full API documentation, but conceptually you can think of an agent as a container for:
 
 | Component | Description | 
 |---|---|
-| Instructions | A set of instructions for the LLM written by the developer. | 
-| Function tool(s) and toolsets | Functions that the LLM may call to get information while generating a response. | 
-| Structured output type | The structured datatype the LLM must return at the end of a run, if specified. | 
-| Dependency type constraint | Dynamic instructions functions, tools, and output functions may all use dependencies when they’re run. | 
-| LLM model | Optional default LLM model associated with the agent. Can also be specified when running the agent. | 
-| Model Settings | Optional default model settings to help fine tune requests. Can also be specified when running the agent. | 
-| Capabilities | Reusable bundles of tools, hooks, instructions, and model settings that extend agent behavior. | 
+| [Instructions](#instructions) | A set of instructions for the LLM written by the developer. | 
+| [Function tool(s)](/docs/ai/tools-toolsets/tools)and[toolsets](/docs/ai/tools-toolsets/toolsets) | Functions that the LLM may call to get information while generating a response. | 
+| [Structured output type](/docs/ai/core-concepts/output) | The structured datatype the LLM must return at the end of a run, if specified. | 
+| [Dependency type constraint](/docs/ai/core-concepts/dependencies) | Dynamic instructions functions, tools, and output functions may all use dependencies when they’re run. | 
+| [LLM model](/docs/ai/models/base) | Optional default LLM model associated with the agent. Can also be specified when running the agent. | 
+| [Model Settings](#additional-configuration) | Optional default model settings to help fine tune requests. Can also be specified when running the agent. | 
+| [Capabilities](/docs/ai/core-concepts/capabilities) | Reusable bundles of tools, hooks, instructions, and model settings that extend agent behavior. | 
 
-While each of these can be configured individually, capabilities let you bundle related behavior into reusable units that are easier to compose, share, and load from configuration files.
+While each of these can be configured individually, [capabilities](/docs/ai/core-concepts/capabilities) let you bundle related behavior into reusable units that are easier to compose, share, and [load from configuration files](/docs/ai/core-concepts/agent-spec).
 
-In typing terms, agents are generic in their dependency and output types, e.g., an agent which required dependencies of type `Foobar` and produced outputs of type `list[str]` would have type `Agent[Foobar, list[str]]`. In practice, you shouldn’t need to care about this, it should just mean your IDE can tell you when you have the right type, and if you choose to use static type checking it should work well with Pydantic AI.
+In typing terms, agents are generic in their dependency and output types, e.g., an agent which required dependencies of type `Foobar` and produced outputs of type `list[str]` would have type `Agent[Foobar, list[str]]`. In practice, you shouldn’t need to care about this, it should just mean your IDE can tell you when you have the right type, and if you choose to use [static type checking](#static-type-checking) it should work well with Pydantic AI.
 
 Here’s a toy example of an agent that simulates a roulette wheel:
 
 Create an agent, which expects an integer dependency and produces a boolean output. This agent will have type `Agent[int, bool]`.
 
-Define a tool that checks if the square is a winner. Here `RunContext` is parameterized with the dependency type `int`; if you got the dependency type wrong you'd get a typing error.
+Define a tool that checks if the square is a winner. Here [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) is parameterized with the dependency type 
 
-In reality, you might want to use a random number here e.g. `random.randint(0, 36)`.
+`int`; if you got the dependency type wrong you'd get a typing error.In reality, you might want to use a random number here e.g. `random.randint(0, 36)`.
 
 `result.output` will be a boolean indicating if the square is a winner. Pydantic performs the output validation, and it'll be typed as a `bool` since its type is derived from the `output_type` generic parameter of the agent.
 
 There are five ways to run an agent:
 
-- `agent.run()`— an async function which returns a- `RunResult`containing a completed response.
-- `agent.run_sync()`— a plain, synchronous function which returns a- `RunResult`containing a completed response (internally, this just calls- `loop.run_until_complete(self.run())`).
-- `agent.run_stream()`— an async context manager which returns a- `StreamedRunResult`, which contains methods to stream text and structured output as an async iterable.- `agent.run_stream_sync()`is a synchronous variation that returns a- `StreamedRunResultSync`with synchronous versions of the same methods.
-- `agent.run_stream_events()`— an async context manager which yields an async iterator over- `AgentStreamEvent`s ending with an- `AgentRunResultEvent`containing the final run result.
-- `agent.iter()`— a context manager which returns an- `AgentRun`, an async iterable over the nodes of the agent’s underlying- `Graph`.
+- `agent.run()`- `RunResult`
+- `agent.run_sync()`- `RunResult`- `loop.run_until_complete(self.run())`).
+- `agent.run_stream()`- `StreamedRunResult`- `agent.run_stream_sync()`- `StreamedRunResultSync`
+- `agent.run_stream_events()`- `AgentStreamEvent`s- `AgentRunResultEvent`
+- `agent.iter()`- `AgentRun`- `Graph`
 
 Here’s a simple example demonstrating the first four:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
-You can also pass messages from previous runs to continue a conversation or provide context, as described in Messages and Chat History.
+You can also pass messages from previous runs to continue a conversation or provide context, as described in [Messages and Chat History](/docs/ai/core-concepts/message-history).
 
-As shown in the example above, `run_stream()` makes it easy to stream the agent’s final output as it comes in.
-It also takes an optional `event_stream_handler` argument that you can use to gain insight into what is happening during the run before the final output is produced.
+As shown in the example above, [ run_stream()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) makes it easy to stream the agent’s final output as it comes in.
+It also takes an optional 
 
-The example below shows how to stream events and text output. You can also stream structured output.
+`event_stream_handler` argument that you can use to gain insight into what is happening during the run before the final output is produced.The example below shows how to stream events and text output. You can also [stream structured output](/docs/ai/core-concepts/output#streaming-structured-output).
 
-These “dangling” tool calls will not be executed unless the agent’s `end_strategy` is set to `'graceful'` or `'exhaustive'`, and even then their results will not be sent back to the model as the agent run will already be considered completed. In short, if the model returns both tool calls and text, and the agent’s output type is `str`, **the tool calls will not run** in streaming mode with the default setting.
+These “dangling” tool calls will not be executed unless the agent’s [ end_strategy](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) is set to 
+
+`'graceful'` or `'exhaustive'`, and even then their results will not be sent back to the model as the agent run will already be considered completed. In short, if the model returns both tool calls and text, and the agent’s output type is `str`, **the tool calls will not run**in streaming mode with the default setting.
 
 If you want to always keep running the agent when it performs tool calls, and stream all events from the model’s streaming response and the agent’s execution of tools,
-use `agent.run_stream_events()` or `agent.iter()` instead, as described in the following sections.
+use [ agent.run_stream_events()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) or 
 
-*(This example is complete, it can be run “as is”)*
+[instead, as described in the following sections.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.iter)
 
-Like `agent.run_stream()`, `agent.run()` takes an optional `event_stream_handler`
+`agent.iter()`*(This example is complete, it can be run “as is”)*
+
+Like `agent.run_stream()`, [ agent.run()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) takes an optional 
+
+`event_stream_handler`
 argument that lets you stream all events from the model’s streaming response and the agent’s execution of tools.
-Unlike `run_stream()`, it always runs the agent graph to completion even if text was received ahead of tool calls that looked like it could’ve been the final result.
+Unlike `run_stream()`, it always runs the agent graph to completion even if text was received ahead of tool calls that looked like it could’ve been the final result.For convenience, a [ agent.run_stream_events()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) method is also available as a wrapper around 
 
-For convenience, a `agent.run_stream_events()` method is also available as a wrapper around `run(event_stream_handler=...)`. It is an async context manager that yields an async iterator over `AgentStreamEvent`s ending with an `AgentRunResultEvent` carrying the final run result.
+`run(event_stream_handler=...)`. It is an async context manager that yields an async iterator over [ending with an](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)
 
-*(This example is complete, it can be run “as is”)*
+`AgentStreamEvent`s[carrying the final run result.](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResultEvent)
+
+`AgentRunResultEvent`*(This example is complete, it can be run “as is”)*
 
 Under the hood, each `Agent` in Pydantic AI uses **pydantic-graph** to manage its execution flow. **pydantic-graph** is a generic, type-centric library for building and running finite state machines in Python. It doesn’t actually depend on Pydantic AI — you can use it standalone for workflows that have nothing to do with GenAI — but Pydantic AI makes use of it to orchestrate the handling of model requests and model responses in an agent’s run.
 
-In many scenarios, you don’t need to worry about pydantic-graph at all; calling `agent.run(...)` simply traverses the underlying graph from start to finish. However, if you need deeper insight or control — for example to inject your own logic at specific stages — Pydantic AI exposes the lower-level iteration process via `Agent.iter`. This method returns an `AgentRun`, which you can async-iterate over, or manually drive node-by-node via the `next` method. Once the agent’s graph returns an `End`, you have the final result along with a detailed history of all steps.
+In many scenarios, you don’t need to worry about pydantic-graph at all; calling `agent.run(...)` simply traverses the underlying graph from start to finish. However, if you need deeper insight or control — for example to inject your own logic at specific stages — Pydantic AI exposes the lower-level iteration process via [ Agent.iter](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter). This method returns an 
 
-Here’s an example of using `async for` with `iter` to record each node the agent executes:
+[, which you can async-iterate over, or manually drive node-by-node via the](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun)
+
+`AgentRun`[method. Once the agent’s graph returns an](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next)
+
+`next`[, you have the final result along with a detailed history of all steps.](/docs/ai/api/pydantic_graph/basenode/#pydantic_graph.basenode.End)
+
+`End`Here’s an example of using `async for` with `iter` to record each node the agent executes:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
@@ -94,15 +108,17 @@ You could also inspect or mutate the new `node` here as needed.
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
-You can retrieve usage statistics (tokens, requests, etc.) at any time from the `AgentRun` object via `agent_run.usage`. This property returns a `RunUsage` object containing the usage data.
+You can retrieve usage statistics (tokens, requests, etc.) at any time from the [ AgentRun](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun) object via 
 
-Once the run finishes, `agent_run.result` becomes an `AgentRunResult` object containing the final output (and related metadata).
+`agent_run.usage`. This property returns a [object containing the usage data.](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage)
+
+`RunUsage`Once the run finishes, `agent_run.result` becomes an [ AgentRunResult](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult) object containing the final output (and related metadata).
 
 Here is an example of streaming an agent run in combination with `async for` iteration:
 
 *(This example is complete, it can be run “as is”)*
 
-Pydantic AI offers a `UsageLimits` structure to help you limit your
+Pydantic AI offers a [ UsageLimits](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) structure to help you limit your
 usage (tokens, requests, and tool calls) on model runs.
 
 You can apply these settings by passing the `usage_limits` argument to the `run{_sync,_stream}` functions.
@@ -152,14 +168,14 @@ except UsageLimitExceeded as e:
     print(e)
     #> The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2).
 ```
-Pydantic AI offers a `settings.ModelSettings` structure to help you fine tune your requests.
-This structure allows you to configure common parameters that influence the model’s behavior, such as `temperature`, `max_tokens`, `top_k`,
-`timeout`, and more.
+Pydantic AI offers a [ settings.ModelSettings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) structure to help you fine tune your requests.
+This structure allows you to configure common parameters that influence the model’s behavior, such as 
 
-There are three ways to apply these settings, with a clear precedence order:
+`temperature`, `max_tokens`, `top_k`,
+`timeout`, and more.There are three ways to apply these settings, with a clear precedence order:
 
 - **Model-level defaults**- Set when creating a model instance via the- `settings`parameter. These serve as the base defaults for that model.
-- **Agent-level defaults**- Set during- `Agent`initialization via the- `model_settings`argument. These are merged with model defaults, with agent settings taking precedence.
+- **Agent-level defaults**- Set during- `Agent`- `model_settings`argument. These are merged with model defaults, with agent settings taking precedence.
 - **Run-time overrides**- Passed to- `run{_sync,_stream}`functions via the- `model_settings`argument. These have the highest priority and are merged with the combined agent and model defaults.
 
 For example, if you’d like to set the `temperature` setting to `0.0` to ensure less random behavior,
@@ -186,15 +202,15 @@ print(result_sync.output)
 The final request uses `temperature=0.0` (run-time), `max_tokens=500` (from model), demonstrating how settings merge with run-time taking precedence.
 
 Both agent-level and run-level `model_settings` accept a callable that receives a
-`RunContext` and returns `ModelSettings`.
-The callable is invoked before each model request, so settings can vary per step.
-The current resolved settings so far are available via `ctx.model_settings` inside the callable.
+[ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and returns 
 
-Settings are resolved in layers, each merged on top of the previous:
+[. The callable is invoked before each model request, so settings can vary per step. The current resolved settings so far are available via](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings)
+
+`ModelSettings``ctx.model_settings` inside the callable.Settings are resolved in layers, each merged on top of the previous:
 
 - **Model defaults**(- `model.settings`)
 - **Agent-level**(- `Agent(model_settings=...)`)
-- **Capability-level**(e.g. from- `Thinking()`— see Capabilities)
+- **Capability-level**(e.g. from- `Thinking()`- [Capabilities](/docs/ai/core-concepts/capabilities#providing-model-settings))
 - **Run-level**(- `agent.run(model_settings=...)`)
 
 Inside a callable, `ctx.model_settings` contains the merged result of all *previous* layers (position-dependent). For example, an agent-level callable sees only model defaults, while a run-level callable sees model defaults + agent-level + capability-level settings. To reset a field set by a previous layer, set it explicitly (e.g. `{'temperature': None}`).
@@ -209,31 +225,36 @@ agent = Agent(
 )
 ```
 Run metadata lets you tag each agent execution with contextual details (for example, a tenant ID to filter traces and logs)
-and read it after completion via `AgentRun.metadata`,
-`AgentRunResult.metadata`, or
-`StreamedRunResult.metadata`.
-The resolved metadata is attached to the `RunContext` during the run and,
-when instrumentation is enabled, added to the run span attributes for observability tools.
+and read it after completion via [ AgentRun.metadata](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun),
 
-Configure metadata on an `Agent` or pass it to a run.
-Both accept either a static dictionary or a callable that receives the `RunContext`.
-Metadata is computed (if a callable) and applied when the run starts, then recomputed after a run ends successfully,
-so it can include end-of-run values.
-Agent-level metadata and per-run metadata are merged, with per-run values overriding agent-level ones.
+[, or](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult)
 
-You can limit the number of concurrent agent runs using the `max_concurrency` parameter.
+`AgentRunResult.metadata`[. The resolved metadata is attached to the](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult)
+
+`StreamedRunResult.metadata`[during the run and, when instrumentation is enabled, added to the run span attributes for observability tools.](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)
+
+`RunContext`Configure metadata on an [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) or pass it to a run.
+Both accept either a static dictionary or a callable that receives the 
+
+[. Metadata is computed (if a callable) and applied when the run starts, then recomputed after a run ends successfully, so it can include end-of-run values. Agent-level metadata and per-run metadata are merged, with per-run values overriding agent-level ones.](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)
+
+`RunContext`You can limit the number of concurrent agent runs using the `max_concurrency` parameter.
 This is useful when you want to prevent overwhelming external resources or enforce rate limits when running many agent instances in parallel.
 
-When the concurrency limit is reached, additional calls to `agent.run()` or `agent.iter()`
-will wait until a slot becomes available. If you configure `max_queued` and the queue fills up,
-a `ConcurrencyLimitExceeded` exception is raised.
+When the concurrency limit is reached, additional calls to [ agent.run()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run) or 
 
-When instrumentation is enabled, waiting operations appear as “waiting for concurrency” spans with attributes showing queue depth and limits.
+[will wait until a slot becomes available. If you configure](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter)
 
-If you wish to further customize model behavior, you can use a subclass of `ModelSettings`, like
-`GoogleModelSettings`, associated with your model of choice.
+`agent.iter()``max_queued` and the queue fills up,
+a [exception is raised.](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ConcurrencyLimitExceeded)
 
-For example:
+`ConcurrencyLimitExceeded`When instrumentation is enabled, waiting operations appear as “waiting for concurrency” spans with attributes showing queue depth and limits.
+
+If you wish to further customize model behavior, you can use a subclass of [ ModelSettings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings), like
+
+[, associated with your model of choice.](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings)
+
+`GoogleModelSettings`For example:
 
 This error is raised because the safety thresholds were exceeded.
 
@@ -265,8 +286,8 @@ System prompts might seem simple at first glance since they’re just strings (o
 
 Generally, system prompts fall into two categories:
 
-- **Static system prompts**: These are known when writing the code and can be defined via the- `system_prompt`parameter of the- `Agent`constructor.
-- **Dynamic system prompts**: These depend in some way on context that isn’t known until runtime, and should be defined via functions decorated with- `@agent.system_prompt`.
+- **Static system prompts**: These are known when writing the code and can be defined via the- `system_prompt`parameter of the- `Agent`constructor
+- **Dynamic system prompts**: These depend in some way on context that isn’t known until runtime, and should be defined via functions decorated with- `@agent.system_prompt`
 
 You can add both to a single agent; they’re appended in the order they’re defined at runtime.
 
@@ -276,9 +297,9 @@ The agent expects a string dependency.
 
 Static system prompt defined at agent creation time.
 
-Dynamic system prompt defined via a decorator with `RunContext`, this is called just after `run_sync`, not when the agent is created, so can benefit from runtime information like the dependencies used on that run.
+Dynamic system prompt defined via a decorator with [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext), this is called just after 
 
-Another dynamic system prompt, system prompts don't have to have the `RunContext` parameter.
+`run_sync`, not when the agent is created, so can benefit from runtime information like the dependencies used on that run.Another dynamic system prompt, system prompts don't have to have the `RunContext` parameter.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -295,11 +316,11 @@ In general, we recommend using `instructions` instead of `system_prompt` unless 
 
 Instructions, like system prompts, can be specified at different times:
 
-- **Static instructions**: These are known when writing the code and can be defined via the- `instructions`parameter of the- `Agent`constructor.
-- **Dynamic instructions**: These rely on context that is only available at runtime and should be defined using functions decorated with- `@agent.instructions`. Unlike dynamic system prompts, which may be reused when- `message_history`is present, dynamic instructions are always reevaluated.
-- **Runtime instructions**: These are additional instructions for a specific run that can be passed to one of the run methods using the- `instructions`argument.
+- **Static instructions**: These are known when writing the code and can be defined via the- `instructions`parameter of the- `Agent`constructor
+- **Dynamic instructions**: These rely on context that is only available at runtime and should be defined using functions decorated with- `@agent.instructions`- `message_history`is present, dynamic instructions are always reevaluated.
+- **Runtime instructions**: These are additional instructions for a specific run that can be passed to one of the- [run methods](#running-agents)using the- `instructions`argument.
 
-All three types of instructions can be added to a single agent, and they are appended in the order they are defined at runtime. Each instruction is internally classified as either **static** (literal strings from the `instructions` parameter) or **dynamic** (from `@agent.instructions` functions, runtime instructions, or toolset instructions). Static instructions are always sorted before dynamic ones. This ordering enables providers that support prompt caching (like Anthropic and Bedrock) to cache the stable static prefix while leaving dynamic instructions outside the cache boundary.
+All three types of instructions can be added to a single agent, and they are appended in the order they are defined at runtime. Each instruction is internally classified as either **static** (literal strings from the `instructions` parameter) or **dynamic** (from `@agent.instructions` functions, runtime instructions, or [toolset](/docs/ai/tools-toolsets/toolsets) instructions). Static instructions are always sorted before dynamic ones. This ordering enables providers that support prompt caching (like [Anthropic](/docs/ai/models/anthropic#smart-instruction-caching) and [Bedrock](/docs/ai/models/bedrock#prompt-caching)) to cache the stable static prefix while leaving dynamic instructions outside the cache boundary.
 
 Here’s an example using a static instruction as well as dynamic instructions:
 
@@ -307,33 +328,39 @@ The agent expects a string dependency.
 
 Static instructions defined at agent creation time.
 
-Dynamic instructions defined via a decorator with `RunContext`,
-this is called just after `run_sync`, not when the agent is created, so can benefit from runtime
-information like the dependencies used on that run.
+Dynamic instructions defined via a decorator with [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext),
+this is called just after 
 
-Another dynamic instruction, instructions don't have to have the `RunContext` parameter.
+`run_sync`, not when the agent is created, so can benefit from runtime
+information like the dependencies used on that run.Another dynamic instruction, instructions don't have to have the `RunContext` parameter.
 
 *(This example is complete, it can be run “as is”)*
 
 Note that returning an empty string will result in no instruction message added.
 
-Instructions can also come from capabilities via `get_instructions()`, or from template strings rendered against the agent’s dependencies.
+Instructions can also come from [capabilities](/docs/ai/core-concepts/capabilities) via [ get_instructions()](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_instructions), or from 
 
-Validation errors from both function tool parameter validation and structured output validation can be passed back to the model with a request to retry.
+[template strings](/docs/ai/core-concepts/agent-spec#template-strings)rendered against the agent’s dependencies.
 
-You can also raise `ModelRetry` from within a tool or output function to tell the model it should retry generating a response.
+Validation errors from both function tool parameter validation and [structured output validation](/docs/ai/core-concepts/output#structured-output) can be passed back to the model with a request to retry.
 
-- The default retry count is **1**but can be altered for the entire agent with`retries`or`AgentRetries`, a specific tool, or outputs. The output side of the agent retry budget can also be overridden per run via`agent.run(retries={'output': ...})`and friends.
-- You can access the current retry count from within a tool, output validator, or output function via `ctx.retry`.
+You can also raise [ ModelRetry](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) from within a 
+
+[tool](/docs/ai/tools-toolsets/tools)or
+
+[output function](/docs/ai/core-concepts/output#output-functions)to tell the model it should retry generating a response.
+
+- The default retry count is **1**but can be altered for the[entire agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__)with`retries`or`AgentRetries`[specific tool](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool), or[outputs](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__). The output side of the agent retry budget can also be overridden per run via`agent.run(retries={'output': ...})`and friends.
+- You can access the current retry count from within a tool, output validator, or output function via `ctx.retry`
 
 Pydantic AI enforces the output retry budget differently depending on how the model returns its final output:
 
-- **Text output path**(- `output_type=str`, text-only outputs, empty or unusable model responses): a single global budget is shared across the whole run. Each invalid response consumes one unit of the budget; when it’s exhausted, the run raises- `UnexpectedModelBehavior`with message- `'Exceeded maximum output retries (N)'`.
-- **Tool output path**(- `output_type=ToolOutput(...)`, structured outputs): the output retry budget is the- *default per-tool limit*. See Tool Output for per-tool overrides via- `ToolOutput(max_retries=N)`.
+- **Text output path**(- `output_type=str`, text-only outputs, empty or unusable model responses): a single global budget is shared across the whole run. Each invalid response consumes one unit of the budget; when it’s exhausted, the run raises- `UnexpectedModelBehavior`- `'Exceeded maximum output retries (N)'`.
+- **Tool output path**(- `output_type=ToolOutput(...)`- *default per-tool limit*. See- [Tool Output](/docs/ai/core-concepts/output#tool-output)for per-tool overrides via- `ToolOutput(max_retries=N)`
 
-For how the budget appears inside output validators — including what `ctx.max_retries` and `ctx.retry` reflect on each path — see the Output validators section.
+For how the budget appears inside [output validators](/docs/ai/core-concepts/output#output-validator-functions) — including what `ctx.max_retries` and `ctx.retry` reflect on each path — see the [Output validators](/docs/ai/core-concepts/output#output-validator-functions) section.
 
-Tool retries are tracked per tool — see Tool Execution and Retries for the per-tool counter model and the three configuration levels.
+Tool retries are tracked per tool — see [Tool Execution and Retries](/docs/ai/tools-toolsets/tools-advanced#tool-retries) for the per-tool counter model and the three configuration levels.
 
 Here’s an example:
 
@@ -341,7 +368,7 @@ Agents require a different approach to observability than traditional software. 
 
 This means setting up your application to record what’s happening in a way you can review afterward, both during development (to understand and iterate) and in production (to debug issues and monitor behavior). The ergonomics matter too: a plaintext dump of everything that happened isn’t a practical way to review agent behavior, even during development. You want tooling that lets you step through each decision and tool call interactively.
 
-We recommend Pydantic Logfire, which has been designed with Pydantic AI workflows in mind.
+We recommend [Pydantic Logfire](https://logfire.pydantic.dev/docs/), which has been designed with Pydantic AI workflows in mind.
 
 ```
 import logfire
@@ -363,7 +390,7 @@ This visibility is invaluable for:
 - Optimizing performance and costs
 - Monitoring production deployments
 
-For systematic evaluation of agent behavior beyond runtime debugging, Pydantic Evals provides a code-first framework for testing AI systems:
+For systematic evaluation of agent behavior beyond runtime debugging, [Pydantic Evals](/docs/ai/evals/evals) provides a code-first framework for testing AI systems:
 
 ```
 from pydantic_evals import Case, Dataset
@@ -375,29 +402,31 @@ dataset = Dataset(
 )
 report = dataset.evaluate_sync(my_agent_function)
 ```
-Evals let you define test cases, run them against your agent, and score the results. When combined with Logfire, evaluation results appear in the web UI for visualization and comparison across runs. See the Logfire integration guide for setup.
+Evals let you define test cases, run them against your agent, and score the results. When combined with Logfire, evaluation results appear in the web UI for visualization and comparison across runs. See the [Logfire integration guide](/docs/ai/evals/how-to/logfire-integration) for setup.
 
-Pydantic AI’s instrumentation is built on OpenTelemetry, so you can send traces to any compatible backend. Even if you use the Logfire SDK for its convenience, you can configure it to send data to other backends. See alternative backends for setup instructions.
+Pydantic AI’s instrumentation is built on [OpenTelemetry](https://opentelemetry.io/), so you can send traces to any compatible backend. Even if you use the Logfire SDK for its convenience, you can configure it to send data to other backends. See [alternative backends](/docs/ai/integrations/logfire#using-opentelemetry) for setup instructions.
 
-Full Logfire integration guide →
+[Full Logfire integration guide →](/docs/ai/integrations/logfire)
 
-If models behave unexpectedly (e.g., the retry limit is exceeded, or their API returns `503`), agent runs will raise `UnexpectedModelBehavior`.
+If models behave unexpectedly (e.g., the retry limit is exceeded, or their API returns `503`), agent runs will raise [ UnexpectedModelBehavior](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UnexpectedModelBehavior).
 
-In these cases, `capture_run_messages` can be used to access the messages exchanged during the run to help diagnose the issue.
+In these cases, [ capture_run_messages](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.capture_run_messages) can be used to access the messages exchanged during the run to help diagnose the issue.
 
 Define a tool that will raise `ModelRetry` repeatedly in this case.
 
-`capture_run_messages` is used to capture the messages exchanged during the run.
+[ capture_run_messages](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.capture_run_messages) is used to capture the messages exchanged during the run.
 
 *(This example is complete, it can be run “as is”)*
 
-When a run is cut short by an exception while streaming, an exception inside a tool, or external cancellation, Pydantic AI still captures partial state where it can. Partial `ModelResponse` and `ModelRequest` messages have `state='interrupted'` so persistence layers and UIs can distinguish them from complete messages.
+When a run is cut short by an exception while streaming, an exception inside a tool, or external cancellation, Pydantic AI still captures partial state where it can. Partial [ ModelResponse](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse) and 
 
-For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped. Half-finished tool call parts are not turned into synthetic tool results; only completed tool returns are captured.
+[messages have](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest)
+
+`ModelRequest``state='interrupted'` so persistence layers and UIs can distinguish them from complete messages.For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped. Half-finished tool call parts are not turned into synthetic tool results; only completed tool returns are captured.
 
 In this example, `get_volume` completes before `get_mass` raises, so the interrupted request contains the completed `get_volume` return:
 
-Agents can also be defined declaratively in YAML or JSON using agent specs. This separates agent configuration from application code:
+Agents can also be defined declaratively in YAML or JSON using [agent specs](/docs/ai/core-concepts/agent-spec). This separates agent configuration from application code:
 
 ```
 model: anthropic:claude-opus-4-6
@@ -411,7 +440,7 @@ capabilities:
 from pydantic_ai import Agent
 agent = Agent.from_file('agent.yaml')
 ```
-See Agent Specs for the full spec format, template strings, and custom capability registration.
+See [Agent Specs](/docs/ai/core-concepts/agent-spec) for the full spec format, template strings, and custom capability registration.
 
 # Citations
 

@@ -2,14 +2,18 @@
 type: Web Page
 title: Pydantic AI Gateway | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/gateway
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Pydantic AI Gateway
 
-**Pydantic AI Gateway** is a unified interface for accessing multiple AI providers with a single key, managed through Pydantic Logfire. Features include built-in OpenTelemetry observability, real-time cost monitoring, failover management, and native integration with the other tools in the Pydantic stack.
+** Pydantic AI Gateway** is a unified interface for accessing multiple AI providers with a single key, managed through 
 
-Sign up at logfire.pydantic.dev.
+[Pydantic Logfire](https://pydantic.dev/logfire). Features include built-in OpenTelemetry observability, real-time cost monitoring, failover management, and native integration with the other tools in the
+
+[Pydantic stack](https://pydantic.dev/).
+
+Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/).
 
 To help you get started with Pydantic AI Gateway, some code examples on the Pydantic AI documentation include a “Via Pydantic AI Gateway” tab, alongside a “Direct to Provider API” tab with the standard Pydantic AI model string. The main difference between them is that when using Gateway, model strings use the `gateway/` prefix.
 
@@ -17,14 +21,14 @@ To help you get started with Pydantic AI Gateway, some code examples on the Pyda
 - **Cost Limits**: Set spending limits at project, user, and API key levels with daily, weekly, and monthly caps.
 - **BYOK and managed providers:**Bring your own API keys (BYOK) from LLM providers, or pay for inference directly through the platform.
 - **Multi-provider support:**Access models from OpenAI, Anthropic, Google Vertex, Groq, and AWS Bedrock.- *More providers coming soon*.
-- **Routing groups:**Configure routing groups to fail over between providers serving the same model, or load-balance traffic across them by weight.
-- **Backend observability:**Log every request through Pydantic Logfire or any OpenTelemetry backend (- *coming soon*).
+- **Routing groups:**Configure- [routing groups](#routing-groups)to fail over between providers serving the same model, or load-balance traffic across them by weight.
+- **Backend observability:**Log every request through- [Pydantic Logfire](https://pydantic.dev/logfire)or any OpenTelemetry backend (- *coming soon*).
 - **Zero translation**: Unlike traditional AI gateways that translate everything to one common schema,- **Pydantic AI Gateway**allows requests to flow through directly in each provider’s native format. This gives you immediate access to new model features as soon as they are released.
 - **Enterprise ready**: Inherits Logfire’s enterprise features — including SSO, custom roles and permissions.
 
 This section contains instructions on how to set up your account and run your app with Pydantic AI Gateway credentials.
 
-- Sign up at logfire.pydantic.dev
+- Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/)
 - Choose a region and create an account.
 - Activate the gateway in your organizations settings.
 
@@ -50,7 +54,7 @@ Set the `PYDANTIC_AI_GATEWAY_API_KEY` environment variable to your Gateway API k
 
 You can access multiple models with the same API key, as shown in the code snippet below.
 
-Pass your API key directly using the `gateway_provider`:
+Pass your API key directly using the [ gateway_provider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.gateway.gateway_provider):
 
 To use an alternate provider or routing group, you can specify it in the route parameter:
 
@@ -88,7 +92,7 @@ env_key = "PYDANTIC_AI_GATEWAY_API_KEY"
 env_key_instructions = "Create a Gateway API key in your Logfire organization's Gateway settings."
 wire_api = "responses"
 ```
-For more details on configuring custom providers in Codex, see the Codex custom model providers docs and the Codex configuration reference.
+For more details on configuring custom providers in Codex, see the [Codex custom model providers docs](https://developers.openai.com/codex/config-advanced#custom-model-providers) and the [Codex configuration reference](https://developers.openai.com/codex/config-reference/).
 
 If you already have a `~/.codex/config.toml`, add the `[model_providers.pydantic_gateway]` block and update `model_provider` instead of replacing the whole file. Replace `gpt-5.4` with whichever OpenAI Responses model you want Codex to use.
 
@@ -98,7 +102,7 @@ Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`)
 
 Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`).
 
-The Vercel AI SDK can route through the Gateway by pointing each provider’s `baseURL` at the matching proxy path (e.g. `/proxy/openai` or `/proxy/anthropic`). Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`).
+The [Vercel AI SDK](https://ai-sdk.dev/) can route through the Gateway by pointing each provider’s `baseURL` at the matching proxy path (e.g. `/proxy/openai` or `/proxy/anthropic`). Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`).
 
 ```
 import { createOpenAI } from "@ai-sdk/openai";
@@ -171,7 +175,7 @@ The rejection response depends on the provider type:
 - **Built-in providers**(Pydantic-managed):- `404`with a message asking you to let us know on Slack so we can add the model.
 - **Custom providers**(your own API keys):- `400`indicating that pricing data is required, with a hint to disable the toggle if you want the request through anyway.
 
-We are actively working on supporting more providers and models. If there’s a specific provider or model you’d like to see supported, please let us know on Slack or open an issue on `genai-prices`.
+We are actively working on supporting more providers and models. If there’s a specific provider or model you’d like to see supported, please let us know on [Slack](https://logfire.pydantic.dev/docs/join-slack/) or [open an issue on  genai-prices](https://github.com/pydantic/genai-prices/issues/new).
 
 # Citations
 

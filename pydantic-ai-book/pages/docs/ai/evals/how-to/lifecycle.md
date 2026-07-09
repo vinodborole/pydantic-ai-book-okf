@@ -2,16 +2,20 @@
 type: Web Page
 title: Case Lifecycle Hooks | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/lifecycle
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Case Lifecycle Hooks
 
-Control per-case setup, context preparation, and teardown during evaluation using `CaseLifecycle`.
+Control per-case setup, context preparation, and teardown during evaluation using [ CaseLifecycle](/docs/ai/api/pydantic_evals/lifecycle/#pydantic_evals.lifecycle.CaseLifecycle).
 
-`CaseLifecycle` provides hooks at each stage of case evaluation. You pass a lifecycle **class** (not an instance) to `Dataset.evaluate`, and a new instance is created for each case, so instance attributes naturally hold case-specific state.
+[ CaseLifecycle](/docs/ai/api/pydantic_evals/lifecycle/#pydantic_evals.lifecycle.CaseLifecycle) provides hooks at each stage of case evaluation. You pass a lifecycle 
 
-Each case follows this flow:
+**class**(not an instance) to
+
+[, and a new instance is created for each case, so instance attributes naturally hold case-specific state.](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate)
+
+`Dataset.evaluate`Each case follows this flow:
 
 - `setup()`
 - **Task runs**
@@ -54,7 +58,7 @@ print(metrics['no_prefix']['prefix_length'])
 print(metrics['with_prefix']['prefix_length'])
 #> 7
 ```
-The case metadata drives per-case behavior without needing custom `Case` subclasses or serialization.
+The case metadata drives per-case behavior without needing custom [ Case](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Case) subclasses or serialization.
 
 The `teardown()` hook receives the full result, so you can vary cleanup logic based on success or failure — for example, keeping test environments up for manual inspection when a case fails. The `result` can be `None` if evaluation is interrupted before the case produces a report result, so handle that branch when your cleanup depends on the case outcome:
 
@@ -122,9 +126,11 @@ for case in report.cases:
     #> short: output_length=2
     #> long: output_length=11
 ```
-`CaseLifecycle` is generic over the same three type parameters as `Case`: `InputsT`, `OutputT`, and `MetadataT`. All three default to `Any`, so you can omit them when your hooks don’t need type-specific access:
+[ CaseLifecycle](/docs/ai/api/pydantic_evals/lifecycle/#pydantic_evals.lifecycle.CaseLifecycle) is generic over the same three type parameters as 
 
-```
+[:](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Case)
+
+`Case``InputsT`, `OutputT`, and `MetadataT`. All three default to `Any`, so you can omit them when your hooks don’t need type-specific access:```
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators.context import EvaluatorContext
 from pydantic_evals.lifecycle import CaseLifecycle
@@ -138,9 +144,9 @@ report = dataset.evaluate_sync(lambda inputs: inputs, lifecycle=GenericMetricEnr
 print(report.cases[0].metrics['custom'])
 #> 42
 ```
-- **Metrics & Attributes**— Recording metrics inside tasks
-- **Custom Evaluators**— Using enriched metrics in evaluators
-- **Span-Based Evaluation**— Analyzing execution traces
+- [Metrics & Attributes](/docs/ai/evals/how-to/metrics-attributes)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
 
 # Citations
 

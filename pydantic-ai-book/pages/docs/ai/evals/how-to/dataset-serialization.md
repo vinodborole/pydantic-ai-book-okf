@@ -2,7 +2,7 @@
 type: Web Page
 title: Dataset Serialization | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/dataset-serialization
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Dataset Serialization
@@ -395,9 +395,9 @@ class BadEvaluator(Evaluator):
     def evaluate(self, ctx: EvaluatorContext) -> bool:
         return True
 ```
-- **Dataset Management**- Creating and organizing datasets
-- **Custom Evaluators**- Write custom evaluation logic
-- **Core Concepts**- Understand the data model
+- [Dataset Management](/docs/ai/evals/how-to/dataset-management)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Core Concepts](/docs/ai/evals/core-concepts)
 
 # Citations
 

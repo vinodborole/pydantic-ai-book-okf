@@ -2,22 +2,22 @@
 type: Web Page
 title: Google | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/google
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
-The `GoogleModel` is a model that uses the `google-genai` package under the hood to
+The `GoogleModel` is a model that uses the [ google-genai](https://pypi.org/project/google-genai/) package under the hood to
 access Google’s Gemini models via both the Gemini API and Google Cloud (formerly known as Vertex AI).
 
 Two providers wrap those endpoints:
 
-- `GoogleProvider`— the Gemini API (Google AI Studio), surfaced under the- `'google:'`prefix.
+- `GoogleProvider`- `'google:'`prefix.
 - `GoogleCloudProvider`— Google Cloud (formerly known as Vertex AI), surfaced under the- `'google-cloud:'`prefix.
 
 To use `GoogleModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `google` optional group:
 
-`GoogleModel` lets you use Google’s Gemini models through their Gemini API (`generativelanguage.googleapis.com`) or Google Cloud (`*-aiplatform.googleapis.com`, formerly known as Vertex AI).
+`GoogleModel` lets you use Google’s Gemini models through their [Gemini API](https://ai.google.dev/api/all-methods) (`generativelanguage.googleapis.com`) or [Google Cloud](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models) (`*-aiplatform.googleapis.com`, formerly known as Vertex AI).
 
-To use Gemini via the Gemini API, go to aistudio.google.com and create an API key.
+To use Gemini via the Gemini API, go to [aistudio.google.com](https://aistudio.google.com/apikey) and create an API key.
 
 Once you have the API key, set it as an environment variable:
 
@@ -44,17 +44,17 @@ If you are an enterprise user, you can also use `GoogleModel` to access Gemini v
 This interface has a number of advantages over the Gemini API:
 
 - The Google Cloud API comes with more enterprise readiness guarantees.
-- You can purchase provisioned throughput with Google Cloud to guarantee capacity.
+- You can [purchase provisioned throughput](https://cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput#purchase-provisioned-throughput)with Google Cloud to guarantee capacity.
 - If you’re running Pydantic AI inside Google Cloud, you don’t need to set up authentication, it should “just work”.
 - You can decide which region to use, which might be important from a regulatory perspective, and might improve latency.
 
-You can authenticate using application default credentials, a service account, or an API key.
+You can authenticate using [application default credentials](https://cloud.google.com/docs/authentication/application-default-credentials), a service account, or an [API key](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys?usertype=expressmode).
 
 Whichever way you authenticate, you’ll need to have the Vertex AI API (now branded as Google Cloud AI) enabled in your Google Cloud account.
 
-If you have the `gcloud` CLI installed and configured, you can use the `GoogleCloudProvider` by name:
+If you have the [ gcloud CLI](https://cloud.google.com/sdk/gcloud) installed and configured, you can use the 
 
-```
+`GoogleCloudProvider` by name:```
 from pydantic_ai import Agent
 agent = Agent('google-cloud:gemini-3-pro-preview')
 ...
@@ -72,7 +72,7 @@ agent = Agent(model)
 ```
 To use a service account JSON file, explicitly create the provider and model:
 
-To use Google Cloud with an API key, create a key and set it as an environment variable:
+To use Google Cloud with an API key, [create a key](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys?usertype=expressmode) and set it as an environment variable:
 
 You can then use `GoogleModel` via the `GoogleCloudProvider` by name:
 
@@ -94,9 +94,11 @@ agent = Agent(model)
 ```
 You can specify the location and/or project when using Google Cloud:
 
-The unified `service_tier` field works on both Google subsystems, with `google_cloud_service_tier` available for finer Google Cloud routing control. The provider-specific field wins when both are set.
+The unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field works on both Google subsystems, with 
 
-**Gemini API** — sent as the request’s `service_tier` field:
+[available for finer Google Cloud routing control. The provider-specific field wins when both are set.](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cloud_service_tier)
+
+`google_cloud_service_tier`**Gemini API** — sent as the request’s `service_tier` field:
 
 | `service_tier` | Sent to Gemini API | 
 |---|---|
@@ -105,26 +107,26 @@ The unified `service_tier` field works on both Google subsystems, with `google_c
 | `'flex'` | `'flex'` | 
 | `'priority'` | `'priority'` | 
 
-**Google Cloud** — sent as HTTP routing headers; `'flex'` and `'priority'` always pick the **PT-with-spillover** variant, so customers with Provisioned Throughput (PT) keep using their reserved capacity first:
+**Google Cloud** — sent as HTTP routing headers; `'flex'` and `'priority'` always pick the **PT-with-spillover** variant, so customers with [Provisioned Throughput](https://cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput/use-provisioned-throughput) (PT) keep using their reserved capacity first:
 
 | `service_tier` | Google Cloud routing headers | Effective behavior | 
 |---|---|---|
 | `'auto'`/`'default'` | (none) | PT first, then standard on-demand spillover | 
-| `'flex'` | `X-Vertex-AI-LLM-Shared-Request-Type: flex` | PT first, then Flex PayGo spillover | 
-| `'priority'` | `X-Vertex-AI-LLM-Shared-Request-Type: priority` | PT first, then Priority PayGo spillover | 
+| `'flex'` | `X-Vertex-AI-LLM-Shared-Request-Type: flex` | PT first, then [Flex PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/flex-paygo)spillover | 
+| `'priority'` | `X-Vertex-AI-LLM-Shared-Request-Type: priority` | PT first, then [Priority PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/priority-paygo)spillover | 
 
-To bypass PT entirely (or use it exclusively, or any of the other Google Cloud-specific routing combinations) set `google_cloud_service_tier` directly — the unified field is intentionally limited to the safe PT-with-spillover variants.
+To bypass PT entirely (or use it exclusively, or any of the other Google Cloud-specific routing combinations) set [ google_cloud_service_tier](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cloud_service_tier) directly — the unified field is intentionally limited to the safe PT-with-spillover variants.
 
 **Google Cloud — full set of routing values**
 
-The full `google_cloud_service_tier` values map to these HTTP headers:
+The full [ google_cloud_service_tier](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cloud_service_tier) values map to these HTTP headers:
 
 - `'pt_only'`: PT only (- `X-Vertex-AI-LLM-Request-Type: dedicated`).
-- `'pt_then_flex'`: PT when quota allows, then Flex PayGo spillover (- `X-Vertex-AI-LLM-Shared-Request-Type: flex`).
-- `'pt_then_priority'`: PT when quota allows, then Priority PayGo spillover (- `X-Vertex-AI-LLM-Shared-Request-Type: priority`).
+- `'pt_then_flex'`: PT when quota allows, then- [Flex PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/flex-paygo)spillover (- `X-Vertex-AI-LLM-Shared-Request-Type: flex`).
+- `'pt_then_priority'`: PT when quota allows, then- [Priority PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/priority-paygo)spillover (- `X-Vertex-AI-LLM-Shared-Request-Type: priority`).
 - `'on_demand'`: Standard on-demand only (- `X-Vertex-AI-LLM-Request-Type: shared`).
-- `'flex_only'`: Flex PayGo only (- `X-Vertex-AI-LLM-Request-Type: shared`and- `X-Vertex-AI-LLM-Shared-Request-Type: flex`).
-- `'priority_only'`: Priority PayGo only (- `X-Vertex-AI-LLM-Request-Type: shared`and- `X-Vertex-AI-LLM-Shared-Request-Type: priority`).
+- `'flex_only'`:- [Flex PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/flex-paygo)only (- `X-Vertex-AI-LLM-Request-Type: shared`and- `X-Vertex-AI-LLM-Shared-Request-Type: flex`).
+- `'priority_only'`:- [Priority PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/priority-paygo)only (- `X-Vertex-AI-LLM-Request-Type: shared`and- `X-Vertex-AI-LLM-Shared-Request-Type: priority`).
 
 **Example**
 
@@ -140,11 +142,13 @@ result = agent.run_sync(
     model_settings=GoogleModelSettings(google_cloud_service_tier='pt_then_flex'),
 )
 ```
-Swap `'pt_then_flex'` for any `GoogleCloudServiceTier` value — e.g. `'pt_then_priority'` for Priority PayGo spillover, or `'flex_only'` / `'priority_only'` to bypass PT entirely.
+Swap `'pt_then_flex'` for any [ GoogleCloudServiceTier](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleCloudServiceTier) value — e.g. 
 
-After the request, inspect `ModelResponse` `provider_details.get('traffic_type')` (e.g. `ON_DEMAND_FLEX`, `ON_DEMAND_PRIORITY`) to see which tier served it, when the API returns it.
+`'pt_then_priority'` for [Priority PayGo](https://cloud.google.com/vertex-ai/generative-ai/docs/priority-paygo)spillover, or
 
-You can access models from the Model Garden that support the `generateContent` API and are available under your Google Cloud project, including but not limited to Gemini, using one of the following `model_name` patterns:
+`'flex_only'` / `'priority_only'` to bypass PT entirely.After the request, inspect `ModelResponse``provider_details.get('traffic_type')` (e.g. `ON_DEMAND_FLEX`, `ON_DEMAND_PRIORITY`) to see which tier served it, when the API returns it.
+
+You can access models from the [Model Garden](https://cloud.google.com/model-garden?hl=en) that support the `generateContent` API and are available under your Google Cloud project, including but not limited to Gemini, using one of the following `model_name` patterns:
 
 - `{model_id}`for Gemini models
 - `{publisher}/{model_id}`
@@ -178,9 +182,9 @@ model = GoogleModel(
 agent = Agent(model)
 ...
 ```
-By default, the `google-genai` SDK does not retry requests that fail with a transient HTTP error. You can enable retries by passing a `HttpRetryOptions` instance to the `retry_options` argument of `GoogleProvider` or `GoogleCloudProvider`:
+By default, the `google-genai` SDK does not retry requests that fail with a transient HTTP error. You can enable retries by passing a [ HttpRetryOptions](https://googleapis.github.io/python-genai/genai.html#genai.types.HttpRetryOptions) instance to the 
 
-```
+`retry_options` argument of `GoogleProvider` or `GoogleCloudProvider`:```
 from google.genai.types import HttpRetryOptions
 from pydantic_ai import Agent
 from pydantic_ai.models.google import GoogleModel
@@ -198,17 +202,19 @@ model = GoogleModel(
 agent = Agent(model)
 ...
 ```
-This passes the options through to the SDK’s `HttpOptions.retry_options`. See the Vertex AI retry strategy documentation for guidance on choosing values.
+This passes the options through to the SDK’s [ HttpOptions.retry_options](https://googleapis.github.io/python-genai/genai.html#genai.types.HttpOptions.retry_options). See the 
+
+[Vertex AI retry strategy documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/retry-strategy)for guidance on choosing values.
 
 `GoogleModel` supports multi-modal input, including documents, images, audio, and video.
 
 YouTube video URLs can be passed directly to Google models:
 
-Files can be uploaded via the Files API and passed as URLs:
+Files can be uploaded via the [Files API](https://ai.google.dev/gemini-api/docs/files) and passed as URLs:
 
-See the input documentation for more details and examples.
+See the [input documentation](/docs/ai/advanced-features/input) for more details and examples.
 
-You can customize model behavior using `GoogleModelSettings`:
+You can customize model behavior using [ GoogleModelSettings](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings):
 
 ```
 from google.genai.types import HarmBlockThreshold, HarmCategory
@@ -229,7 +235,7 @@ model = GoogleModel('gemini-3-pro-preview')
 agent = Agent(model, model_settings=settings)
 ...
 ```
-Use the provider-agnostic `Thinking` capability to enable thinking:
+Use the provider-agnostic [ Thinking](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Thinking) capability to enable thinking:
 
 ```
 from pydantic_ai import Agent
@@ -237,7 +243,7 @@ from pydantic_ai.capabilities import Thinking
 agent = Agent('google:gemini-3.5-flash', capabilities=[Thinking(effort='medium')])
 ...
 ```
-For advanced usage, you can pass Google’s native thinking config through `GoogleModelSettings.google_thinking_config`:
+For advanced usage, you can pass Google’s native thinking config through [ GoogleModelSettings.google_thinking_config](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_thinking_config):
 
 ```
 from pydantic_ai import Agent
@@ -247,7 +253,7 @@ model_settings = GoogleModelSettings(google_thinking_config={'include_thoughts':
 agent = Agent(model, model_settings=model_settings)
 ...
 ```
-See Thinking for the unified API and Gemini API docs for Google’s native thinking configuration.
+See [Thinking](/docs/ai/advanced-features/thinking) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
 
 You can customize the safety settings by setting the `google_safety_settings` field.
 
@@ -267,9 +273,9 @@ model = GoogleModel('gemini-3-flash-preview')
 agent = Agent(model, model_settings=model_settings)
 ...
 ```
-See the Gemini API docs for more on safety settings.
+See the [Gemini API docs](https://ai.google.dev/gemini-api/docs/safety-settings) for more on safety settings.
 
-You can return logprobs from the model in your response by setting `google_logprobs` and `google_top_logprobs` in the `GoogleModelSettings`.
+You can return logprobs from the model in your response by setting `google_logprobs` and `google_top_logprobs` in the [ GoogleModelSettings](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings).
 
 This feature is only supported for non-streaming requests and Google Cloud.
 
@@ -290,9 +296,9 @@ result = agent.run_sync('Your prompt here')
 logprobs = result.response.provider_details.get('logprobs')
 avg_logprobs = result.response.provider_details.get('avg_logprobs')
 ```
-See the Google Dev Blog for more information.
+See the [Google Dev Blog](https://developers.googleblog.com/unlock-gemini-reasoning-with-logprobs-on-vertex-ai/) for more information.
 
-When you’ve created a Gemini cached content resource, pass its resource name through `google_cached_content` to reuse it across requests:
+When you’ve created a Gemini [cached content resource](https://ai.google.dev/gemini-api/docs/caching), pass its resource name through [ google_cached_content](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cached_content) to reuse it across requests:
 
 ```
 from pydantic_ai import Agent
@@ -305,7 +311,7 @@ agent = Agent(GoogleModel('gemini-2.5-pro'), model_settings=model_settings)
 ```
 ## Create a cached content resource
 
-Pydantic AI doesn’t wrap the cache-management API — create the resource with the underlying google-genai SDK, then pass its name through `google_cached_content`:
+Pydantic AI doesn’t wrap the cache-management API — create the resource with the underlying [google-genai](https://googleapis.github.io/python-genai/) SDK, then pass its name through `google_cached_content`:
 
 ```
 from google.genai.types import Content, CreateCachedContentConfig, Part
@@ -322,7 +328,7 @@ cache = provider.client.caches.create(
 print(cache.name)
 #> cachedContents/abc123...
 ```
-Caches have a minimum size (≈1024 tokens for `gemini-2.5-flash`, ≈4096 for `gemini-2.5-pro`) and a TTL — see the Gemini caching docs for the current thresholds, pricing, and `list` / `update` / `delete` operations.
+Caches have a minimum size (≈1024 tokens for `gemini-2.5-flash`, ≈4096 for `gemini-2.5-pro`) and a TTL — see the [Gemini caching docs](https://ai.google.dev/gemini-api/docs/caching) for the current thresholds, pricing, and `list` / `update` / `delete` operations.
 
 # Citations
 

@@ -2,7 +2,7 @@
 type: Web Page
 title: Span-Based | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/span-based
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Span-Based
@@ -54,7 +54,7 @@ dataset = Dataset(
     ],
 )
 ```
-The `HasMatchingSpan` evaluator checks if any span matches a query:
+The [ HasMatchingSpan](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.HasMatchingSpan) evaluator checks if any span matches a query:
 
 ```
 from pydantic_evals.evaluators import HasMatchingSpan
@@ -65,7 +65,7 @@ HasMatchingSpan(
 ```
 **Returns:** `bool` - `True` if any span matches the query
 
-A `SpanQuery` is a dictionary with query conditions:
+A [ SpanQuery](/docs/ai/api/pydantic_evals/otel/#pydantic_evals.otel.SpanQuery) is a dictionary with query conditions:
 
 Match spans by name:
 
@@ -85,7 +85,7 @@ Match spans with specific attributes:
 # Has attribute keys (any value)
 {'has_attribute_keys': ['user_id', 'request_id']}
 ```
-Match spans by their status:
+Match spans by their [status](/docs/ai/api/pydantic_evals/otel/#pydantic_evals.otel.SpanStatus):
 
 ```
 # Spans that recorded an error
@@ -225,7 +225,7 @@ evaluators = [
     ),
 ]
 ```
-Check for error conditions using span status:
+Check for error conditions using span [status](/docs/ai/api/pydantic_evals/otel/#pydantic_evals.otel.SpanStatus):
 
 ```
 from pydantic_evals.evaluators import HasMatchingSpan
@@ -304,7 +304,7 @@ class CustomSpanCheck(Evaluator):
             'llm_fast': total_llm_time < 2.0,
         }
 ```
-The `SpanTree` provides methods for span analysis:
+The [ SpanTree](/docs/ai/api/pydantic_evals/otel/#pydantic_evals.otel.SpanTree) provides methods for span analysis:
 
 ```
 from pydantic_evals.otel import SpanTree
@@ -318,7 +318,7 @@ def example_api(span_tree: SpanTree) -> None:
     for node in span_tree:
         print(node.name, node.duration, node.attributes)
 ```
-Each `SpanNode` has:
+Each [ SpanNode](/docs/ai/api/pydantic_evals/otel/#pydantic_evals.otel.SpanNode) has:
 
 ```
 from pydantic_evals.otel import SpanNode
@@ -444,9 +444,9 @@ evaluators = [
 - **Combine with Other Evaluators**: Use span checks alongside output validation
 - **Document Expectations**: Comment why specific spans should/shouldn’t exist
 
-- **Logfire Integration**- Set up Logfire for span capture
-- **Custom Evaluators**- Write advanced span analysis
-- **Native Evaluators**- Other evaluator types
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
 
 # Citations
 

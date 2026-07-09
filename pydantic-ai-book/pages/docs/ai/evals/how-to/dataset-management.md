@@ -2,7 +2,7 @@
 type: Web Page
 title: Dataset Management | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/dataset-management
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Dataset Management
@@ -154,9 +154,9 @@ dataset = Dataset[str, str, Any].from_file(
     custom_evaluator_types=[MyCustomEvaluator],
 )
 ```
-For complete details on serialization with custom evaluators, see Dataset Serialization.
+For complete details on serialization with custom evaluators, see [Dataset Serialization](/docs/ai/evals/how-to/dataset-serialization).
 
-Pydantic Evals allows you to generate test datasets using LLMs with `generate_dataset`.
+Pydantic Evals allows you to generate test datasets using LLMs with [ generate_dataset](/docs/ai/api/pydantic_evals/generation/#pydantic_evals.generation.generate_dataset).
 
 Datasets can be generated in either JSON or YAML format, in both cases a JSON schema file is generated alongside the dataset and referenced in the dataset, so you should get type checking and auto-completion in your editor.
 
@@ -166,17 +166,19 @@ Define the schema for the expected outputs of the task.
 
 Define the schema for the metadata of the test cases.
 
-Call `generate_dataset` to create a `Dataset` with 2 cases confirming to the schema.
+Call [ generate_dataset](/docs/ai/api/pydantic_evals/generation/#pydantic_evals.generation.generate_dataset) to create a 
 
-Save the dataset to a YAML file, this will also write `questions_cases_schema.json` with the schema JSON schema for `questions_cases.yaml` to make editing easier. The magic `yaml-language-server` comment is supported by at least vscode, jetbrains/pycharm (more details here).
+[with 2 cases confirming to the schema.](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset)
+
+`Dataset`Save the dataset to a YAML file, this will also write `questions_cases_schema.json` with the schema JSON schema for `questions_cases.yaml` to make editing easier. The magic `yaml-language-server` comment is supported by at least vscode, jetbrains/pycharm (more details [here](https://github.com/redhat-developer/yaml-language-server#using-inlined-schema)).
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main(answer)) to run main)*
 
 You can also write datasets as JSON files:
 
-Generate the `Dataset` exactly as above.
+Generate the [ Dataset](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset) exactly as above.
 
-Save the dataset to a JSON file, this will also write `questions_cases_schema.json` with the JSON schema for `questions_cases.json`. This time the `$schema` key is included in the JSON file to define the schema for IDEs to use while you edit the file, there's no formal spec for this, but it works in vscode and pycharm and is discussed at length in json-schema-org/json-schema-spec#828.
+Save the dataset to a JSON file, this will also write `questions_cases_schema.json` with the JSON schema for `questions_cases.json`. This time the `$schema` key is included in the JSON file to define the schema for IDEs to use while you edit the file, there's no formal spec for this, but it works in vscode and pycharm and is discussed at length in [json-schema-org/json-schema-spec#828](https://github.com/json-schema-org/json-schema-spec/issues/828).
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main(answer)) to run main)*
 
@@ -280,7 +282,9 @@ dataset = Dataset(
 # Add more as you find issues
 dataset.add_case(name='newly_discovered_edge_case', inputs='edge')
 ```
-Case-specific evaluators let different cases have different evaluation criteria, which is essential for comprehensive “test coverage”. Rather than trying to write one-size-fits-all evaluators, you can specify exactly what “good” looks like for each scenario. This is particularly powerful with `LLMJudge` evaluators where you can describe nuanced requirements per case, making it easy to build and maintain golden datasets. See Case-specific evaluators for detailed guidance.
+Case-specific evaluators let different cases have different evaluation criteria, which is essential for comprehensive “test coverage”. Rather than trying to write one-size-fits-all evaluators, you can specify exactly what “good” looks like for each scenario. This is particularly powerful with [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) evaluators where you can describe nuanced requirements per case, making it easy to build and maintain golden datasets. See 
+
+[Case-specific evaluators](/docs/ai/evals/evaluators/overview#case-specific-evaluators)for detailed guidance.
 
 ```
 from typing import Any
@@ -296,9 +300,9 @@ comprehensive = Dataset[str, Any, Any].from_file('comprehensive_tests.yaml')
 # Regression tests (specific bugs)
 regression = Dataset[str, Any, Any].from_file('regression_tests.yaml')
 ```
-- **Dataset Serialization**- In-depth guide to saving and loading datasets
-- **Generating Datasets**- Use LLMs to generate test cases
-- **Examples: Simple Validation**- Practical examples
+- [Dataset Serialization](/docs/ai/evals/how-to/dataset-serialization)
+- [Generating Datasets](#generating-datasets)
+- [Examples: Simple Validation](/docs/ai/evals/examples/simple-validation)
 
 # Citations
 

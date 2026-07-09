@@ -2,7 +2,7 @@
 type: Web Page
 title: Metrics & Attributes | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/how-to/metrics-attributes
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Metrics & Attributes
@@ -16,7 +16,7 @@ While executing evaluation tasks, you can record:
 
 These appear in evaluation reports and can be used by evaluators for assessment.
 
-Use `increment_eval_metric` to track numeric values:
+Use [ increment_eval_metric](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.increment_eval_metric) to track numeric values:
 
 ```
 from dataclasses import dataclass
@@ -38,7 +38,7 @@ def my_task(inputs: str) -> str:
     increment_eval_metric('tokens_used', result.usage.total_tokens)
     return result.output
 ```
-Use `set_eval_attribute` to store any data:
+Use [ set_eval_attribute](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.set_eval_attribute) to store any data:
 
 ```
 from pydantic_evals import set_eval_attribute
@@ -57,7 +57,7 @@ def my_task(inputs: str) -> str:
     })
     return process(inputs)
 ```
-Metrics and attributes are available in the `EvaluatorContext`:
+Metrics and attributes are available in the [ EvaluatorContext](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext):
 
 ```
 from dataclasses import dataclass
@@ -282,7 +282,7 @@ class QualityEvaluator(Evaluator):
             'quality_score': confidence * (1.0 + 0.1 * source_count),
         }
 ```
-In addition to case-level metadata, you can also pass experiment-level metadata when calling `evaluate()`:
+In addition to case-level metadata, you can also pass experiment-level metadata when calling [ evaluate()](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate):
 
 ```
 from pydantic_evals import Case, Dataset
@@ -534,10 +534,10 @@ set_eval_attribute('full_response', giant_response_object)
 set_eval_attribute('response_size_kb', len(str(giant_response_object)) / 1024)
 set_eval_attribute('response_keys', list(giant_response_object.keys())[:10])  # First 10 keys
 ```
-- **Case Lifecycle Hooks**- Per-case setup, teardown, and context preparation
-- **Custom Evaluators**- Use metrics/attributes in evaluators
-- **Logfire Integration**- View metrics in Logfire
-- **Concurrency & Performance**- Optimize evaluation performance
+- [Case Lifecycle Hooks](/docs/ai/evals/how-to/lifecycle)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Logfire Integration](/docs/ai/evals/how-to/logfire-integration)
+- [Concurrency & Performance](/docs/ai/evals/how-to/concurrency)
 
 # Citations
 

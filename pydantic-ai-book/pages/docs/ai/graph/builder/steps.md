@@ -2,18 +2,20 @@
 type: Web Page
 title: Steps | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/graph/builder/steps
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Steps
 
-Steps are the fundamental units of work in a graph. They’re async functions that receive a `StepContext` and return a value.
+Steps are the fundamental units of work in a graph. They’re async functions that receive a [ StepContext](/docs/ai/api/pydantic_graph/step/#pydantic_graph.step.StepContext) and return a value.
 
-Steps are created using the `@g.step` decorator on the `GraphBuilder`:
+Steps are created using the [ @g.step](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.step) decorator on the 
 
-*(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
+[:](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder)
 
-Every step function receives a `StepContext` as its first parameter. The context provides access to:
+`GraphBuilder`*(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
+
+Every step function receives a [ StepContext](/docs/ai/api/pydantic_graph/step/#pydantic_graph.step.StepContext) as its first parameter. The context provides access to:
 
 - `ctx.state`- The mutable graph state (type:- `StateT`)
 - `ctx.deps`- Injected dependencies (type:- `DepsT`)
@@ -41,7 +43,7 @@ Multiple steps can be chained sequentially:
 
 The computation is: `(10 + 5) * 2 - 3 = 27`
 
-In addition to regular steps that return a single value, you can create streaming steps that yield multiple values over time using the `@g.stream` decorator:
+In addition to regular steps that return a single value, you can create streaming steps that yield multiple values over time using the [ @g.stream](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.stream) decorator:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
@@ -58,7 +60,7 @@ The builder provides helper methods for common edge patterns:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-The graph builder API provides strong type checking through generics. Type parameters on `StepContext` ensure:
+The graph builder API provides strong type checking through generics. Type parameters on [ StepContext](/docs/ai/api/pydantic_graph/step/#pydantic_graph.step.StepContext) ensure:
 
 - State access is properly typed
 - Dependencies are correctly typed
@@ -81,9 +83,9 @@ async def returns_str(ctx: StepContext[MyState, None, None]) -> str:
 # This would be a type error - expects_int needs int input, but returns_str outputs str
 # g.add(g.edge_from(returns_str).to(expects_int))  # Type error!
 ```
-- Learn about parallel execution with broadcasting and mapping
-- Understand join nodes for aggregating parallel results
-- Explore conditional branching with decision nodes
+- Learn about [parallel execution](/docs/ai/graph/builder/parallel)with broadcasting and mapping
+- Understand [join nodes](/docs/ai/graph/builder/joins)for aggregating parallel results
+- Explore [conditional branching](/docs/ai/graph/builder/decisions)with decision nodes
 
 # Citations
 

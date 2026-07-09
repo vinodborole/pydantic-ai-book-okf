@@ -2,16 +2,16 @@
 type: Web Page
 title: Custom Evaluators | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/custom
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Custom Evaluators
 
 Write custom evaluators for domain-specific logic, external integrations, or specialized metrics.
 
-All evaluators inherit from `Evaluator` and must implement `evaluate`:
+All evaluators inherit from [ Evaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator) and must implement 
 
-```
+`evaluate`:```
 from dataclasses import dataclass
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 @dataclass
@@ -25,7 +25,7 @@ class ExactMatch(Evaluator):
 - Use `@dataclass`decorator (required)
 - Inherit from `Evaluator`
 - Implement `evaluate(self, ctx: EvaluatorContext) -> EvaluatorOutput`
-- Return `bool`,`int`,`float`,`str`,`EvaluationReason`, or`dict`of these
+- Return `bool`,`int`,`float`,`str`,`EvaluationReason``dict`of these
 
 The context provides all information about the case execution:
 
@@ -183,13 +183,13 @@ class ComprehensiveCheck(Evaluator):
 Each key in the returned dictionary becomes a separate result in the report. Values can be:
 
 - Primitives (`bool`,`int`,`float`,`str`)
-- `EvaluationReason`(value with explanation)
+- `EvaluationReason`
 - Nested dicts of these types
 
-The `EvaluatorOutput` type represents all legal values
-that can be returned by an evaluator, and can be used as the return type annotation for your custom `evaluate` method.
+The [ EvaluatorOutput](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorOutput) type represents all legal values
+that can be returned by an evaluator, and can be used as the return type annotation for your custom 
 
-Evaluators can dynamically choose whether to produce results for a given case by returning an empty dict when not applicable:
+`evaluate` method.Evaluators can dynamically choose whether to produce results for a given case by returning an empty dict when not applicable:
 
 ```
 from dataclasses import dataclass
@@ -308,7 +308,7 @@ class EfficiencyCheck(Evaluator):
         api_calls = ctx.metrics.get('api_calls', 0)
         return api_calls <= self.max_api_calls
 ```
-See Metrics & Attributes Guide for more.
+See [Metrics & Attributes Guide](/docs/ai/evals/how-to/metrics-attributes) for more.
 
 Make evaluators type-safe with generics:
 
@@ -582,9 +582,9 @@ class APIEvaluator(Evaluator):
         except asyncio.TimeoutError:
             return False
 ```
-- **Report Evaluators**- Experiment-wide analyses (confusion matrices, PR curves, custom tables)
-- **Span-Based Evaluation**- Using OpenTelemetry spans
-- **Examples**- Practical examples
+- [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators)
+- [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
+- [Examples](/docs/ai/evals/examples/simple-validation)
 
 # Citations
 

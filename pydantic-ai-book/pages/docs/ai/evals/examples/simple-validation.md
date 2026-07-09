@@ -2,7 +2,7 @@
 type: Web Page
 title: Simple Validation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/examples/simple-validation
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Simple Validation
@@ -227,10 +227,10 @@ def test_title_case_performance(title_case_dataset):
     for case in report.cases:
         assert case.task_duration < 0.001, f'{case.name} took {case.task_duration}s'
 ```
-- **Native Evaluators**- Explore all available evaluators
-- **Custom Evaluators**- Write your own evaluation logic
-- **Dataset Management**- Save, load, and manage datasets
-- **Concurrency & Performance**- Optimize evaluation performance
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Dataset Management](/docs/ai/evals/how-to/dataset-management)
+- [Concurrency & Performance](/docs/ai/evals/how-to/concurrency)
 
 # Citations
 

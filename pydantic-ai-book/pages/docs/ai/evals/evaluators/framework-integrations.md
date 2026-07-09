@@ -2,29 +2,29 @@
 type: Web Page
 title: Third-Party Integrations | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/framework-integrations
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Third-Party Integrations
 
 Pydantic Evals does not take a hard dependency on any particular metrics framework. When a team
-already uses Ragas,
-DeepEval, or another scoring library, the
-`Evaluator` base class makes it straightforward to wrap the
+already uses [Ragas](https://github.com/vibrantlabsai/ragas),
+[DeepEval](https://github.com/confident-ai/deepeval), or another scoring library, the
+[ Evaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator) base class makes it straightforward to wrap the
 upstream metric and run it inside any Pydantic Evals dataset. This page shows worked examples for
 the common ones.
 
 Each framework integration follows the same pattern:
 
-- Subclass `Evaluator`.
+- Subclass `Evaluator`
 - Adapt `ctx.inputs`,`ctx.output`,`ctx.expected_output`, and metadata into whatever the upstream metric expects.
-- Return a `float`score, a`bool`assertion, an`EvaluationReason`, or a`dict`of these.
+- Return a `float`score, a`bool`assertion, an`EvaluationReason``dict`of these.
 
 The rest of this page shows concrete adapters. They are intentionally compact — extend them with whatever configuration your team needs (model selection, thresholds, per-case toggles).
 
 Install with `pip install ragas` (not included in `pydantic-evals`).
 
-This adapter wraps `ragas.metrics.Faithfulness`
+This adapter wraps [ ragas.metrics.Faithfulness](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/)
 for a single-turn sample. Each case is expected to provide the retrieved context as part of its
 inputs or metadata.
 
@@ -71,11 +71,11 @@ scoring metrics: swap the metric class and (if needed) the sample fields.
 
 Install with `pip install deepeval` (not included in `pydantic-evals`).
 
-This adapter wraps DeepEval’s `GEval` metric
-to score a criterion against a `LLMTestCase`. DeepEval’s `measure` is synchronous, so the
-evaluator is synchronous too.
+This adapter wraps [DeepEval’s  GEval metric](https://docs.confident-ai.com/docs/metrics-llm-evals)
+to score a criterion against a 
 
-```
+`LLMTestCase`. DeepEval’s `measure` is synchronous, so the
+evaluator is synchronous too.```
 from dataclasses import dataclass
 from deepeval.metrics import GEval
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams

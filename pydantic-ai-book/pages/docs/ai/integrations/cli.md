@@ -2,16 +2,16 @@
 type: Web Page
 title: Command Line Interface (CLI) | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/cli
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Command Line Interface (CLI)
 
 **Pydantic AI** comes with a CLI, `clai` (pronounced “clay”). You can use it to chat with various LLMs and quickly get answers, right from the command line, or spin up a uvicorn server to chat with your Pydantic AI agents from your browser.
 
-You can run the `clai` using `uvx`:
+You can run the `clai` using [ uvx](https://docs.astral.sh/uv/guides/tools/):
 
-Or install `clai` globally with `uv`:
+Or install `clai` globally [with  uv](https://docs.astral.sh/uv/guides/tools/#installing-tools):
 
 Or with `pip`:
 
@@ -31,7 +31,7 @@ Then running `clai` will start an interactive session where you can chat with th
 | `prompt` | AI prompt for one-shot mode (positional). If omitted, starts interactive mode. | 
 | `-m`,`--model` | Model to use in `provider:model`format (e.g.,`openai:gpt-5.2`) | 
 | `-a`,`--agent` | Custom agent in `module:variable`format | 
-| `-t`,`--code-theme` | Syntax highlighting theme ( `dark`,`light`, or pygments theme) | 
+| `-t`,`--code-theme` | Syntax highlighting theme ( `dark`,`light`, or[pygments theme](https://pygments.org/styles/)) | 
 | `--no-stream` | Disable streaming from the model | 
 | `-l`,`--list-models` | List all available models and exit | 
 | `--version` | Show version and exit | 
@@ -61,7 +61,7 @@ The CLI will start with the provided conversation history, allowing the agent to
 
 Launch a web-based chat interface by running:
 
-This will start a web server (default: http://127.0.0.1:7932) with a chat interface.
+This will start a web server (default: [http://127.0.0.1:7932](http://127.0.0.1:7932)) with a chat interface.
 
 You can also serve an existing agent. For example, if you have an agent defined in `my_agent.py`:
 
@@ -75,7 +75,7 @@ Launch the web UI:
 |---|---|
 | `--agent`,`-a` | Agent to serve in `module:variable`format | 
 | `--model`,`-m` | Models to list as options in the UI (repeatable) | 
-| `--tool`,`-t` | Native tools to list as options in the UI (repeatable). See available tools. | 
+| `--tool`,`-t` | [Native tool](/docs/ai/overview/native-tools)s to list as options in the UI (repeatable). See[available tools](/docs/ai/guides/web#native-tool-support). | 
 | `--instructions`,`-i` | System instructions. When `--agent`is specified, these are additional to the agent’s existing instructions. | 
 | `--host` | Host to bind server (default: 127.0.0.1) | 
 | `--port` | Port to bind server (default: 7932) | 
@@ -83,7 +83,9 @@ Launch the web UI:
 
 When using `--agent`, the agent’s configured model becomes the default. CLI models (`-m`) are additional options. Without `--agent`, the first `-m` model is the default.
 
-The web chat UI can also be launched programmatically using `Agent.to_web()`, see the Web UI documentation.
+The web chat UI can also be launched programmatically using [ Agent.to_web()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.to_web), see the 
+
+[Web UI documentation](/docs/ai/guides/web).
 
 Run the `web` command with `--help` to see all available options:
 

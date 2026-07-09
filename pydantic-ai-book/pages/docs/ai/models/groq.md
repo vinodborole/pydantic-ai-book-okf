@@ -2,14 +2,14 @@
 type: Web Page
 title: Groq | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/groq
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Groq
 
 To use `GroqModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `groq` optional group:
 
-To use Groq through their API, go to console.groq.com/keys and follow your nose until you find the place to generate an API key.
+To use [Groq](https://groq.com/) through their API, go to [console.groq.com/keys](https://console.groq.com/keys) and follow your nose until you find the place to generate an API key.
 
 `GroqModelName` contains a list of available Groq models.
 

@@ -2,14 +2,14 @@
 type: Web Page
 title: Restate | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/durable_execution/restate
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Restate
 
-Restate is a lightweight durable execution runtime with first-class support for AI agents. The Pydantic AI integration is provided via the Restate Python SDK.
+[Restate](https://restate.dev) is a lightweight durable execution runtime with first-class support for AI agents. The Pydantic AI integration is provided via the [Restate Python SDK](https://github.com/restatedev/sdk-python/tree/main/python/restate/ext/pydantic).
 
-Visit the Restate documentation for more information.
+Visit the [Restate documentation](https://docs.restate.dev/ai/patterns/durable-agents) for more information.
 
 Restate makes your agent **durable** by recording every step of its execution in a journal. If your process crashes mid-execution, Restate replays the journal, skips completed steps, and resumes from exactly where it left off.
 
@@ -48,7 +48,7 @@ A durable agent has three building blocks:
           v           v                v
       [External APIs, services, databases, etc.]
 ```
-See the Restate documentation for more information.
+See the [Restate documentation](https://docs.restate.dev/ai/patterns/durable-agents) for more information.
 
 Any Pydantic AI agent can be made durable by wrapping it with `RestateAgent` from the Restate SDK and running it inside a Restate service handler.
 
@@ -68,7 +68,7 @@ The Restate service handler gives the agent a durable execution context and expo
 
 Run the application with an ASGI server like Hypercorn.
 
-See the Restate agent quickstart to learn how to run the agent.
+See the [Restate agent quickstart](https://docs.restate.dev/ai-quickstart) to learn how to run the agent.
 
 # Citations
 

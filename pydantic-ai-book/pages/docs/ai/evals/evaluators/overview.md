@@ -2,7 +2,7 @@
 type: Web Page
 title: Overview | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/evaluators/overview
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Overview
@@ -39,7 +39,7 @@ Use deterministic evaluators when you can define exact rules:
 - Performance requirements (latency, token counts)
 - Behavioral checks (which tools were called, which code paths executed)
 
-Use `LLMJudge` when evaluation requires understanding or judgment:
+Use [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) when evaluation requires understanding or judgment:
 
 ```
 from pydantic_evals import Case, Dataset
@@ -56,11 +56,14 @@ dataset = Dataset(
 )
 ```
 For metrics aligned with widely-used evaluation methods (G-Eval, the Ragas RAG metrics, GEMBA),
-see Standard Quality Metrics: the
-`GEval` evaluator plus ready-made
-`LLMJudge` rubrics you can copy and adapt. To plug in the
-*exact* upstream implementations of external frameworks, see
-Third-Party Integrations.
+see [Standard Quality Metrics](/docs/ai/evals/evaluators/standard-quality-metrics): the
+[ GEval](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.GEval) evaluator plus ready-made
+
+[rubrics you can copy and adapt. To plug in the](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge)
+
+`LLMJudge`*exact*upstream implementations of external frameworks, see
+
+[Third-Party Integrations](/docs/ai/evals/evaluators/framework-integrations).
 
 **Advantages:**
 
@@ -197,7 +200,7 @@ dataset = Dataset(
     ],
 )
 ```
-Case-specific evaluators are one of the most powerful features for building comprehensive evaluation suites. You can attach evaluators to individual `Case` objects that only run for those specific cases:
+Case-specific evaluators are one of the most powerful features for building comprehensive evaluation suites. You can attach evaluators to individual [ Case](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Case) objects that only run for those specific cases:
 
 ```
 from pydantic_evals import Case, Dataset
@@ -242,9 +245,9 @@ The power of case-specific evaluation comes from the nuance:
 - **Avoid “inmates running the asylum”**: If your LLMJudge rubric is generic enough to work everywhere, your agent should already be following it
 - **Capture nuanced golden behavior**: Each case can specify exactly what “good” looks like for that scenario
 
-A particularly powerful pattern is using case-specific `LLMJudge` evaluators to quickly build comprehensive, maintainable evaluation suites. Instead of needing exact `expected_output` values, you can describe what you care about:
+A particularly powerful pattern is using case-specific [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) evaluators to quickly build comprehensive, maintainable evaluation suites. Instead of needing exact 
 
-```
+`expected_output` values, you can describe what you care about:```
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import LLMJudge
 dataset = Dataset(
@@ -332,9 +335,9 @@ Pydantic Evals handles both automatically. Use async when:
 - Making API calls
 - Running database queries
 - Performing I/O operations
-- Calling LLMs (like `LLMJudge`)
+- Calling LLMs (like `LLMJudge`
 
-All evaluators receive an `EvaluatorContext`:
+All evaluators receive an [ EvaluatorContext](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext):
 
 - `ctx.inputs`- Task inputs
 - `ctx.output`- Task output (to evaluate)
@@ -347,7 +350,7 @@ All evaluators receive an `EvaluatorContext`:
 
 This gives evaluators full context to make informed assessments.
 
-If an evaluator raises an exception, it’s captured as an `EvaluatorFailure`:
+If an evaluator raises an exception, it’s captured as an [ EvaluatorFailure](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorFailure):
 
 ```
 from dataclasses import dataclass
@@ -370,7 +373,7 @@ Failures appear in `report.cases[i].evaluator_failures` with:
 - Error message
 - Full stacktrace
 
-Use retry configuration to handle transient failures (see Retry Strategies).
+Use retry configuration to handle transient failures (see [Retry Strategies](/docs/ai/evals/how-to/retry-strategies)).
 
 All the evaluators above run once per case. **Report evaluators** are different: they run once per
 experiment after all cases have been evaluated, and analyze the full set of results together.
@@ -399,16 +402,16 @@ dataset = Dataset(
     ],
 )
 ```
-**See:** Report Evaluators for the full guide, including built-in report evaluators and how to write custom ones.
+**See:** [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators) for the full guide, including built-in report evaluators and how to write custom ones.
 
-- **Native Evaluators**- Complete reference of all provided evaluators
-- **LLM Judge**- Deep dive on LLM-as-a-Judge evaluation
-- **Standard Quality Metrics**- G-Eval, plus LLM judge rubrics for common RAG and translation metrics
-- **Third-Party Integrations**- Wrap Ragas, DeepEval, and other metrics libraries
-- **Custom Evaluators**- Write your own evaluation logic
-- **Report Evaluators**- Experiment-wide analyses
-- **Span-Based Evaluation**- Evaluate using OpenTelemetry spans
-- **Agentic Evaluators**- Trajectory, tool-correctness, argument, and step-budget checks for agents
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [LLM Judge](/docs/ai/evals/evaluators/llm-judge)
+- [Standard Quality Metrics](/docs/ai/evals/evaluators/standard-quality-metrics)
+- [Third-Party Integrations](/docs/ai/evals/evaluators/framework-integrations)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators)
+- [Span-Based Evaluation](/docs/ai/evals/evaluators/span-based)
+- [Agentic Evaluators](/docs/ai/evals/evaluators/agentic)
 
 # Citations
 

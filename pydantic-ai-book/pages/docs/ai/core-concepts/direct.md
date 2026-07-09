@@ -2,21 +2,23 @@
 type: Web Page
 title: Direct Model Requests | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/direct
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Direct Model Requests
 
 The `direct` module provides low-level methods for making imperative requests to LLMs where the only abstraction is input and output schema translation, enabling you to use all models with the same API.
 
-These methods are thin wrappers around the `Model` implementations, offering a simpler interface when you don’t need the full functionality of an `Agent`.
+These methods are thin wrappers around the [ Model](/docs/ai/api/models/base/#pydantic_ai.models.Model) implementations, offering a simpler interface when you don’t need the full functionality of an 
 
-The following functions are available:
+[.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent)
 
-- `model_request`: Make a non-streamed async request to a model
-- `model_request_sync`: Make a non-streamed synchronous request to a model
-- `model_request_stream`: Make a streamed async request to a model
-- `model_request_stream_sync`: Make a streamed sync request to a model
+`Agent`The following functions are available:
+
+- `model_request`
+- `model_request_sync`
+- `model_request_stream`
+- `model_request_stream_sync`
 
 Here’s a simple example demonstrating how to use the direct API to make a basic request:
 
@@ -77,15 +79,15 @@ The direct API is ideal when:
 - You want to implement custom behavior around model requests
 - You’re building your own abstractions on top of model interactions
 
-For most application use cases, the higher-level `Agent` API provides a more convenient interface with additional features such as native tool execution, retrying, structured output parsing, and more.
+For most application use cases, the higher-level [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) API provides a more convenient interface with additional features such as native tool execution, retrying, structured output parsing, and more.
 
-As with agents, you can enable OpenTelemetry/Logfire instrumentation with just a few extra lines
+As with [agents](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent), you can enable OpenTelemetry/Logfire instrumentation with just a few extra lines
 
 *(This example is complete, it can be run “as is”)*
 
 You can also enable OpenTelemetry on a per call basis:
 
-See Debugging and Monitoring for more details, including how to instrument with plain OpenTelemetry without Logfire.
+See [Debugging and Monitoring](/docs/ai/integrations/logfire) for more details, including how to instrument with plain OpenTelemetry without Logfire.
 
 # Citations
 

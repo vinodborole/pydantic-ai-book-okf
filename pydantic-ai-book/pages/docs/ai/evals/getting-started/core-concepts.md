@@ -2,7 +2,7 @@
 type: Web Page
 title: Core Concepts | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/evals/getting-started/core-concepts
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Core Concepts
@@ -28,7 +28,7 @@ A helpful way to think about Pydantic Evals:
 
 | Unit Testing | Pydantic Evals | 
 |---|---|
-| Test function | `Case`+`Evaluator` | 
+| Test function | +`Case``Evaluator` | 
 | Test suite | `Dataset` | 
 | Running tests ( `pytest`) | Experiment(`dataset.evaluate(task)`) | 
 | Test report | `EvaluationReport` | 
@@ -42,7 +42,7 @@ A helpful way to think about Pydantic Evals:
 
 Just like you can run `pytest` multiple times on the same test suite, you can run multiple experiments on the same dataset to compare different implementations or track changes over time.
 
-A `Dataset` is a collection of test cases and evaluators that define an evaluation suite.
+A [ Dataset](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset) is a collection of test cases and evaluators that define an evaluation suite.
 
 ```
 from pydantic_evals import Case, Dataset
@@ -90,9 +90,11 @@ dataset = Dataset(
 ```
 An **Experiment** is what happens when you execute a task function against all cases in a dataset. This is the bridge between your static test definition (the Dataset) and your results (the EvaluationReport).
 
-You run an experiment by calling `evaluate()` or `evaluate_sync()` on a dataset:
+You run an experiment by calling [ evaluate()](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate) or 
 
-```
+[on a dataset:](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Dataset.evaluate_sync)
+
+`evaluate_sync()````
 from pydantic_evals import Case, Dataset
 # Define your dataset (static definition)
 dataset = Dataset(
@@ -121,7 +123,7 @@ When you run an experiment:
 - Results are collected (scores, assertions, labels)
  
 - **Report Evaluation**: If report evaluators are configured, they run over the full set of results to produce experiment-wide analyses (confusion matrices, precision-recall curves, scalar metrics, tables, etc.)
-- **Reporting**: All results are aggregated into an- `EvaluationReport`, including both per-case results and experiment-wide analyses
+- **Reporting**: All results are aggregated into an- `EvaluationReport`
 
 A key feature of Pydantic Evals is that you can run the same dataset against different task implementations:
 
@@ -158,7 +160,7 @@ This allows you to:
 - **A/B test**different approaches
 - **Validate changes**before deployment
 
-A `Case` represents a single test scenario with specific inputs and optional expected outputs.
+A [ Case](/docs/ai/api/pydantic_evals/dataset/#pydantic_evals.dataset.Case) represents a single test scenario with specific inputs and optional expected outputs.
 
 ```
 from pydantic_evals import Case
@@ -185,7 +187,7 @@ Case(inputs=42)
 Case(inputs={'query': 'What is AI?', 'max_tokens': 100})
 Case(inputs=MyInputModel(field1='value'))
 ```
-The expected result, used by evaluators like `EqualsExpected`:
+The expected result, used by evaluators like [ EqualsExpected](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EqualsExpected):
 
 ```
 from pydantic_evals import Case
@@ -196,7 +198,7 @@ Case(
 ```
 If no `expected_output` is provided, evaluators that require it (like `EqualsExpected`) will skip that case.
 
-Arbitrary data that evaluators can access via `EvaluatorContext`:
+Arbitrary data that evaluators can access via [ EvaluatorContext](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext):
 
 ```
 from pydantic_evals import Case
@@ -215,9 +217,11 @@ Metadata is useful for:
 - Providing context to evaluators
 - Organizing test suites
 
-Cases can have their own evaluators that only run for that specific case. This is particularly powerful for building comprehensive evaluation suites where different cases have different requirements - if you could write one evaluator rubric that worked perfectly for all cases, you’d just incorporate it into your agent instructions. Case-specific `LLMJudge` evaluators are especially useful for quickly building maintainable golden datasets by describing what “good” looks like for each scenario. See Case-specific evaluators for a more detailed explanation and examples.
+Cases can have their own evaluators that only run for that specific case. This is particularly powerful for building comprehensive evaluation suites where different cases have different requirements - if you could write one evaluator rubric that worked perfectly for all cases, you’d just incorporate it into your agent instructions. Case-specific [ LLMJudge](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.LLMJudge) evaluators are especially useful for quickly building maintainable golden datasets by describing what “good” looks like for each scenario. See 
 
-An `Evaluator` assesses the output of your task and returns one or more scores, labels, or assertions. Each score, label or assertion can also have an optional string-value reason associated.
+[Case-specific evaluators](/docs/ai/evals/evaluators/overview#case-specific-evaluators)for a more detailed explanation and examples.
+
+An [ Evaluator](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.Evaluator) assesses the output of your task and returns one or more scores, labels, or assertions. Each score, label or assertion can also have an optional string-value reason associated.
 
 Evaluators return different types of results:
 
@@ -246,10 +250,12 @@ class Classifier(Evaluator):
             return 'error'  # Label
         return 'success'
 ```
-Evaluators can also return instances of `EvaluationReason`, and dictionaries mapping labels to output values.
-See the custom evaluator return types docs for more detail.
+Evaluators can also return instances of [ EvaluationReason](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationReason), and dictionaries mapping labels to output values.
+See the 
 
-All evaluators receive an `EvaluatorContext` containing:
+[custom evaluator return types](/docs/ai/evals/evaluators/custom#return-types)docs for more detail.
+
+All evaluators receive an [ EvaluatorContext](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluatorContext) containing:
 
 - `name`: Case name (optional)
 - `inputs`: Task inputs
@@ -275,7 +281,7 @@ class MultiCheck(Evaluator):
             'category': 'long' if len(ctx.output) > 100 else 'short',  # Label
         }
 ```
-Add explanations to your evaluations using `EvaluationReason`:
+Add explanations to your evaluations using [ EvaluationReason](/docs/ai/api/pydantic_evals/evaluators/#pydantic_evals.evaluators.EvaluationReason):
 
 ```
 from dataclasses import dataclass
@@ -295,7 +301,7 @@ class SmartCheck(Evaluator):
 ```
 Reasons appear in reports when using `include_reasons=True`.
 
-An `EvaluationReport` is the result of running an experiment. It contains all the data from executing your task against the dataset’s cases and running all evaluators.
+An [ EvaluationReport](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.EvaluationReport) is the result of running an experiment. It contains all the data from executing your task against the dataset’s cases and running all evaluators.
 
 ```
 from pydantic_evals import Case, Dataset
@@ -326,12 +332,12 @@ for case in report.cases:
     print(f'{case.name}: {case.scores}')
     #> Case 1: {}
 ```
-The `EvaluationReport` contains:
+The [ EvaluationReport](/docs/ai/api/pydantic_evals/reporting/#pydantic_evals.reporting.EvaluationReport) contains:
 
 - `name`: Experiment name
 - `cases`: List of successful case evaluations
 - `failures`: List of failed executions
-- `analyses`: List of experiment-wide analyses from report evaluators (confusion matrices, PR curves, scalars, tables)
+- `analyses`: List of experiment-wide analyses from- [report evaluators](/docs/ai/evals/evaluators/report-evaluators)(confusion matrices, PR curves, scalars, tables)
 - `trace_id`: OpenTelemetry trace ID (optional)
 - `span_id`: OpenTelemetry span ID (optional)
 
@@ -396,11 +402,11 @@ When you call `dataset.evaluate(task)`, an **Experiment** runs:
 - **One Experiment → One Report**: Each time you call- `dataset.evaluate(...)`, you get one report
 - **One Experiment → Many Case Results**: The report contains results for every case in the dataset
 
-- **Evaluators Overview**- When to use different evaluator types
-- **Native Evaluators**- Complete reference of provided evaluators
-- **Custom Evaluators**- Write your own evaluation logic
-- **Report Evaluators**- Experiment-wide analyses (confusion matrices, PR curves, etc.)
-- **Dataset Management**- Save, load, and generate datasets
+- [Evaluators Overview](/docs/ai/evals/evaluators/overview)
+- [Native Evaluators](/docs/ai/evals/evaluators/built-in)
+- [Custom Evaluators](/docs/ai/evals/evaluators/custom)
+- [Report Evaluators](/docs/ai/evals/evaluators/report-evaluators)
+- [Dataset Management](/docs/ai/evals/how-to/dataset-management)
 
 # Citations
 

@@ -2,12 +2,14 @@
 type: Web Page
 title: Getting Started | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/graph/builder
-timestamp: '2026-07-07T10:31:51.511921+00:00'
+timestamp: '2026-07-09T12:16:42.049694+00:00'
 ---
 
 # Getting Started
 
-The graph builder API provides a powerful builder pattern for constructing parallel execution graphs. The original `BaseNode`-based graph API is still available (and interoperable with the builder API) and is documented in the main graph documentation.
+The graph builder API provides a powerful builder pattern for constructing parallel execution graphs. The original [ BaseNode](/docs/ai/api/pydantic_graph/basenode/#pydantic_graph.basenode.BaseNode)-based graph API is still available (and interoperable with the builder API) and is documented in the 
+
+[main graph documentation](/docs/ai/graph/graph).
 
 The graph builder API in `pydantic-graph` provides:
 
@@ -27,29 +29,31 @@ Here’s a simple example to get you started:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-The `GraphBuilder` is the main entry point for constructing graphs. It’s generic over:
+The [ GraphBuilder](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder) is the main entry point for constructing graphs. It’s generic over:
 
 - `StateT`- The type of mutable state shared across all nodes
 - `DepsT`- The type of dependencies injected into nodes
 - `InputT`- The type of initial input to the graph
 - `OutputT`- The type of final output from the graph
 
-Steps are async functions decorated with `@g.step` that define the actual work to be done in each node. They receive a `StepContext` with access to:
+Steps are async functions decorated with [ @g.step](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphBuilder.step) that define the actual work to be done in each node. They receive a 
 
-- `ctx.state`- The mutable graph state
+[with access to:](/docs/ai/api/pydantic_graph/step/#pydantic_graph.step.StepContext)
+
+`StepContext`- `ctx.state`- The mutable graph state
 - `ctx.deps`- Injected dependencies
 - `ctx.inputs`- Input data for this step
 
 Edges define the connections between nodes. The builder provides multiple ways to create edges:
 
-- `g.add()`- Add one or more edge paths
-- `g.add_edge()`- Add a simple edge between two nodes
-- `g.edge_from()`- Start building a complex edge path
+- `g.add()`
+- `g.add_edge()`
+- `g.edge_from()`
 
 Every graph has:
 
-- `g.start_node`- The entry point receiving initial inputs
-- `g.end_node`- The exit point producing final outputs
+- `g.start_node`
+- `g.end_node`
 
 Here’s an example showcasing parallel execution with a map operation:
 
@@ -64,29 +68,29 @@ In this example:
 
 Explore the detailed documentation for each feature:
 
-- **Steps**- Learn about step nodes and execution contexts
-- **Joins**- Understand join nodes and reducer patterns
-- **Decisions**- Implement conditional branching
-- **Parallel Execution**- Master broadcasting and mapping
+- **Steps**
+- **Joins**
+- **Decisions**
+- **Parallel Execution**
 
-Beyond the basic `graph.run()` method, the builder API provides fine-grained control over graph execution.
+Beyond the basic [ graph.run()](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.Graph.run) method, the builder API provides fine-grained control over graph execution.
 
-Use `graph.iter()` to execute the graph one step at a time:
+Use [ graph.iter()](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.Graph.iter) to execute the graph one step at a time:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  import asyncio; asyncio.run(main()) to run main)*
 
-The `GraphRun` object provides:
+The [ GraphRun](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.GraphRun) object provides:
 
 - **Async iteration**: Iterate through execution events
 - `next_task`property
 - `output`property
 - `next()`method
 
-Generate Mermaid diagrams of your graph structure using `graph.render()`:
+Generate Mermaid diagrams of your graph structure using [ graph.render()](/docs/ai/api/pydantic_graph/graph_builder/#pydantic_graph.graph_builder.Graph.render):
 
 The rendered diagram can be displayed in documentation, notebooks, or any tool that supports Mermaid syntax.
 
-The original graph API (documented in the main graph page) uses a class-based approach with `BaseNode` subclasses. The builder API uses a builder pattern with decorated functions, which provides:
+The original graph API (documented in the [main graph page](/docs/ai/graph/graph)) uses a class-based approach with [ BaseNode](/docs/ai/api/pydantic_graph/basenode/#pydantic_graph.basenode.BaseNode) subclasses. The builder API uses a builder pattern with decorated functions, which provides:
 
 **Advantages:**
 
@@ -102,7 +106,7 @@ The original graph API (documented in the main graph page) uses a class-based ap
 
 Both APIs are fully supported and can even be integrated together when needed.
 
-For workflows that need to preserve progress across failures, restarts, or long-running operations, use one of the supported durable execution solutions.
+For workflows that need to preserve progress across failures, restarts, or long-running operations, use one of the supported [durable execution](/docs/ai/integrations/durable_execution/overview) solutions.
 
 # Citations
 
