@@ -2,7 +2,7 @@
 type: Web Page
 title: Thinking | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/advanced-features/thinking
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Thinking
@@ -60,9 +60,11 @@ To enable this functionality, you need to set the
 
 `OpenAIResponsesModelSettings.openai_reasoning_effort` and 
 
-`OpenAIResponsesModelSettings.openai_reasoning_summary`[model settings](/docs/ai/core-concepts/agent#model-run-settings).
+`OpenAIResponsesModelSettings.openai_reasoning_summary`[model settings](/docs/ai/core-concepts/agent#model-run-settings). Models that support it can additionally use a
 
-By default, the unique IDs of reasoning, text, and function call parts from the message history are sent to the model, which can result in errors like `"Item 'rs_123' of type 'reasoning' was provided without its required following item."`
+`pro` [reasoning mode](/docs/ai/models/openai#reasoning-mode), which is independent of the effort and never set by the unified
+
+`thinking` setting.By default, the unique IDs of reasoning, text, and function call parts from the message history are sent to the model, which can result in errors like `"Item 'rs_123' of type 'reasoning' was provided without its required following item."`
 if the message history you’re sending does not match exactly what was received from the Responses API in a previous response, for example if you’re using a [history processor](/docs/ai/core-concepts/message-history#processing-message-history).
 To disable this, you can disable the `OpenAIResponsesModelSettings.openai_send_reasoning_ids`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
 

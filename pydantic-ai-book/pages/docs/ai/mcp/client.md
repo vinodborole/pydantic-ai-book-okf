@@ -2,7 +2,7 @@
 type: Web Page
 title: Client | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/mcp/client
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Client
@@ -25,7 +25,9 @@ Each `MCPToolset` instance is a [toolset](/docs/ai/tools-toolsets/toolsets) and 
 
 `toolsets` argument.You can use [ async with agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__aenter__) to open and close connections to all registered MCP toolsets (and in the case of stdio servers, start and stop the subprocesses) around the context where they’ll be used in agent runs. You can also use 
 
-`async with toolset` to manage the lifecycle of a specific toolset directly, for example if you’d like to share it across multiple agents. If you don’t explicitly enter one of these context managers, the toolset will be opened and closed automatically as needed.The [Streamable HTTP](https://modelcontextprotocol.io/introduction#streamable-http) transport is the recommended way to connect to a remote MCP server.
+`async with toolset` to manage the lifecycle of a specific toolset directly, for example if you’d like to share it across multiple agents. If you don’t explicitly enter one of these context managers, the toolset will be opened and closed automatically as needed.Note that a shared `MCPToolset` instance connects to the server as a single identity; if your users have their own credentials for the MCP server, see [per-user authentication](#per-user-authentication).
+
+The [Streamable HTTP](https://modelcontextprotocol.io/introduction#streamable-http) transport is the recommended way to connect to a remote MCP server.
 
 Before creating the toolset, we need to run a server that supports the Streamable HTTP transport.
 
@@ -112,6 +114,26 @@ Before consuming resources, we need to run a server that exposes some:
 Then we can read them from the client:
 
 *(This example is complete, it can be run “as is”)*
+
+For HTTP transports, `MCPToolset` accepts an `auth` argument: a bearer token string, any [ httpx.Auth](https://www.python-httpx.org/advanced/authentication/), or the literal string 
+
+`'oauth'` to enable [FastMCP’s OAuth flow](https://gofastmcp.com/clients/auth/oauth). Static headers like API keys can be passed via the
+
+`headers` argument instead.In a multi-user or multi-tenant application, each user typically has their own credentials for the MCP server, such as a tenant-scoped bearer token.
+
+To make requests with the credentials of the user in question, each concurrent run needs its own `MCPToolset` instance so that it establishes its own authenticated session. The recommended way to do this is to build the toolset [dynamically](/docs/ai/tools-toolsets/toolsets#dynamically-building-a-toolset) using the [ @agent.toolset](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.toolset) decorator: the decorated function is passed the 
+
+[run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)and can read the user’s credentials from the run’s
+
+[dependencies](/docs/ai/core-concepts/dependencies):
+
+`per_run_step=False` builds the toolset once per run instead of ahead of each run step, so the whole run shares a single MCP session.
+
+*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+
+Because the per-run toolset’s session is established inside the run itself, credentials held in a `ContextVar` also resolve correctly with this pattern — but passing them through deps is more explicit and doesn’t depend on task-local state.
+
+As an alternative to a dynamic toolset, you can construct a new `MCPToolset` yourself for each request and pass it to the [ toolsets argument](/docs/ai/tools-toolsets/toolsets) of the agent run methods.
 
 In some environments you need to tweak how HTTPS connections are established — for example to trust an internal Certificate Authority, present a client certificate for **mTLS**, or (during local development only!) disable certificate verification altogether. `MCPToolset` exposes an `http_client` parameter so you can pass your own pre-configured [ httpx.AsyncClient](https://www.python-httpx.org/async/):
 

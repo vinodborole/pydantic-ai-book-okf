@@ -2,7 +2,7 @@
 type: Web Page
 title: Toolsets | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/toolsets
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Toolsets
@@ -201,7 +201,7 @@ Imagine that this returns the frontend [ navigator.language](https://developer.m
 
 *(This example is complete, it can be run “as is”)*
 
-Toolsets can be built dynamically ahead of each agent run or run step using a function that takes the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and returns a toolset or `None`. This is useful when a toolset (like an MCP server) depends on information specific to an agent run, like its [dependencies](/docs/ai/core-concepts/dependencies).
+Toolsets can be built dynamically ahead of each agent run or run step using a function that takes the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and returns a toolset or `None`. This is useful when a toolset (like an MCP server) depends on information specific to an agent run, like its [dependencies](/docs/ai/core-concepts/dependencies) — for example to [connect to an MCP server with per-user credentials](/docs/ai/mcp/client#per-user-authentication).
 
 To register a dynamic toolset, you can pass a function that takes [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) to the 
 

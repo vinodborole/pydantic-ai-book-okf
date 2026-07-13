@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Output
@@ -116,7 +116,29 @@ To dynamically modify or filter the available output tools during an agent run, 
 
 *(This example is complete, it can be run “as is”)*
 
-An [output tool](#tool-output) call is what ends a run and produces its final result. When a model emits one in the *same* response as other tool calls, the agent’s [ end_strategy](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) decides what happens to the rest. Most agents never need to think about this, since most responses don’t mix an output tool with other tools — but when one does, 
+Native Output mode uses a model’s native “Structured Outputs” feature (aka “JSON Schema response format”), where the model is forced to only output text matching the provided JSON schema. Note that this is not supported by all models, and sometimes comes with restrictions. For example, Gemini cannot use tools at the same time as structured output, and attempting to do so will result in an error.
+
+To use this mode, you can wrap the output type(s) in the [ NativeOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput) marker class that also lets you specify a 
+
+`name` and `description` if the name and docstring of the type or function are not sufficient.This could also have been a union: `output_type=Fruit | Vehicle`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+
+*(This example is complete, it can be run “as is”)*
+
+In this mode, the model is prompted to output text matching the provided JSON schema through its [instructions](/docs/ai/core-concepts/agent#instructions) and it’s up to the model to interpret those instructions correctly. This is usable with all models, but is often the least reliable approach as the model is not forced to match the schema.
+
+While we would generally suggest starting with tool or native output, in some cases this mode may result in higher quality outputs, and for models without native tool calling or structured output support it is the only option for producing structured outputs.
+
+If the model API supports the “JSON Mode” feature (aka “JSON Object response format”) to force the model to output valid JSON, this is enabled, but it’s still up to the model to abide by the schema. Pydantic AI will validate the returned structured data and tell the model to try again if validation fails, but if the model is not intelligent enough this may not be sufficient.
+
+To use this mode, you can wrap the output type(s) in the [ PromptedOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput) marker class that also lets you specify a 
+
+`name` and `description` if the name and docstring of the type or function are not sufficient. Additionally, `template` lets you specify a custom instructions template to be used instead of the [default](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.prompted_output_template), or
+
+`template=False` to disable the schema prompt entirely.This could also have been a union: `output_type=Vehicle | Device`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+
+*(This example is complete, it can be run “as is”)*
+
+A run ends when the model produces a final result. That result usually comes from an [output tool](#tool-output) call, but it can also come from [Native Output](#native-output), [Prompted Output](#prompted-output), plain text, or [image output](#image-output). When the model emits *other* tool calls in the same response, the agent’s [ end_strategy](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) decides what happens to them. Most agents never need to think about this, since most responses don’t mix a final result with other tool calls — but when one does, 
 
 `end_strategy` controls how those calls run and which one becomes the final result.| Strategy | Output tools | Function tools — output succeeded | Function tools — every output failed | 
 |---|---|---|---|
@@ -141,28 +163,6 @@ Under the `'graceful'` and `'exhaustive'` [end strategies](#parallel-output-tool
 Like function tools, [output tools](#tool-output) run concurrently. Under the `'exhaustive'` [end strategy](#parallel-output-tool-calls), where multiple output tools can run in parallel, you can make an output tool a barrier with [ ToolOutput(sequential=True)](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput) — useful when you want all of a response’s function tools to finish before the output tool runs. This is the output-tool counterpart of the 
 
 `sequential=True` flag for function tools; see [Parallel tool calls & concurrency](/docs/ai/tools-toolsets/tools-advanced#parallel-tool-calls-concurrency)for how the barrier behaves and how to run an entire run’s tools serially.
-
-Native Output mode uses a model’s native “Structured Outputs” feature (aka “JSON Schema response format”), where the model is forced to only output text matching the provided JSON schema. Note that this is not supported by all models, and sometimes comes with restrictions. For example, Gemini cannot use tools at the same time as structured output, and attempting to do so will result in an error.
-
-To use this mode, you can wrap the output type(s) in the [ NativeOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput) marker class that also lets you specify a 
-
-`name` and `description` if the name and docstring of the type or function are not sufficient.This could also have been a union: `output_type=Fruit | Vehicle`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
-
-*(This example is complete, it can be run “as is”)*
-
-In this mode, the model is prompted to output text matching the provided JSON schema through its [instructions](/docs/ai/core-concepts/agent#instructions) and it’s up to the model to interpret those instructions correctly. This is usable with all models, but is often the least reliable approach as the model is not forced to match the schema.
-
-While we would generally suggest starting with tool or native output, in some cases this mode may result in higher quality outputs, and for models without native tool calling or structured output support it is the only option for producing structured outputs.
-
-If the model API supports the “JSON Mode” feature (aka “JSON Object response format”) to force the model to output valid JSON, this is enabled, but it’s still up to the model to abide by the schema. Pydantic AI will validate the returned structured data and tell the model to try again if validation fails, but if the model is not intelligent enough this may not be sufficient.
-
-To use this mode, you can wrap the output type(s) in the [ PromptedOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput) marker class that also lets you specify a 
-
-`name` and `description` if the name and docstring of the type or function are not sufficient. Additionally, `template` lets you specify a custom instructions template to be used instead of the [default](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.prompted_output_template), or
-
-`template=False` to disable the schema prompt entirely.This could also have been a union: `output_type=Vehicle | Device`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
-
-*(This example is complete, it can be run “as is”)*
 
 If it’s not feasible to define your desired structured output object using a Pydantic `BaseModel`, dataclass, or `TypedDict`, for example when you get a JSON schema from an external source or generate it dynamically, you can use the [ StructuredDict()](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.StructuredDict) helper function to generate a 
 
@@ -243,9 +243,9 @@ To use the generated image as the output of the agent run, you can set `output_t
 
 If an agent does not need to always generate an image, you can use a union of `BinaryImage` and `str`. If the model generates both, the image will take precedence as output and the text will be available on [ ModelResponse.text](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.text):
 
-Some agents perform their work entirely through tool calls and don’t need to produce a final output — for example, an agent that updates a record via a tool and then stops. Certain models (notably [Anthropic](/docs/ai/models/anthropic)) will return an empty response in this case, which by default causes Pydantic AI to retry until the model produces content.
+Some agents perform their work entirely through tool calls and don’t need to produce a final output — for example, an agent that updates a record via a tool and then stops. But with `str` in the `output_type` — including the default — the model is required to end its final turn with text. If it considers its work finished and has nothing left to say, it will return an empty response, or one containing only [thinking](/docs/ai/advanced-features/thinking) content (as [Anthropic](/docs/ai/models/anthropic) models notably do), and Pydantic AI will ask it to produce text anyway.
 
-To instead treat an empty response as a successful run, include `None` in the `output_type`:
+Include `None` in the `output_type` when finishing without a final message is a valid outcome for your agent, and you’d rather receive `None` than have the model say something for the sake of saying it:
 
 When the model returns an empty response and `None` is an allowed output type, the agent will return `None` instead of retrying. [Output validator functions](#output-validator-functions) still run with `None` as the argument, so you can raise [ ModelRetry](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to reject it if needed.
 

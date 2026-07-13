@@ -2,7 +2,7 @@
 type: Web Page
 title: Command Line Interface (CLI) | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/cli
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Command Line Interface (CLI)
@@ -25,6 +25,7 @@ Then running `clai` will start an interactive session where you can chat with th
 - `/markdown`: Show the last response in markdown format
 - `/multiline`: Toggle multiline input mode (use Ctrl+D to submit)
 - `/cp`: Copy the last response to clipboard
+- `/usage`: Show cumulative token usage for the session (turns, input, output, requests, tool calls); add- `--json`for a single-line JSON object
 
 | Option | Description | 
 |---|---|

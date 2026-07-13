@@ -2,7 +2,7 @@
 type: Web Page
 title: Advanced Tool Features | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Advanced Tool Features
@@ -301,10 +301,10 @@ async def lifespan(app):
         yield
     executor.shutdown(wait=True)
 ```
-When a model calls an [output tool](/docs/ai/core-concepts/output#tool-output) in parallel with other tools, the agent’s [ end_strategy](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) parameter controls how these tool calls are executed.
+When a model produces a final result — an [output tool](/docs/ai/core-concepts/output#tool-output) call, or structured [native](/docs/ai/core-concepts/output#native-output)/[prompted](/docs/ai/core-concepts/output#prompted-output) or [image](/docs/ai/core-concepts/output#image-output) output — in parallel with other tools, the agent’s [ end_strategy](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) parameter controls how these tool calls are executed.
 The default 
 
-`'graceful'` strategy ensures all function tools are executed even after a final result is found, while skipping remaining output tools. The `'exhaustive'` strategy goes further and also executes all output tools. Both are useful when tools have side effects (like logging, sending notifications, or updating metrics) that should always execute.For more information on how `end_strategy` works with both function tools and output tools, see [Parallel Output Tool Calls](/docs/ai/core-concepts/output#parallel-output-tool-calls).
+`'graceful'` strategy ensures all function tools are executed even after a final result is found, while skipping remaining output tools. The `'exhaustive'` strategy goes further and also executes all output tools. Both are useful when tools have side effects (like logging, sending notifications, or updating metrics) that should always execute.For more information on how `end_strategy` works with function tools, output tools, and non-tool output, see [Tool calls alongside a final result](/docs/ai/core-concepts/output#parallel-output-tool-calls).
 
 Agents with many tools (e.g. [MCP servers](/docs/ai/mcp/client) exposing dozens of endpoints) can spend a lot of input tokens on tool definitions before any work happens, and tool selection accuracy noticeably degrades past ~30–50 available tools. Marking tools for deferred loading hides them from the model’s initial context; the model discovers hidden tools by keyword when it needs them.
 

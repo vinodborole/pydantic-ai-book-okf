@@ -2,7 +2,7 @@
 type: Web Page
 title: Capabilities | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/capabilities
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Capabilities
@@ -88,6 +88,7 @@ Several [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunConte
 - `ctx.capability_loaded`— only meaningful while Pydantic AI is running a capability-owned hook or callback. It is scoped to that capability; deferred hooks and callbacks are skipped until this value would be true.
 - `ctx.discovered_tool_names`— deferred function tools revealed by tool search. This is tool-level discovery, separate from capability-level loading.
 - `ctx.available_tool_names`— function tool names currently known as available: always-visible tools from the current step’s assembled tool manager plus tool-search discoveries reconstructed from history. Early hooks such as- `before_run`may see only the history-derived discovered names, or an empty set if none exist yet, before tool definitions have been prepared. See- [Hook ordering](/docs/ai/core-concepts/hooks#hook-ordering)for how hook timing affects what is populated.
+- `ctx.usage_limits`— the- `UsageLimits`- `UsageLimits()`when none were passed, so it’s only- `None`outside of a run), alongside- `ctx.usage`for the usage so far. A capability can read the run’s limits to disclose or adapt to the remaining budget (e.g. budget disclosure) without being configured with a duplicate copy. Treat it as read-only: it’s the live object the run enforces against, so mutating a field would change what the run enforces on subsequent requests.
 
 Loading a capability updates the capability state immediately, but the loaded bundle’s function tools, native tools, and model settings take effect on the next model request.
 

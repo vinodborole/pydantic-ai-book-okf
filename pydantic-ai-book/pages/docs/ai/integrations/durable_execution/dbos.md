@@ -2,7 +2,7 @@
 type: Web Page
 title: DBOS | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/durable_execution/dbos
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # DBOS
@@ -78,7 +78,11 @@ When using DBOS with Pydantic AI agents, there are a few important consideration
 
 Each agent instance must have a unique `name` so DBOS can correctly resume workflows after a failure or restart.
 
-Tools and event stream handlers are not automatically wrapped by DBOS. You can decide how to integrate them:
+Each [ MCPToolset](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset) must have a unique 
+
+[, as DBOS derives its step names and per-run tool-defs cache key from it. This field is normally optional, but is required when using DBOS. It should not be changed once the durable agent has been deployed to production, as this would break active workflows.](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.id)
+
+`id`Tools and event stream handlers are not automatically wrapped by DBOS. You can decide how to integrate them:
 
 - Decorate with `@DBOS.step`if the function involves non-determinism or I/O.
 - Skip the decorator if durability isn’t needed, so you avoid the extra DB checkpoint write.

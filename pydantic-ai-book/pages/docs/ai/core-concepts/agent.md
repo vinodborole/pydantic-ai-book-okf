@@ -2,7 +2,7 @@
 type: Web Page
 title: Agents | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # Agents
@@ -168,7 +168,11 @@ except UsageLimitExceeded as e:
     print(e)
     #> The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2).
 ```
-Pydantic AI offers a [ settings.ModelSettings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) structure to help you fine tune your requests.
+Tools and [capabilities](/docs/ai/core-concepts/capabilities) can read the run’s limits from [ ctx.usage_limits](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage_limits) (alongside 
+
+[for usage so far), so a budget-aware tool or capability can disclose or adapt to the remaining budget without being configured with a duplicate copy of the limits. It reflects what the run is already enforcing and is read-only by convention.](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage)
+
+`ctx.usage`Pydantic AI offers a [ settings.ModelSettings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) structure to help you fine tune your requests.
 This structure allows you to configure common parameters that influence the model’s behavior, such as 
 
 `temperature`, `max_tokens`, `top_k`,

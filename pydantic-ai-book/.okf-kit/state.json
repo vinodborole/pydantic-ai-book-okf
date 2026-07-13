@@ -2,7 +2,7 @@
   "generator": "okf-kit",
   "okf_version": "0.1",
   "root_url": "https://pydantic.dev/docs/ai/overview",
-  "updated_at": "2026-07-09T12:16:42.154278+00:00",
+  "updated_at": "2026-07-13T09:36:10.355343+00:00",
   "config": {
     "max_depth": 3,
     "max_pages": 90,
@@ -28,7 +28,7 @@
       "path": "pages/docs/ai/advanced-features/thinking.md",
       "url": "https://pydantic.dev/docs/ai/advanced-features/thinking",
       "title": "Thinking | Pydantic Docs",
-      "hash": "cf5046775b3c7efebcd6d3a7bc9ba00d7c9668c3da5cfbfbd653ef05b6d99436"
+      "hash": "4cb4d70790310d7123c4da2e2db936c2137af5700e6999127911bc38b54a77ae"
     },
     {
       "path": "pages/docs/ai/core-concepts/agent-spec.md",
@@ -40,13 +40,13 @@
       "path": "pages/docs/ai/core-concepts/agent.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/agent",
       "title": "Agents | Pydantic Docs",
-      "hash": "a5eb9a286bbd41b38c59e5d60b98398f39cf2be2e9a7567ffdd12ecf2c7021ee"
+      "hash": "0669f787814eb6824ba64997a70ab4e12fd0940bcfdf8d52a20cedca3fa5744b"
     },
     {
       "path": "pages/docs/ai/core-concepts/capabilities.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/capabilities",
       "title": "Capabilities | Pydantic Docs",
-      "hash": "d3c62845ae105211e452baad2373b20c376aaa32f4caa2b3095362bd0afa5941"
+      "hash": "bfc61c6c9df5b1441c1ffcb10e07ebdbb0e9f44a455a6cad337e2aed60ef0cd8"
     },
     {
       "path": "pages/docs/ai/core-concepts/dependencies.md",
@@ -76,7 +76,7 @@
       "path": "pages/docs/ai/core-concepts/output.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/output",
       "title": "Output | Pydantic Docs",
-      "hash": "3dd97d8110287253ad221bdb470e5ff0609f86af213815acb6ee4d87b2ed9a20"
+      "hash": "8228c1fa7ff58a849035defa8c040f53bbc37fee07a80dd9064c339ccaf2098e"
     },
     {
       "path": "pages/docs/ai/evals/evals.md",
@@ -292,7 +292,7 @@
       "path": "pages/docs/ai/guides/web.md",
       "url": "https://pydantic.dev/docs/ai/guides/web",
       "title": "Web Chat UI | Pydantic Docs",
-      "hash": "1e81510dd2f7ca4ea331d74c77adc1688d3133f77e985735be65d0f9c0b9b7de"
+      "hash": "059cca2ff60645a0519f462aeb414d2d34212053fa7694432ed9edd7075f89bd"
     },
     {
       "path": "pages/docs/ai/harness/code-mode.md",
@@ -310,7 +310,7 @@
       "path": "pages/docs/ai/integrations/cli.md",
       "url": "https://pydantic.dev/docs/ai/integrations/cli",
       "title": "Command Line Interface (CLI) | Pydantic Docs",
-      "hash": "a0b1b71de033de4b0dfcb2d27b7b2cad7bf448ddf21f9e26881977608f2ce945"
+      "hash": "d92be9d47057698e9abef8e295b503b109d528d042d6034e7dba73a6c1a0123a"
     },
     {
       "path": "pages/docs/ai/integrations/durable_execution/airflow.md",
@@ -322,7 +322,7 @@
       "path": "pages/docs/ai/integrations/durable_execution/dbos.md",
       "url": "https://pydantic.dev/docs/ai/integrations/durable_execution/dbos",
       "title": "DBOS | Pydantic Docs",
-      "hash": "2513507b7d4e7b009e89930bc2d5b2c204aa8d7650487dda6cac5dfb9e7eee96"
+      "hash": "1d08f6c0d92d35568467f026146eb971d0891733ed58a56a6721d39dfd36c713"
     },
     {
       "path": "pages/docs/ai/integrations/durable_execution/kitaru.md",
@@ -382,7 +382,7 @@
       "path": "pages/docs/ai/mcp/client.md",
       "url": "https://pydantic.dev/docs/ai/mcp/client",
       "title": "Client | Pydantic Docs",
-      "hash": "a86c0cfa20e74cc393d847919ba72430264a1faa5e109251b8f058c91141162a"
+      "hash": "a273f553f8b1ffaa54d510f9ab205336e07e097510231a12b2217af6f9bd1ec3"
     },
     {
       "path": "pages/docs/ai/mcp/overview.md",
@@ -454,7 +454,7 @@
       "path": "pages/docs/ai/models/openai.md",
       "url": "https://pydantic.dev/docs/ai/models/openai",
       "title": "OpenAI | Pydantic Docs",
-      "hash": "8662a618b9b28168fc4488c18ded258602d985943416360563ea97eda6b64308"
+      "hash": "ee661649dd2d96812a4d994484f5b2622ed0bbef92ab0a18fa9906d630cb1c8c"
     },
     {
       "path": "pages/docs/ai/models/openrouter.md",
@@ -538,7 +538,7 @@
       "path": "pages/docs/ai/tools-toolsets/tools-advanced.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced",
       "title": "Advanced Tool Features | Pydantic Docs",
-      "hash": "6dee270a540e736aa4c4b8a48ee64fb5a21528ea71c25f149fbd065a8b1fd695"
+      "hash": "3d179860dc3984413b58a9eb74abece9b481451b20e241660cbb4a7e4a239f15"
     },
     {
       "path": "pages/docs/ai/tools-toolsets/tools.md",
@@ -550,7 +550,7 @@
       "path": "pages/docs/ai/tools-toolsets/toolsets.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/toolsets",
       "title": "Toolsets | Pydantic Docs",
-      "hash": "1a599e7fb26a296aae8032328045e7148998a43677c0ee36d9d238c8efef0995"
+      "hash": "11f8b26966de39e8d6ffb794effca0575d3eba85e7cae1cfdf027d311227d80d"
     }
   ],
   "edges": [
@@ -1347,6 +1347,10 @@
       "pages/docs/ai/integrations/cli.md"
     ],
     [
+      "pages/docs/ai/guides/web.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
       "pages/docs/ai/harness/code-mode.md",
       "pages/docs/ai/harness/overview.md"
     ],
@@ -1564,6 +1568,10 @@
     ],
     [
       "pages/docs/ai/mcp/client.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/mcp/client.md",
       "pages/docs/ai/mcp/server.md"
     ],
     [
@@ -1616,6 +1624,10 @@
     ],
     [
       "pages/docs/ai/models/google.md",
+      "pages/docs/ai/advanced-features/thinking.md"
+    ],
+    [
+      "pages/docs/ai/models/openai.md",
       "pages/docs/ai/advanced-features/thinking.md"
     ],
     [
@@ -2092,9 +2104,9 @@
     ]
   ],
   "last_sync": {
-    "synced_at": "2026-07-09T12:16:42.099064+00:00",
+    "synced_at": "2026-07-13T09:36:10.301107+00:00",
     "added": 0,
-    "changed": 90,
+    "changed": 11,
     "removed": 0,
     "pages": 90
   }

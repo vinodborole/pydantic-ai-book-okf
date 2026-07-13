@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-13T09:36:10.292247+00:00'
 ---
 
 # OpenAI
@@ -19,7 +19,7 @@ The bare `'openai:'` prefix resolves to [ OpenAIResponsesModel](/docs/ai/api/mod
 
 ```
 from pydantic_ai import Agent
-agent = Agent('openai:gpt-5.2')
+agent = Agent('openai:gpt-5.6-sol')
 ...
 ```
 To pin to the legacy [Chat Completions API](https://platform.openai.com/docs/api-reference/chat) instead, use the `'openai-chat:'` prefix, which resolves to [ OpenAIChatModel](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel).
@@ -29,7 +29,7 @@ Or initialise the model directly with just the model name:
 ```
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIResponsesModel
-model = OpenAIResponsesModel('gpt-5.2')
+model = OpenAIResponsesModel('gpt-5.6-sol')
 agent = Agent(model)
 ...
 ```
@@ -87,6 +87,22 @@ You can use the unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydan
 `openai_service_tier` field. Both accept `'auto'`, `'default'`, `'flex'`, and `'priority'`, passed through unchanged. `openai_service_tier` takes precedence over the unified field when both are set.The features below are specific to the Responses API and only available on [ OpenAIResponsesModel](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) (the default). For background on how the Responses API differs from Chat Completions, see the 
 
 [OpenAI API docs](https://platform.openai.com/docs/guides/migrate-to-responses).
+
+Models that support it (currently the GPT-5.6 family) can use OpenAI’s [ standard and pro reasoning modes](https://developers.openai.com/api/docs/guides/reasoning#reasoning-mode). 
+
+`standard` is the default; `pro` performs more model work to improve reliability on difficult tasks, at the cost of higher latency and token usage. The mode is independent of the reasoning effort: any combination of mode and effort is valid, and the unified [setting only ever influences the effort, so](/docs/ai/advanced-features/thinking)
+
+`thinking``pro` is used only when you set it explicitly.Configure the mode with [ openai_reasoning_mode](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_reasoning_mode); there is no separate 
+
+`pro` model to select:```
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIResponsesModel, OpenAIResponsesModelSettings
+model = OpenAIResponsesModel('gpt-5.6-sol')
+settings = OpenAIResponsesModelSettings(openai_reasoning_mode='pro')
+agent = Agent(model, model_settings=settings)
+...
+```
+The setting is ignored on models that don’t support reasoning mode, per [ OpenAIModelProfile.openai_responses_supports_reasoning_mode](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.openai.OpenAIModelProfile.openai_responses_supports_reasoning_mode).
 
 The Responses API has native tools that you can use instead of building your own:
 
