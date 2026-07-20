@@ -2,7 +2,7 @@
 type: Web Page
 title: Anthropic | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/anthropic
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Anthropic
@@ -72,7 +72,7 @@ settings = AnthropicModelSettings(
 agent = Agent(model, model_settings=settings)
 ...
 ```
-Anthropic supports controlling the [service tier](https://docs.anthropic.com/en/docs/build-with-claude/latency-and-throughput) to manage latency and throughput.
+Anthropic supports controlling the [service tier](https://platform.claude.com/docs/en/api/service-tiers) to manage latency and throughput.
 You can use the unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field or the provider-specific 
 
 [field.](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_service_tier)
@@ -163,6 +163,7 @@ result2 = agent.run_sync(
 )
 print(f'Cache write: {result1.usage.cache_write_tokens}')
 print(f'Cache read: {result2.usage.cache_read_tokens}')
+print(f'Cache hit ratio: {result2.usage.cache_hit_ratio}')
 ```
 This is ideal for multi-turn conversations where the cache breakpoint should move forward as the conversation grows. You can also specify a custom TTL with `anthropic_cache='1h'`.
 

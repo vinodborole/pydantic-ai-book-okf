@@ -2,7 +2,7 @@
 type: Web Page
 title: Messages and chat history | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/message-history
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Messages and chat history
@@ -47,6 +47,25 @@ To use existing messages in a run, pass them to the `message_history` parameter 
 `system_prompt` is reinjected at the head of the first request when it’s missing.Mid-conversation `SystemPromptPart`s (those in any `ModelRequest` after the first) are sent inline at their original position by providers whose API accepts system messages at arbitrary positions. For providers whose API doesn’t, they’re instead rendered as `<system>`-tagged `UserPromptPart`s at the same position, preserving the prefix cache and positional intent. Leading `SystemPromptPart`s always hoist to the provider’s top-level system parameter.
 
 *(This example is complete, it can be run “as is”)*
+
+Model providers reject a request whose message history has broken tool-call/tool-result pairing — a tool call with no result, or a result with no call. A run that is cancelled or crashes partway through can leave the history in exactly this state, and so can a hand-built, truncated, or context-evicted history. You don’t need to clean these up yourself: before each model request, Pydantic AI repairs the history it was given so the provider accepts it.
+
+The guiding rule is to massage the history into a shape the provider accepts without ever discarding something you meant to send. Repairs only **add** synthesized parts or **remove** parts that are fundamentally unsendable (no provider could accept them); nothing meaningful is silently dropped. Concretely, before each request Pydantic AI:
+
+- **Adds**a synthesized- `ToolReturnPart`- `outcome='interrupted'`- `'failed'`) is not surfaced as a provider error — and carries- `{'pydantic_ai_synthesized_tool_return': True}`in its- `metadata`
+- **Removes**an orphaned tool result — a- `ToolReturnPart`- `RetryPromptPart`- `ModelRequest`- `ModelRequest`.
+
+After the invalid parts are handled, consecutive compatible messages are **merged** into one (two adjacent [ ModelRequest](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest)s become a single turn, with tool results ordered ahead of user parts). This changes message boundaries but preserves all content, so processed history you inspect afterwards may have fewer messages than you passed in.
+
+The repair is deterministic and idempotent: repairing the same history always produces the same output, running a repaired history through another run leaves it untouched, and synthesized parts contain no wall-clock data, so reuse doesn’t invalidate provider prompt caches.
+
+Tool calls that can still receive a real result are left alone: when the history ends on a `ModelResponse` with tool calls, running without a new `user_prompt` executes them, and [deferred tool calls](/docs/ai/tools-toolsets/deferred-tools) are matched to their `deferred_tool_results` — including when a ‘complete’ `ModelRequest` with the already-executed results follows the response. Repair of that live frontier only happens when the interruption is evident: a final response with [ state='interrupted'](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.state) or a trailing request with 
+
+[(e.g. from a](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest.state)
+
+`state='interrupted'`[cancelled stream](/docs/ai/core-concepts/output#cancelling-streams)or a crash during tool execution) whose tool calls will never be executed.
+
+This pipeline handles regular, locally-executed tool calls only. Builtin (server-side) tool parts — produced and resulted by the provider inline — are left untouched and repaired by each model’s own serializer instead. Some other provider-invalid shapes are also out of scope and may be rejected: duplicate tool results for one call, and provider-specific ordering rules beyond call/result pairing.
 
 Each `ModelRequest` and `ModelResponse` carries two identifiers:
 
@@ -146,7 +165,9 @@ Adjacent part-style items (user content and [ ModelRequestPart](/docs/ai/api/pyd
 
 `ModelResponse`[). The content must end in a request, so the agent has something to respond to.](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest)
 
-`ModelRequest`Use [ RunContext.enqueue](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) when you have a
+`ModelRequest`Both `enqueue` methods return an `enqueue_id` (`str`) for a non-empty call, or `None` when called with no content. When the queued content is actually delivered into run history, the [event stream](/docs/ai/core-concepts/agent#streaming-all-events) yields an [ EnqueuedMessagesEvent](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.EnqueuedMessagesEvent) carrying that 
+
+`enqueue_id` and the delivered messages (exactly as they landed in history), so a client can observe when its steering message took effect. The event carries the delivered message objects themselves — the same objects held in the run’s message history. A history processor that replaces history with new message objects does not affect the event, but in-place mutation of a delivered message will be visible through it.Use [ RunContext.enqueue](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) when you have a
 
 `RunContext` in scope:The `'asap'` message is appended to the agent’s message history and is visible to the
 model on the next request, alongside any tool returns from the same step. A

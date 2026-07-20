@@ -2,7 +2,7 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Native Tools
@@ -22,7 +22,11 @@ Pydantic AI supports the following native tools:
 
 These tools are passed to the agent’s `capabilities` list, wrapped in [ NativeTool](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool), and are executed by the model provider’s infrastructure.
 
-Sometimes you need to configure a native tool dynamically based on the [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) (e.g., user dependencies), or conditionally omit it. You can achieve this by wrapping a function with [ NativeTool](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool) in 
+[Gemini 3 models](https://ai.google.dev/gemini-api/docs/structured-output#structured_outputs_with_tools) support combining native tools with function tools, including [output tools](/docs/ai/core-concepts/output#tool-output), and [ NativeOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput). Earlier Gemini models cannot use these combinations; use 
+
+[for structured output alongside native tools.](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput)
+
+`PromptedOutput`Sometimes you need to configure a native tool dynamically based on the [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) (e.g., user dependencies), or conditionally omit it. You can achieve this by wrapping a function with [ NativeTool](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool) in 
 
 `capabilities`. The function takes [as an argument and returns an](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)
 
@@ -37,7 +41,7 @@ making it ideal for queries that require up-to-date data.
 |---|---|---|
 | OpenAI Responses | ✅ | Full feature support. To include search results on the that’s available via`NativeToolReturnPart`, enable the`ModelResponse.native_tool_calls``OpenAIResponsesModelSettings.openai_include_web_search_sources`[model setting](/docs/ai/core-concepts/agent#model-run-settings). | 
 | Anthropic | ✅ | Full feature support | 
-| ✅ | No parameter support. No or`NativeToolCallPart`is generated when streaming. Using native tools and function tools (including`NativeToolReturnPart`[output tools](/docs/ai/core-concepts/output#tool-output)) at the same time is not supported; to use structured output, useinstead.`PromptedOutput` | |
+| ✅ | No parameter support. No or`NativeToolCallPart`is generated when streaming. See`NativeToolReturnPart`[Google tool combinations](#google-tool-combinations). | |
 | xAI | ✅ | Supports `blocked_domains`,`allowed_domains`, and`user_location`parameters. | 
 | Groq | ✅ | Limited parameter support. To use web search capabilities with Groq, you need to use the [compound models](https://console.groq.com/docs/compound). | 
 | OpenRouter | ✅ | Web search via [plugins](https://openrouter.ai/docs/features/web-search). Supports`search_context_size`. Uses native search for supported providers (OpenAI, Anthropic, Perplexity, xAI), Exa for others. | 
@@ -83,7 +87,7 @@ in a secure environment, making it perfect for computational tasks, data analysi
 | Provider | Supported | Notes | 
 |---|---|---|
 | OpenAI | ✅ | To include code execution output on the that’s available via`NativeToolReturnPart`, enable the`ModelResponse.native_tool_calls``OpenAIResponsesModelSettings.openai_include_code_execution_outputs`[model setting](/docs/ai/core-concepts/agent#model-run-settings). If the code execution generated images, like charts, they will be available onas`ModelResponse.images`objects. The generated image can also be used as`BinaryImage`[image output](/docs/ai/core-concepts/output#image-output)for the agent run. | 
-| ✅ | Using native tools and function tools (including [output tools](/docs/ai/core-concepts/output#tool-output)) at the same time is not supported; to use structured output, useinstead.`PromptedOutput` | |
+| ✅ | See [Google tool combinations](#google-tool-combinations). | |
 | Anthropic | ✅ | Available on compatible Anthropic models. Pydantic AI selects a compatible code execution tool version automatically; see [Anthropic code execution tool version](/docs/ai/models/anthropic#code-execution-tool-version)to override it. | 
 | xAI | ✅ | Full feature support. | 
 | Groq | ❌ | |
@@ -105,7 +109,7 @@ In addition to text output, code execution with OpenAI can generate images as pa
 You can upload files via the provider’s Files API and make them available to the code execution container. This allows the agent to process data files, analyze CSVs, work with images, and more.
 Files whose [ UploadedFile.provider_name](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UploadedFile.provider_name) does not match the model provider are ignored.
 
-For details on file management, persistence, and container behavior, see the [Anthropic Files API documentation](https://docs.anthropic.com/en/api/files).
+For details on file management, persistence, and container behavior, see the [Anthropic Files API documentation](https://platform.claude.com/docs/en/build-with-claude/files).
 
 For details on file management, container lifecycle, and persistence behavior, see the [OpenAI Responses API documentation](https://platform.openai.com/docs/api-reference/responses).
 
@@ -184,7 +188,7 @@ allowing it to pull up-to-date information from the web.
 | Provider | Supported | Notes | 
 |---|---|---|
 | Anthropic | ✅ | Full feature support. Uses Anthropic’s [Web Fetch Tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-fetch-tool)internally to retrieve URL contents. | 
-| ✅ | No parameter support. The limits are fixed at 20 URLs per request with a maximum of 34MB per URL. Using native tools and function tools (including [output tools](/docs/ai/core-concepts/output#tool-output)) at the same time is not supported; to use structured output, useinstead.`PromptedOutput` | |
+| ✅ | No parameter support. The limits are fixed at 20 URLs per request with a maximum of 34MB per URL. See [Google tool combinations](#google-tool-combinations). | |
 | xAI | ❌ | Web browsing is implemented as part of with xAI.`WebSearchTool` | 
 | OpenAI | ❌ | |
 | Groq | ❌ | |
@@ -280,7 +284,7 @@ The [ FileSearchTool](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_
 | Provider | Supported | Notes | 
 |---|---|---|
 | OpenAI Responses | ✅ | Full feature support. Requires files to be uploaded to vector stores via the [OpenAI Files API](https://platform.openai.com/docs/api-reference/files). To include search results on theavailable via`NativeToolReturnPart`, enable the`ModelResponse.native_tool_calls``OpenAIResponsesModelSettings.openai_include_file_search_results`[model setting](/docs/ai/core-concepts/agent#model-run-settings). | 
-| Google (Gemini) | ✅ | Requires files to be uploaded via the [Gemini Files API](https://ai.google.dev/gemini-api/docs/files). Files are automatically deleted after 48 hours. Supports up to 2 GB per file and 20 GB per project. Using native tools and function tools (including[output tools](/docs/ai/core-concepts/output#tool-output)) at the same time is not supported; to use structured output, useinstead.`PromptedOutput` | 
+| Google (Gemini) | ✅ | Requires files to be uploaded via the [Gemini Files API](https://ai.google.dev/gemini-api/docs/files). Files are automatically deleted after 48 hours. Supports up to 2 GB per file and 20 GB per project. See[Google tool combinations](#google-tool-combinations). | 
 | xAI | ✅ | Mapped to xAI collections search. Requires collection IDs. To include search results on the , enable the`NativeToolReturnPart``XaiModelSettings.xai_include_collections_search_output`[model setting](/docs/ai/core-concepts/agent#model-run-settings). | 
 | Google Cloud | ❌ | |
 | Anthropic | ❌ | Not supported | 

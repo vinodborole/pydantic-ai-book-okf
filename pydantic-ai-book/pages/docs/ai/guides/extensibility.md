@@ -2,7 +2,7 @@
 type: Web Page
 title: Extensibility | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/guides/extensibility
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Extensibility
@@ -37,9 +37,9 @@ agent = Agent.from_file('agent.yaml', custom_capability_types=[MyCapability])
 ```
 See [Custom capabilities in specs](/docs/ai/core-concepts/agent-spec#custom-capabilities-in-specs) for implementation details.
 
-[ Pydantic AI Harness](/docs/ai/harness/overview) is the official capability library for Pydantic AI — standalone capabilities like memory, guardrails, and context management live there rather than in core. See 
+[ Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) is the official capability library for Pydantic AI — standalone capabilities like memory, guardrails, and context management live there rather than in core. See 
 
-[What goes where?](/docs/ai/harness/overview#what-goes-where)for the full breakdown, or jump to the
+[What goes where?](https://pydantic.dev/docs/ai/harness/#what-goes-where)for the full breakdown, or jump to the
 
 [capability matrix](https://github.com/pydantic/pydantic-ai-harness#capability-matrix).
 

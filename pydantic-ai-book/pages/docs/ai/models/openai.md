@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-07-13T09:36:10.292247+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # OpenAI
@@ -207,6 +207,16 @@ As an alternative, `OpenAICompaction` supports a **stateless mode** (`stateless=
 `trigger` callable:The mode is inferred from which parameters you pass: supplying `message_count_threshold` or `trigger` implies stateless mode, otherwise stateful mode is used. You can also pass `stateless=True` or `stateless=False` explicitly. Mixing parameters from different modes raises [ UserError](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError).
 
 For lower-level use cases, you can call [ compact_messages](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel.compact_messages) directly on the model.
+
+For long-running requests, such as large reasoning or tool-heavy jobs that may exceed the practical duration of a synchronous request, OpenAI’s Responses API offers a [background mode](https://platform.openai.com/docs/guides/background) that runs the request server-side and lets you retrieve the result once it’s ready. Enable it with [ openai_background](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_background):
+
+When the response comes back still pending (`'queued'` or `'in_progress'`), Pydantic AI continues it to completion transparently, so you don’t need to do anything. This works for both [ agent.run](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run) and 
+
+[, and the result is stitched into a single](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream)
+
+`agent.run_stream`[— when streaming, live token activity is surfaced as it’s generated and arrives as one continuous stream.](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse)
+
+`ModelResponse`Because the request is queued server-side, the time to the first token is higher than for a synchronous request. While a background response is still pending, Pydantic AI polls for completion at a fixed interval.
 
 If you need the [Chat Completions API](https://platform.openai.com/docs/api-reference/chat) instead of the default [Responses API](https://platform.openai.com/docs/api-reference/responses), pin to it with the `'openai-chat:'` prefix or [ OpenAIChatModel](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel):
 

@@ -2,7 +2,7 @@
 type: Web Page
 title: Debugging & Monitoring with Pydantic Logfire | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/logfire
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Debugging & Monitoring with Pydantic Logfire
@@ -185,6 +185,10 @@ For privacy and security reasons, you may want to monitor your agent’s behavio
 When `include_content=False` is set, Pydantic AI will exclude sensitive content from telemetry, including user prompts and model completions, tool call arguments and responses, and any other message content.
 
 This setting is particularly useful in production environments where compliance requirements or data sensitivity concerns make it necessary to limit what content is sent to your observability platform.
+
+By default, each model request span carries a `model_request_parameters` attribute that serializes the full [ ModelRequestParameters](/docs/ai/api/models/base/#pydantic_ai.models.ModelRequestParameters), including the output configuration and every tool definition. Tools that carry large output schemas (some MCP toolsets, for example) can make this attribute big enough to strain span export and inflate memory use. Set 
+
+`include_model_request_parameters=False` to omit it entirely:The `gen_ai.tool.definitions` attribute (tool name, description, and parameters) is emitted regardless of this setting, so observability platforms that read the available tools from it are unaffected.
 
 Use the agent’s `metadata` parameter to attach additional data to the agent’s span.
 When instrumentation is enabled, the computed metadata is recorded on the agent span under the `metadata` attribute.

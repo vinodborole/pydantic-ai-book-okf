@@ -2,7 +2,7 @@
 type: Web Page
 title: Troubleshooting | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/troubleshooting
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Troubleshooting
@@ -27,9 +27,15 @@ result = agent.run_sync('Who let the dogs out?')
 ```
 **Note**: This also applies to Google Colab and [Marimo](https://github.com/marimo-team/marimo) environments.
 
-If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
+`UserError``[PROVIDER]_API_KEY` environment variable or pass it via the provider’s `api_key=...` argument
 
-You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
+`UserError`If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
+
+To try Pydantic AI without an API key, use the built-in [ 'test' model](/docs/ai/guides/testing#unit-testing-with-testmodel): 
+
+[.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent)
+
+`Agent('test')`You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
 
 It’s particularly helpful to use `logfire`’s [HTTPX integration](/docs/ai/integrations/logfire#monitoring-http-requests) to monitor the above.
 

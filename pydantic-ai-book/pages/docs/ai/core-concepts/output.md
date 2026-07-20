@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-07-13T09:36:10.292247+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Output
@@ -116,7 +116,7 @@ To dynamically modify or filter the available output tools during an agent run, 
 
 *(This example is complete, it can be run “as is”)*
 
-Native Output mode uses a model’s native “Structured Outputs” feature (aka “JSON Schema response format”), where the model is forced to only output text matching the provided JSON schema. Note that this is not supported by all models, and sometimes comes with restrictions. For example, Gemini cannot use tools at the same time as structured output, and attempting to do so will result in an error.
+Native Output mode uses a model’s native “Structured Outputs” feature (aka “JSON Schema response format”), where the model is forced to only output text matching the provided JSON schema. Note that this is not supported by all models, and sometimes comes with restrictions. For example, [Gemini 3](https://ai.google.dev/gemini-api/docs/structured-output#structured_outputs_with_tools) supports Native Output alongside function and native tools, while earlier Gemini models cannot combine Native Output with function tools.
 
 To use this mode, you can wrap the output type(s) in the [ NativeOutput](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput) marker class that also lets you specify a 
 
@@ -283,7 +283,7 @@ Here’s an example of streaming a user profile as it’s built:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
-As setting an `output_type` uses the [Tool Output](#tool-output) mode by default, this will only work if the model supports streaming tool arguments. For models that don’t, like Gemini, try [Native Output](#native-output) or [Prompted Output](#prompted-output) instead.
+As setting an `output_type` uses the [Tool Output](#tool-output) mode by default, this will only work if the model supports streaming tool arguments. For models that don’t, try [Native Output](#native-output) or [Prompted Output](#prompted-output) instead. With Gemini 3, use Native Output; with earlier Gemini models that also use function tools, use Prompted Output.
 
 If you want fine-grained control of validation, you can use the following pattern to get the entire partial [ ModelResponse](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse):
 

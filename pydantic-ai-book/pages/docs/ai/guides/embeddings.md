@@ -2,7 +2,7 @@
 type: Web Page
 title: Embeddings | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/guides/embeddings
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Embeddings
@@ -26,7 +26,7 @@ For convenience, you can access embeddings either by index (`result[0]`) or by t
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
-The best embedding model depends on your constraints. Here’s a starting-point cheat sheet; consult each provider’s docs and the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) before committing to a model for a large index.
+The best embedding model depends on your language, domain, latency, deployment, and evaluation constraints. Use this table as a starting point, then check the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard), the model card on the [Hugging Face Hub](https://huggingface.co/models?library=sentence-transformers), and your own retrieval evaluation before committing to a model for a large index.
 
 | If you want… | For example | 
 |---|---|
@@ -36,6 +36,57 @@ The best embedding model depends on your constraints. Here’s a starting-point 
 | Specialized domain | `voyageai:voyage-code-3`,`voyageai:voyage-law-2`,`voyageai:voyage-finance-2`,`sentence-transformers:nomic-ai/CodeRankEmbed`, or`sentence-transformers:TechWolf/JobBERT-v3` | 
 | To run on AWS infra you already have | `bedrock:amazon.titan-embed-text-v2:0`or`bedrock:cohere.embed-v4:0` | 
 | To reduce index size | Any model with dimension control (see [Settings](#settings)) | 
+
+For Retrieval-Augmented Generation (RAG), embeddings are one part of a larger retrieval pipeline. Pydantic AI provides [ Embedder](/docs/ai/api/pydantic-ai/embeddings/#pydantic_ai.embeddings.Embedder) for query and document embeddings, and 
+
+[tools](/docs/ai/tools-toolsets/tools)for giving retrieved context to an agent. The
+
+[RAG example](/docs/ai/examples/rag)demonstrates vector storage, retrieval, and passing retrieved context to an agent using pre-split data.
+
+If you want a provider-managed pipeline instead, first upload or import files into a provider-managed store, then pass its ID to `FileSearchTool`. The provider handles chunking, embeddings, storage, and retrieval; see the [File Search Tool docs](/docs/ai/tools-toolsets/builtin-tools#file-search-tool) for supported providers. The rest of this section covers building your own pipeline, where these choices stay application-specific.
+
+A typical custom RAG pipeline looks like this:
+
+- Split source documents into chunks when needed.
+- Embed the chunks with `embed_documents()`
+- Store each vector with metadata such as source URL, title, heading, page number, and permissions.
+- Embed the user’s search text with `embed_query()`
+- Search a vector index for similar chunks.
+- Optionally [rerank](#two-stage-retrieval-with-rerankers)the shortlist.
+- Pass the retrieved text to the agent through a tool.
+
+Chunks are the units of source text that a retrieval index stores and returns. You do not need to split every document. Chunking is useful when:
+
+- you want to retrieve a relevant subsection instead of the full document;
+- a document is longer than the embedding model’s maximum input length; or
+- a document contains enough independent facts or topics that one embedding may not represent them precisely.
+
+If none of these applies, embedding the whole document can be reasonable. There is no universally best chunking strategy or chunk size: the right choice depends on the embedding model, source format, domain, and the questions users ask.
+
+| Strategy | Useful starting point | Trade-off | 
+|---|---|---|
+| Document structure, such as headings, paragraphs, sentences, pages, or records | Clean, consistently structured sources | Cheap and preserves natural boundaries, but produces uneven chunk sizes. | 
+| Fixed-size token windows | Unstructured text or strict model input limits | Simple and predictable, but can split related text. Overlap preserves boundary context at the cost of a larger index and duplicate results. | 
+| Semantic splitting | Sources where topic boundaries matter more than layout | Can keep related ideas together, but adds ingestion work and depends on the model and threshold. | 
+| LLM-assisted splitting | Irregular or domain-specific sources that require interpretation | Flexible, but adds the most latency and cost and requires validation of the chosen boundaries and source coverage. | 
+
+For a first implementation, use natural document boundaries with a token limit, keep source metadata and a link or identifier for the full document with every chunk, and evaluate before adding a more expensive strategy. Chunks should be large enough to answer a focused question but small enough to avoid unrelated context.
+
+See Chroma’s [chunking strategy evaluation](https://www.trychroma.com/research/evaluating-chunking) for a comparison of common strategies and reproducible evaluation code, and Hugging Face’s [RAG evaluation cookbook](https://huggingface.co/learn/cookbook/rag_evaluation) for an end-to-end RAG evaluation workflow.
+
+Pydantic AI does not prescribe a vector database. Choose based on the index size, query and ingestion volume, metadata filtering and permission requirements, hybrid keyword search needs, availability requirements, and infrastructure you already operate:
+
+- A local index or embedded database, such as FAISS, LanceDB, or SQLite with a vector extension, can suit prototypes and small indexes.
+- PostgreSQL with `pgvector`can suit applications that already use PostgreSQL.
+- A managed vector or search service can suit applications that need hosted scaling and operational support.
+
+The index’s vector dimension must match the embedding output dimension. Use a compatible model configuration when indexing and querying; matching dimensions alone do not make vectors compatible. If you change the embedding configuration, re-embed the documents and update or rebuild the index as required by your storage layer.
+
+Hugging Face’s [advanced RAG cookbook](https://huggingface.co/learn/cookbook/advanced_rag) introduces vector indexes, similarity choices, reranking, and other retrieval trade-offs.
+
+Chunking, the embedding model, similarity metric, number of retrieved chunks, and reranking all interact. Public benchmarks can narrow the candidates, but they cannot prove which complete pipeline works best for your application. Compare changes using queries and documents representative of production, checking both that relevant text is retrieved and that irrelevant text is kept out of the agent’s context.
+
+Use [Pydantic Evals](/docs/ai/evals/evals) to track retrieval quality across a dataset of representative queries. Hugging Face’s [RAG evaluation cookbook](https://huggingface.co/learn/cookbook/rag_evaluation) demonstrates how to build a synthetic evaluation set and evaluate generated answers.
 
 [ OpenAIEmbeddingModel](/docs/ai/api/pydantic-ai/embeddings/#pydantic_ai.embeddings.openai.OpenAIEmbeddingModel) works with OpenAI’s embeddings API and any 
 
@@ -186,7 +237,7 @@ For advanced configuration like explicit credentials or a custom boto3 client, y
 
 [ SentenceTransformerEmbeddingModel](/docs/ai/api/pydantic-ai/embeddings/#pydantic_ai.embeddings.sentence_transformers.SentenceTransformerEmbeddingModel) runs embeddings locally using the 
 
-[sentence-transformers](https://www.sbert.net/)library, giving you access to the thousands of
+[Sentence Transformers](https://www.sbert.net/)library, giving you access to the thousands of
 
 [embedding models on Hugging Face](https://huggingface.co/models?library=sentence-transformers)without any API calls. This is ideal for:
 
@@ -239,6 +290,8 @@ For high-quality retrieval, a common pattern is **two-stage**: first use an embe
 Pydantic AI does not ship a reranker provider class, so you bring your own. The most common local option is a `CrossEncoder` from `sentence-transformers`:
 
 Call `rerank()` on the candidates returned by your vector search (for example, in the `retrieve` tool of the [RAG example](/docs/ai/examples/rag)) before handing the results to the LLM.
+
+For more background on retrieve-and-rerank pipelines, see Hugging Face’s [advanced RAG cookbook](https://huggingface.co/learn/cookbook/advanced_rag). To serve open-source embedding and reranker models yourself, see Hugging Face [Text Embeddings Inference](https://huggingface.co/docs/text-embeddings-inference) and its [supported rerankers](https://huggingface.co/docs/text-embeddings-inference/supported_models#supported-re-rankers-and-sequence-classification-models).
 
 To integrate a custom embedding provider, subclass [ EmbeddingModel](/docs/ai/api/pydantic-ai/embeddings/#pydantic_ai.embeddings.EmbeddingModel):
 

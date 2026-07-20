@@ -2,7 +2,7 @@
 type: Web Page
 title: Deferred Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Deferred Tools
@@ -132,6 +132,21 @@ Generate a task ID that can be tracked independently of the tool call ID.
 The optional `metadata` parameter passes the `task_id` so it can be matched with results later, accessible in `DeferredToolRequests.metadata` keyed by `tool_call_id`.
 
 In reality, this would typically happen in a separate process that polls for the task status or is notified when all pending tasks are complete.
+
+*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+
+Like any other tool call, a deferred tool call emits a [ FunctionToolCallEvent](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FunctionToolCallEvent) into the 
+
+[event stream](/docs/ai/core-concepts/agent#streaming-events-and-final-output)— but that event alone doesn’t tell a stream consumer that the call is paused waiting for interaction, or what kind of interaction is expected. Two additional
+
+[s carry that context:](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)
+
+`AgentStreamEvent`- `DeferredToolRequestsEvent`- `DeferredToolRequests`- `HandleDeferredToolCalls`- `DeferredToolRequests`output.
+- `DeferredToolResultsEvent`- `DeferredToolResults`- `FunctionToolResultEvent`- `deferred_tool_results`, as in that case the caller already knows them.
+
+This keeps resolution and presentation decoupled: a handler can contain pure resolution logic (e.g. waiting for a signal in a [durable execution](/docs/ai/integrations/durable_execution/overview) workflow), while a stream consumer owns all communication with the frontend, without maintaining its own mapping of which tools are interactive.
+
+Continuing the [handler example](#resolving-deferred-calls-with-a-handler) from above:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 

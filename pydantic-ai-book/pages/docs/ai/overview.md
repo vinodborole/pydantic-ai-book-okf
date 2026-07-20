@@ -2,7 +2,7 @@
 type: Web Page
 title: Pydantic AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Pydantic AI
@@ -17,6 +17,8 @@ Yet despite virtually every Python agent framework and LLM library using Pydanti
 
 We built Pydantic AI with one simple aim: to bring that FastAPI feeling to GenAI app and agent development.
 
+Pydantic AI ships the agent loop and a composable [capabilities](/docs/ai/core-concepts/capabilities) system; [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) is our official library of ready-made capabilities — code execution, file access, guardrails, sub-agent orchestration, and more — that you pick and choose to build coding agents, research assistants, and anything in between.
+
 - 
 **Built by the Pydantic Team**:[Pydantic Validation](https://docs.pydantic.dev/latest/)is the validation layer of the OpenAI SDK, the Google ADK, the Anthropic SDK, LangChain, LlamaIndex, AutoGPT, Transformers, CrewAI, Instructor and many more.*Why use the derivative when you can go straight to the source?*😃
 - 
@@ -28,7 +30,7 @@ We built Pydantic AI with one simple aim: to bring that FastAPI feeling to GenAI
 - 
 **Powerful Evals**: Enables you to systematically test and[evaluate](/docs/ai/evals/evals)the performance and accuracy of the agentic systems you build, and monitor the performance over time in Pydantic Logfire.
 - 
-**Extensible by Design**: Build agents from composable[capabilities](/docs/ai/core-concepts/capabilities)that bundle tools, hooks, instructions, and model settings into reusable units. Use built-in capabilities for[web search](/docs/ai/core-concepts/capabilities#provider-adaptive-tools),[thinking](/docs/ai/core-concepts/capabilities#thinking), and[MCP](/docs/ai/core-concepts/capabilities#provider-adaptive-tools), pick from the[Pydantic AI Harness](/docs/ai/harness/overview)capability library, build your own, or install[third-party capability packages](/docs/ai/guides/extensibility). Define agents entirely in[YAML/JSON](/docs/ai/core-concepts/agent-spec)— no code required.
+**Extensible by Design**: Build agents from composable[capabilities](/docs/ai/core-concepts/capabilities)that bundle tools, hooks, instructions, and model settings into reusable units. Use built-in capabilities for[web search](/docs/ai/core-concepts/capabilities#provider-adaptive-tools),[thinking](/docs/ai/core-concepts/capabilities#thinking), and[MCP](/docs/ai/core-concepts/capabilities#provider-adaptive-tools), pick from the[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)capability library, build your own, or install[third-party capability packages](/docs/ai/guides/extensibility). Define agents entirely in[YAML/JSON](/docs/ai/core-concepts/agent-spec)— no code required.
 - 
 **MCP and UI**: Integrates the[Model Context Protocol](/docs/ai/mcp/overview)and various[UI event stream](/docs/ai/integrations/ui/overview)standards to give your agent access to external tools and data and build interactive applications with streaming event-based communication.
 - 
@@ -54,7 +56,11 @@ Register static [instructions](/docs/ai/core-concepts/agent#instructions) using 
 
 *(This example is complete, it can be run “as is”, assuming you’ve  installed the *
 
-`pydantic_ai` package)The exchange will be very short: Pydantic AI will send the instructions and the user prompt to the LLM, and the model will return a text response.
+`pydantic_ai` package)[ TestModel](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) returns canned responses so you can exercise your agent, tools, and outputs without a key.
+
+When you’re ready to use a real model, see [Models and Providers](/docs/ai/models/overview) to pick a provider and set its API key.
+
+The exchange will be very short: Pydantic AI will send the instructions and the user prompt to the LLM, and the model will return a text response.
 
 Not very interesting yet, but we can easily add [tools](/docs/ai/tools-toolsets/tools), [dynamic instructions](/docs/ai/core-concepts/agent#instructions), [structured outputs](/docs/ai/core-concepts/output), or composable [capabilities](/docs/ai/core-concepts/capabilities) to build more powerful agents.
 

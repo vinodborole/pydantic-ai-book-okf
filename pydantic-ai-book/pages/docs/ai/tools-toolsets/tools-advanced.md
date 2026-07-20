@@ -2,7 +2,7 @@
 type: Web Page
 title: Advanced Tool Features | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced
-timestamp: '2026-07-13T09:36:10.292247+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Advanced Tool Features
@@ -214,7 +214,7 @@ Raising `ModelRetry` also generates a `RetryPromptPart` containing the exception
 
 `ctx.retry`[with message](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UnexpectedModelBehavior)
 
-`UnexpectedModelBehavior``'Tool {name!r} exceeded max retries count of {N}'`. User-provided toolsets inherit `Agent(retries={'tools': ...})` as their default when no per-toolset value is set.You can set a timeout for tool execution to prevent tools from running indefinitely. If a tool exceeds its timeout, it is treated as a failure and a retry prompt is sent to the model (counting towards the retry limit).
+`UnexpectedModelBehavior``'Tool {name!r} exceeded max retries count of {N}. Consider raising the retry limit, or see the docs on tool retries: https://ai.pydantic.dev/tools-advanced/#tool-retries'`. User-provided toolsets inherit `Agent(retries={'tools': ...})` as their default when no per-toolset value is set.You can set a timeout for tool execution to prevent tools from running indefinitely. If a tool exceeds its timeout, it is treated as a failure and a retry prompt is sent to the model (counting towards the retry limit).
 
 ```
 import asyncio

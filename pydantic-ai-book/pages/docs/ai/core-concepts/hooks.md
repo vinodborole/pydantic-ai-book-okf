@@ -2,7 +2,7 @@
 type: Web Page
 title: Hooks | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/hooks
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Hooks
@@ -37,15 +37,17 @@ You can also pass hook functions directly to the [ Hooks](/docs/ai/api/pydantic-
 
 Both sync and async hook functions are accepted. Sync functions are automatically wrapped for async execution.
 
-[ Hooks](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks) is a capability, so it can be loaded on demand just like any other capability:
+[ Hooks](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks) is a capability, so it can be loaded on demand just like any other capability. This is useful for optional, user-requested behavior such as verbose request logging:
 
-You do not need to guard hooks owned by a deferred `Hooks` instance with `ctx.capability_loaded`; Pydantic AI skips those hooks until the model calls the `load_capability` tool for that capability. Once the hook runs, `ctx.capability_loaded` is true for that hook’s owning capability. To check a different capability, inspect `ctx.loaded_capability_ids` or `ctx.available_capability_ids`.
+Pydantic AI skips hooks owned by a deferred `Hooks` instance until its capability is loaded.
 
-If a hook must enforce a rule before a workflow is loaded, keep that hook in an always-available capability and inspect `ctx.loaded_capability_ids`; an on-demand hook cannot run before the model loads its own capability.
+Use on-demand hooks for optional behavior that only applies after the capability is loaded. For human-in-the-loop tool approval, pass [ requires_approval=True](/docs/ai/tools-toolsets/deferred-tools#human-in-the-loop-tool-approval) when registering a tool, raise 
 
-The run-scoped hooks — `before_run` and `wrap_run` — are bound at the start of the run, so a capability the model loads mid-run won’t get them for that run; they only fire when the capability is already loaded at the start (for example after resuming from message history). The capability’s per-step hooks (node, model-request, tool, output) fire from the next step onwards once it has loaded, and `after_run` fires at the end of the run if it was loaded at any point during it.
+[for conditional approval, or wrap a toolset with](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ApprovalRequired)
 
-| `hooks.on.` | Constructor kwarg | `AbstractCapability`method | 
+`ApprovalRequired`[.](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.ApprovalRequiredToolset)
+
+`ApprovalRequiredToolset`| `hooks.on.` | Constructor kwarg | `AbstractCapability`method | 
 |---|---|---|
 | `before_run` | `before_run=` | `before_run` | 
 | `after_run` | `after_run=` | `after_run` | 
@@ -144,7 +146,7 @@ Resolves [deferred tool calls](/docs/ai/tools-toolsets/deferred-tools) (approval
 | `run_event_stream` | `run_event_stream=` | `wrap_run_event_stream` | 
 | `event` | `event=` | (per-event convenience) | 
 
-`run_event_stream` wraps the full event stream as an async generator. `event` is a convenience — it fires for each individual event during a streamed run:
+`run_event_stream` wraps the full event stream as an async generator. `event` is a convenience — it fires for each individual event during a streamed run. Tool and model events flow through this stream, along with framework events such as [ EnqueuedMessagesEvent](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.EnqueuedMessagesEvent) when queued messages enter run history:
 
 Tool hooks (validation and execution) support a `tools` parameter to target specific tools by name:
 

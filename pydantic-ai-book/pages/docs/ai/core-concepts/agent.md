@@ -2,7 +2,7 @@
 type: Web Page
 title: Agents | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent
-timestamp: '2026-07-13T09:36:10.292247+00:00'
+timestamp: '2026-07-20T09:23:04.251034+00:00'
 ---
 
 # Agents
@@ -143,7 +143,9 @@ try:
     )
 except UsageLimitExceeded as e:
     print(e)
-    #> Exceeded the output_tokens_limit of 10 (output_tokens=32)
+    """
+    Exceeded the output_tokens_limit of 10 (output_tokens=32). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    """
 ```
 Restricting the number of requests can be useful in preventing infinite loops or excessive tool calling:
 
@@ -166,7 +168,9 @@ try:
     agent.run_sync('Please call the tool twice', usage_limits=UsageLimits(tool_calls_limit=1))
 except UsageLimitExceeded as e:
     print(e)
-    #> The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2).
+    """
+    The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    """
 ```
 Tools and [capabilities](/docs/ai/core-concepts/capabilities) can read the run’s limits from [ ctx.usage_limits](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage_limits) (alongside 
 
@@ -426,7 +430,7 @@ When a run is cut short by an exception while streaming, an exception inside a t
 
 [messages have](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest)
 
-`ModelRequest``state='interrupted'` so persistence layers and UIs can distinguish them from complete messages.For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped. Half-finished tool call parts are not turned into synthetic tool results; only completed tool returns are captured.
+`ModelRequest``state='interrupted'` so persistence layers and UIs can distinguish them from complete messages.For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped. The captured messages reflect exactly what happened — half-finished tool call parts are not turned into synthetic tool results at capture time. When an interrupted history is passed back into a run, it is [repaired automatically](/docs/ai/core-concepts/message-history#making-histories-provider-valid) before the next model request.
 
 In this example, `get_volume` completes before `get_mass` raises, so the interrupted request contains the completed `get_volume` return:
 
