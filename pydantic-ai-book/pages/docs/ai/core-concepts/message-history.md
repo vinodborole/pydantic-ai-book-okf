@@ -2,7 +2,7 @@
 type: Web Page
 title: Messages and chat history | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/message-history
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Messages and chat history
@@ -69,17 +69,25 @@ This pipeline handles regular, locally-executed tool calls only. Builtin (server
 
 Each `ModelRequest` and `ModelResponse` carries two identifiers:
 
-- `run_id`- `gen_ai.agent.call.id`.
-- `conversation_id`- `message_history`; emitted as- `gen_ai.conversation.id`.
+- `run_id`- `RunContext.run_id`- `AgentRunResult.run_id`- `gen_ai.agent.call.id`.
+- `conversation_id`- `message_history`. Also available as- `AgentRunResult.conversation_id`- `gen_ai.conversation.id`.
 
-A fresh `conversation_id` is generated on the first run, stamped onto every message produced by that run, and inherited by subsequent runs that pass the messages back via `message_history`. This means you can correlate traces from a multi-turn conversation in [Logfire](/docs/ai/integrations/logfire) (or any OpenTelemetry backend) without tracking anything yourself — as long as the message history round-trips, the conversation ID does too.
+A fresh `run_id` is generated for every agent run (or you can pass `run_id='<your-id>'` to use an ID minted by your application — e.g. one created, stored, or handed out to a client before the run starts). Unlike `conversation_id`, `run_id` is **never** inherited from `message_history`. Each [ Agent.run](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run) call — including a 
 
-To override or fork:
+[deferred-tool resume](/docs/ai/tools-toolsets/deferred-tools)— is a separate run with its own
+
+`run_id`. Passing an empty `run_id=''`, or a `run_id` that already appears on `message_history`, raises [, because both break](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError)
+
+`UserError`[boundary detection. Correlate pause/resume or multi-turn work with](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult.new_messages)
+
+`new_messages()``conversation_id` instead. When retrying a failed run with the same `run_id`, rebuild `message_history` without the failed attempt’s messages.A fresh `conversation_id` is generated on the first run, stamped onto every message produced by that run, and inherited by subsequent runs that pass the messages back via `message_history`. This means you can correlate traces from a multi-turn conversation in [Logfire](/docs/ai/integrations/logfire) (or any OpenTelemetry backend) without tracking anything yourself — as long as the message history round-trips, the conversation ID does too.
+
+To override or fork `conversation_id`:
 
 - Pass `conversation_id='<your-id>'`to use an ID from your own application (e.g. a chat thread ID stored in your database).
 - Pass `conversation_id='new'`to start a fresh conversation that ignores any`conversation_id`already on`message_history`— useful for branching off an existing thread without making the caller generate an ID.
 
-The [UI adapters](/docs/ai/integrations/ui/overview) auto-populate `conversation_id` from the protocol’s own thread/chat ID, so frontends using these protocols get correlation for free.
+The [UI adapters](/docs/ai/integrations/ui/overview) auto-populate `conversation_id` from the protocol’s own thread/chat ID, so frontends using these protocols get conversation correlation for free. Protocol-level run IDs (for example AG-UI’s `runId`) are **not** mapped into the agent’s `run_id` — pass `run_id=` explicitly on `AGUIAdapter.run_stream` / `dispatch_request` (or a plain `Agent.run`) if you need them to match.
 
 While maintaining conversation state in memory is enough for many applications, often times you may want to store the messages history of an agent run on disk or in a database. This might be for evals, for sharing data between Python and JavaScript/TypeScript, or any number of other use cases.
 
@@ -116,7 +124,7 @@ The `message_history` parameter is trusted server-side state. If you load histor
 
 [values to](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FileUrl.force_download)
 
-`FileUrl.force_download``False`, drops uploaded file references, and removes unresolved tool calls at the end of the history.Each sanitization can be turned off individually when the corresponding parts were created by trusted server-side code: pass `strip_system_prompts=False`, add schemes to `allowed_file_url_schemes`, add values to `allowed_file_url_force_download`, or set `allow_uploaded_files=True`. See [file URL input security](/docs/ai/advanced-features/input#user-side-download-vs-direct-file-url) for the file input trust model.
+`FileUrl.force_download``False`, drops uploaded file references, and removes unresolved tool calls at the end of the history.Each sanitization can be turned off individually when the corresponding parts were created by trusted server-side code: pass `strip_system_prompts=False`, add schemes to `allowed_file_url_schemes`, add values to `allowed_file_url_force_download`, or set `allow_uploaded_files=True`. See [file URL input security](/docs/ai/core-concepts/input#user-side-download-vs-direct-file-url) for the file input trust model.
 
 Since messages are defined by simple dataclasses, you can manually create and manipulate, e.g. for testing.
 
@@ -135,7 +143,9 @@ different [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent). Thi
 
 For more complex multi-agent patterns, see the [multi-agent applications](/docs/ai/guides/multi-agent-applications) documentation.
 
-Tools, capability hooks, and external code driving an agent run can inject extra content
+To change the conversation mid-run, build *new* message objects rather than modifying existing ones: [inject new messages](#injecting-messages-mid-run) with `enqueue`, or prune, summarize, or otherwise rewrite the history the model receives with a [history processor](#processing-message-history). When you need to edit an earlier message — say, compacting a large tool output — copy it with [ dataclasses.replace](https://docs.python.org/3/library/dataclasses.html#dataclasses.replace), passing a new 
+
+`parts` list of new (or reused) part objects; edited parts are likewise built with `replace` rather than modified. Replacing a message in the history and reassigning its `parts` list are both safe.Tools, capability hooks, and external code driving an agent run can inject extra content
 into the conversation mid-run with [ RunContext.enqueue](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue)
 (when a 
 
@@ -153,7 +163,7 @@ A `priority` controls when the enqueued content is delivered:
 
 `enqueue` is variadic — each positional argument is one item, and can be:
 
-- a piece of `UserContent`— a`str`or multi-modal content like an`ImageUrl``UserPromptPart``enqueue('caption', image)`forms one user turn. To pass an existing list, spread it:`enqueue(*items)`;
+- a piece of `UserContent``str`or multi-modal content like an`ImageUrl``UserPromptPart``enqueue('caption', image)`forms one user turn. To pass an existing list, spread it:`enqueue(*items)`;
 - a `ModelRequestPart``SystemPromptPart`
 - a complete `ModelRequest``ModelResponse``instructions`/`metadata`or to inject a synthetic prior turn.
 
@@ -167,7 +177,9 @@ Adjacent part-style items (user content and [ ModelRequestPart](/docs/ai/api/pyd
 
 `ModelRequest`Both `enqueue` methods return an `enqueue_id` (`str`) for a non-empty call, or `None` when called with no content. When the queued content is actually delivered into run history, the [event stream](/docs/ai/core-concepts/agent#streaming-all-events) yields an [ EnqueuedMessagesEvent](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.EnqueuedMessagesEvent) carrying that 
 
-`enqueue_id` and the delivered messages (exactly as they landed in history), so a client can observe when its steering message took effect. The event carries the delivered message objects themselves — the same objects held in the run’s message history. A history processor that replaces history with new message objects does not affect the event, but in-place mutation of a delivered message will be visible through it.Use [ RunContext.enqueue](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) when you have a
+`enqueue_id` and the delivered messages (exactly as they landed in history), so a client can observe when its steering message took effect. The event carries the delivered message objects themselves — the same objects held in the run’s message history. A history processor that replaces history with new message objects does not affect the event, but [in-place mutation](#editing-existing-messages)of a delivered message will be visible through it.
+
+Use [ RunContext.enqueue](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) when you have a
 
 `RunContext` in scope:The `'asap'` message is appended to the agent’s message history and is visible to the
 model on the next request, alongside any tool returns from the same step. A
@@ -207,7 +219,7 @@ additional information about the current run, such as dependencies, model inform
 
 This allows for more sophisticated message processing based on the current state of the agent run.
 
-Use an LLM to summarize older messages to preserve context while reducing tokens.
+Use an LLM to summarize older messages to preserve context while reducing tokens. This is one of several ways to keep a conversation within the context window — see [Compaction](/docs/ai/capabilities/compaction) for the full picture, including provider-native compaction and ready-made strategies from [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/compaction/).
 
 You can test what messages are actually sent to the model provider using
 [ FunctionModel](/docs/ai/api/models/function/#pydantic_ai.models.function.FunctionModel):
@@ -217,7 +229,7 @@ You can also use multiple processors:
 In this case, the `filter_responses` processor will be applied first, and the
 `summarize_old_messages` processor will be applied second.
 
-For a more complete example of using messages in conversations, see the [chat app](/docs/ai/examples/chat-app) example.
+For a more complete example of using messages in conversations, see the [chat app](/docs/ai/examples/conversational-agents/chat-app) example.
 
 # Citations
 

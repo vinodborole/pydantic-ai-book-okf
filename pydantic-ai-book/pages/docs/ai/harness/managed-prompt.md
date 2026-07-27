@@ -4,7 +4,7 @@ title: Managed Prompt | Pydantic Docs
 description: Back a Pydantic AI agent's instructions with a Logfire-managed prompt
   so you can version, label, and roll it out without redeploying.
 resource: https://pydantic.dev/docs/ai/harness/managed-prompt
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Managed Prompt
@@ -268,11 +268,11 @@ from the [ RunContext](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunCont
 `None`**Default:**
 
 `None`When `True`, render the resolved prompt as a Handlebars template against the agent’s
-`deps` (the same mechanism as `TemplateStr`); `{{field}}` is
-filled from `deps`. Requires `pydantic-handlebars` (install `pydantic-ai-slim[spec]`).
-Defaults to `False`, so the resolved prompt is used verbatim.
+`deps` (the same mechanism as [ TemplateStr](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr)); 
 
-**Type:** `bool`**Default:** `False`
+`{{field}}` is
+filled from `deps`. Requires `pydantic-handlebars` (install `pydantic-ai-slim[spec]`).
+Defaults to `False`, so the resolved prompt is used verbatim.**Type:** `bool`**Default:** `False`
 
 Logfire instance to resolve the variable on. When `None`, the global default instance
 (the one backing the module-level `logfire.var`) is used. Ignored when

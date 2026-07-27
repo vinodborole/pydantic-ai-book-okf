@@ -4,7 +4,7 @@ title: Planning | Pydantic Docs
 description: Give an agent a structured, self-updating task plan through a single
   write_plan tool, without ever invalidating the prompt cache.
 resource: https://pydantic.dev/docs/ai/harness/planning
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Planning
@@ -101,7 +101,7 @@ capabilities:
   - Planning:
       cache_ttl: '1h'
 ```
-- [Pydantic AI capabilities](/docs/ai/core-concepts/capabilities/)
+- [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
 - [Hooks](/docs/ai/core-concepts/hooks/)—- `wrap_model_request`is the ephemeral injection point used here
 - [Anthropic prompt caching](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
 - [Code Mode](/docs/ai/harness/code-mode)— another prompt-cache-aware harness capability
@@ -159,9 +159,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Toolset providing `write_plan` over this run’s plan state.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@async`
+`AgentDepsT`] | 
+
+`None``@async`
 
 ```
 def wrap_model_request(

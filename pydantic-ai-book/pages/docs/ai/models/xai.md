@@ -2,7 +2,7 @@
 type: Web Page
 title: xAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/xai
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # xAI
@@ -76,7 +76,7 @@ agent = Agent(model)
 ```
 xAI models support searching X (formerly Twitter) for real-time posts and content. The recommended way to enable it is with the [ XSearch](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability — see the 
 
-[capability documentation](/docs/ai/core-concepts/capabilities#provider-adaptive-tools)for more details, including cross-provider usage. For the full list of supported options, see the
+[capability documentation](/docs/ai/capabilities/overview#provider-adaptive-tools)for more details, including cross-provider usage. For the full list of supported options, see the
 
 [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search).
 
@@ -92,7 +92,7 @@ The `XSearch` capability accepts:
 
 As an alternative to the capability, you can pass the lower-level [ XSearchTool](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) directly via 
 
-`capabilities=[NativeTool(XSearchTool(...))]` — see the [X Search Tool documentation](/docs/ai/overview/native-tools#x-search-tool)— or enable raw output globally via the
+`capabilities=[NativeTool(XSearchTool(...))]` — see the [X Search Tool documentation](/docs/ai/tools-toolsets/native-tools#x-search-tool)— or enable raw output globally via the
 
 `XaiModelSettings.xai_include_x_search_output`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
 
@@ -104,7 +104,7 @@ Grok 4.3 supports `reasoning_effort` values of `'none'`, `'low'`, `'medium'`, an
 
 Grok 4.5 supports `'low'`, `'medium'`, and `'high'` but not `'none'`, so it always reasons: `thinking=False` is silently ignored and `thinking=True` maps to `'medium'`.
 
-When a request uses xAI’s server-side [native tools](/docs/ai/overview/native-tools) (e.g. web search, code execution, X search), xAI runs its own loop — calling those tools and processing their results — before returning a final response. You can cap how many turns that server-side loop may take with [ XaiModelSettings.xai_max_turns](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_max_turns):
+When a request uses xAI’s server-side [native tools](/docs/ai/tools-toolsets/native-tools) (e.g. web search, code execution, X search), xAI runs its own loop — calling those tools and processing their results — before returning a final response. You can cap how many turns that server-side loop may take with [ XaiModelSettings.xai_max_turns](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_max_turns):
 
 `xai_max_turns` only governs xAI’s server-side native-tool loop. It has no effect on ordinary client-side tools or on Pydantic AI’s own agent loop — to bound those, use [ UsageLimits](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits).
 

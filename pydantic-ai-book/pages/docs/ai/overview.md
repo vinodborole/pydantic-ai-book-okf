@@ -2,7 +2,7 @@
 type: Web Page
 title: Pydantic AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Pydantic AI
@@ -17,7 +17,7 @@ Yet despite virtually every Python agent framework and LLM library using Pydanti
 
 We built Pydantic AI with one simple aim: to bring that FastAPI feeling to GenAI app and agent development.
 
-Pydantic AI ships the agent loop and a composable [capabilities](/docs/ai/core-concepts/capabilities) system; [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) is our official library of ready-made capabilities — code execution, file access, guardrails, sub-agent orchestration, and more — that you pick and choose to build coding agents, research assistants, and anything in between.
+Pydantic AI ships the agent loop, a composable [capabilities](/docs/ai/capabilities/overview) system, and [built-in capabilities](/docs/ai/capabilities/overview#built-in-capabilities) for [thinking](/docs/ai/capabilities/thinking), [web search](/docs/ai/capabilities/web-search), [web fetch](/docs/ai/capabilities/web-fetch), [image generation](/docs/ai/capabilities/image-generation), [MCP](/docs/ai/capabilities/mcp), [tool search](/docs/ai/capabilities/tool-search), and more; [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) is our official library of ready-made capabilities — code execution, file access, guardrails, sub-agent orchestration, and more — that you pick and choose to build coding agents, research assistants, and anything in between.
 
 - 
 **Built by the Pydantic Team**:[Pydantic Validation](https://docs.pydantic.dev/latest/)is the validation layer of the OpenAI SDK, the Google ADK, the Anthropic SDK, LangChain, LlamaIndex, AutoGPT, Transformers, CrewAI, Instructor and many more.*Why use the derivative when you can go straight to the source?*😃
@@ -30,13 +30,13 @@ Pydantic AI ships the agent loop and a composable [capabilities](/docs/ai/core-c
 - 
 **Powerful Evals**: Enables you to systematically test and[evaluate](/docs/ai/evals/evals)the performance and accuracy of the agentic systems you build, and monitor the performance over time in Pydantic Logfire.
 - 
-**Extensible by Design**: Build agents from composable[capabilities](/docs/ai/core-concepts/capabilities)that bundle tools, hooks, instructions, and model settings into reusable units. Use built-in capabilities for[web search](/docs/ai/core-concepts/capabilities#provider-adaptive-tools),[thinking](/docs/ai/core-concepts/capabilities#thinking), and[MCP](/docs/ai/core-concepts/capabilities#provider-adaptive-tools), pick from the[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)capability library, build your own, or install[third-party capability packages](/docs/ai/guides/extensibility). Define agents entirely in[YAML/JSON](/docs/ai/core-concepts/agent-spec)— no code required.
+**Extensible by Design**: Build agents from composable[capabilities](/docs/ai/capabilities/overview)that bundle tools, hooks, instructions, and model settings into reusable units. Use built-in capabilities for[web search](/docs/ai/capabilities/web-search),[thinking](/docs/ai/capabilities/thinking), and[MCP](/docs/ai/capabilities/mcp), pick from the[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)capability library, build your own, or install[third-party capability packages](/docs/ai/guides/extensibility). Define agents entirely in[YAML/JSON](/docs/ai/core-concepts/agent-spec)— no code required.
 - 
 **MCP and UI**: Integrates the[Model Context Protocol](/docs/ai/mcp/overview)and various[UI event stream](/docs/ai/integrations/ui/overview)standards to give your agent access to external tools and data and build interactive applications with streaming event-based communication.
 - 
 **Human-in-the-Loop Tool Approval**: Easily lets you flag that certain tool calls[require approval](/docs/ai/tools-toolsets/deferred-tools#human-in-the-loop-tool-approval)before they can proceed, possibly depending on tool call arguments, conversation history, or user preferences.
 - 
-**Durable Execution**: Enables you to build[durable agents](/docs/ai/integrations/durable_execution/overview)that can preserve their progress across transient API failures and application errors or restarts, and handle long-running, asynchronous, and human-in-the-loop workflows with production-grade reliability.
+**Durable Execution**: Enables you to build[durable agents](/docs/ai/capabilities/durable_execution/overview)that can preserve their progress across transient API failures and application errors or restarts, and handle long-running, asynchronous, and human-in-the-loop workflows with production-grade reliability.
 - 
 **Streamed Outputs**: Provides the ability to[stream](/docs/ai/core-concepts/output#streamed-results)structured output continuously, with immediate validation, ensuring real time access to generated data.
 - 
@@ -48,7 +48,7 @@ Realistically though, no list is going to be as convincing as [giving it a try](
 
 Here’s a minimal example of Pydantic AI:
 
-We configure the agent to use [Anthropic's Claude Sonnet 4.6](/docs/ai/models/anthropic) model, but you can also set the model when running the agent.
+We configure the agent to use [Anthropic's Claude Sonnet 4.6](/docs/ai/api/models/anthropic) model, but you can also set the model when running the agent.
 
 Register static [instructions](/docs/ai/core-concepts/agent#instructions) using a keyword argument to the agent.
 
@@ -62,15 +62,15 @@ When you’re ready to use a real model, see [Models and Providers](/docs/ai/mod
 
 The exchange will be very short: Pydantic AI will send the instructions and the user prompt to the LLM, and the model will return a text response.
 
-Not very interesting yet, but we can easily add [tools](/docs/ai/tools-toolsets/tools), [dynamic instructions](/docs/ai/core-concepts/agent#instructions), [structured outputs](/docs/ai/core-concepts/output), or composable [capabilities](/docs/ai/core-concepts/capabilities) to build more powerful agents.
+Not very interesting yet, but we can easily add [tools](/docs/ai/tools-toolsets/tools), [dynamic instructions](/docs/ai/core-concepts/agent#instructions), [structured outputs](/docs/ai/core-concepts/output), or composable [capabilities](/docs/ai/capabilities/overview) to build more powerful agents.
 
-Here’s the same agent with [thinking](/docs/ai/core-concepts/capabilities#thinking) and [web search](/docs/ai/core-concepts/capabilities#provider-adaptive-tools) capabilities:
+Here’s the same agent with [thinking](/docs/ai/capabilities/thinking) and [web search](/docs/ai/capabilities/web-search) capabilities:
 
 Here is a concise example using Pydantic AI to build a support agent for a bank:
 
 This [agent](/docs/ai/core-concepts/agent) will act as first-tier support in a bank. Agents are generic in the type of dependencies they accept and the type of output they return. In this case, the support agent has type `Agent[SupportDependencies, SupportOutput]`.
 
-Here we configure the agent to use [OpenAI's GPT-5 model](/docs/ai/models/openai), you can also set the model when running the agent.
+Here we configure the agent to use [OpenAI's GPT-5 model](/docs/ai/api/models/openai), you can also set the model when running the agent.
 
 The `SupportDependencies` dataclass is used to pass data, connections, and logic into the model that will be needed when running [instructions](/docs/ai/core-concepts/agent#instructions) and [tool](/docs/ai/tools-toolsets/tools) functions. Pydantic AI's system of dependency injection provides a [type-safe](/docs/ai/core-concepts/agent#static-type-checking) way to customise the behavior of your agents, and can be especially useful when running [unit tests](/docs/ai/guides/testing) and evals.
 

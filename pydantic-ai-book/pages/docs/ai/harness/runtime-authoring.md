@@ -4,7 +4,7 @@ title: Runtime Authoring | Pydantic Docs
 description: Let an agent write, validate, and persist real pydantic-ai capabilities
   at runtime, live on the next run.
 resource: https://pydantic.dev/docs/ai/harness/runtime-authoring
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Runtime Authoring
@@ -125,9 +125,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Toolset providing the authoring tools over this capability’s store.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@classmethod`
+`AgentDepsT`] | 
+
+`None``@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None

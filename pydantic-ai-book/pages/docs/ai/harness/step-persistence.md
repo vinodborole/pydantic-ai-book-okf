@@ -1,10 +1,10 @@
 ---
 type: Web Page
 title: Step Persistence | Pydantic Docs
-description: Record what an agent did at each boundary, save provider-valid snapshots
+description: Record what an agent did at each boundary, save continuable snapshots
   to resume or fork from, and track tool side effects across crashes.
 resource: https://pydantic.dev/docs/ai/harness/step-persistence
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Step Persistence
@@ -16,7 +16,7 @@ It is not a full graph-state checkpoint. Capability-state restore, workspace sna
 The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
 
 - **Append-only step events.**Every interesting boundary (run start/end, model request, tool call, failure) appends a- `StepEvent`. A run killed mid-tool-call still leaves a usable event trail.
-- **Continuable snapshots.**A- `ContinuableSnapshot`is saved only at boundaries where the message history is provider-valid: every- `ToolCallPart`has a matching- `ToolReturnPart`or- `RetryPromptPart`, with no orphan, duplicate, or out-of-order returns. Pass the snapshot’s- `messages`back to- `Agent.run(message_history=...)`to continue or fork.
+- **Continuable snapshots.**A- `ContinuableSnapshot`is saved at settled node boundaries, and a failing run saves its live at-failure history. Each snapshot carries a- `state`:- `complete`when every- `ToolCallPart`has a matching result,- `interrupted`when the capture holds unsettled tool work (e.g. a crash mid-tool-cycle).- `latest_snapshot`and- `continue_run`return only- `complete`snapshots unless the caller passes- `include_interrupted=True`. Pass the snapshot’s- `messages`back to- `Agent.run(message_history=...)`to continue or fork.
 - **Tool-effect ledger.**Every tool call’s lifecycle (- `started`,- `completed`,- `failed`) is recorded against- `(run_id, tool_call_id)`. After a crash, a tool with a- `started`record and no terminal update should be treated as- `unknown_after_crash`: the side effect may or may not have happened.
 - **Lineage metadata.**- `conversation_id`(sequence) and- `parent_run_id`(hierarchy) are independent axes. See- [Three-level identity](#three-level-identity).
 
@@ -75,7 +75,7 @@ async def main():
     runs = await store.list_runs(conversation_id='conv-abc')  # 3 records, chronological
 asyncio.run(main())
 ```
-pydantic_ai already has `message_history=` for “carry on with this prior context”. `StepPersistence` does not introduce a parallel mechanism. It exposes one helper that loads the most recent provider-valid snapshot:
+pydantic_ai already has `message_history=` for “carry on with this prior context”. `StepPersistence` does not introduce a parallel mechanism. It exposes one helper that loads the most recent settled snapshot:
 
 ```
 import asyncio
@@ -108,12 +108,13 @@ asyncio.run(main())
 ```
 `fork_run(store, run_id=...)` returns the same shape but is intended when the caller wants a branched logical run from that snapshot point (the new run gets a fresh `run_id` and probably a fresh `conversation_id`).
 
-`continue_run` only returns the messages of the latest provider-valid snapshot for that `run_id`. Snapshots are written at two boundaries:
+By default `continue_run` returns the messages of the latest `complete` snapshot for that `run_id` — a point whose tool work was fully settled when captured. Snapshots are written at these boundaries:
 
-- after every `CallToolsNode`completes (all tool calls returned), and
-- at `after_run`, as a fallback if the run reached no such boundary.
+- after every `CallToolsNode`whose tool calls all returned — the pending tool-return request is folded in, so the point is durable the moment the tool completes, before the next model request is even sent,
+- at `after_run`, when the run ended past that boundary (a run that reached no boundary at all, or an`Agent.run_stream`whose closing response lands after the last one), and
+- when a run *fails*: the live history at failure time is saved, whatever its shape — a model request that raises after a clean tool cycle produces a`complete`snapshot; a crash mid-tool-cycle produces an`interrupted`one carrying every completed cycle.
 
-A run that crashed mid-tool-call has events (`tool_call_started`) but no snapshot for that point. `continue_run` returns the snapshot from the previous safe boundary, not the failed step. If no continuable snapshot exists at all, `continue_run` raises `LookupError`.
+An `interrupted` snapshot is sendable on resume — pydantic-ai (>= 2.10) repairs broken tool-call/result pairing before every model request — but not necessarily *safe*: a pending tool call may be re-executed (resuming without a new prompt) or closed out with a synthesized `interrupted` return, and neither says whether the original side effect happened. That is the tool-effect ledger’s job. So the default read path skips `interrupted` snapshots; pass `include_interrupted=True` to `continue_run` / `fork_run` / `latest_snapshot` after checking `list_unresolved_tool_effects`. If no matching snapshot exists, `continue_run` raises `LookupError`.
 
 `parent_run_id` is a lineage label, not a functional dependency. It does two things:
 
@@ -194,6 +195,9 @@ async def main():
     # If side effects might have happened and the orchestrator wants a fresh attempt:
     history = await fork_run(store, run_id='libr-3f2a')
     # ... pass to a new delegate run with a different agent_name / conversation_id.
+    # To resume from the interrupted frontier itself (the crashed cycle included),
+    # after checking the unresolved effects above:
+    history = await continue_run(store, run_id='libr-3f2a', include_interrupted=True)
 asyncio.run(main())
 ```
 Side-effect deduplication is the orchestrator’s responsibility. Tools that write external state should annotate their in-flight `ToolEffectRecord` via `annotate_tool_effect`:
@@ -220,7 +224,7 @@ The helper reads the active `run_id` from the `StepPersistence` `ContextVar` and
 - `tool_effects.jsonl`— append-only- `ToolEffectRecord`s, scoped to this run
 - `snapshots/{seq}.json`—- `ContinuableSnapshot`s, named by a per-run monotonic counter (not- `step_index`, which would collide when the same- `run_id`is reused across- `Agent.run`calls, since- `ctx.run_step`resets to 0 each call).
  
-- `SqliteStepStore(database='runs.db')`— single SQLite file with tables- `runs`,- `events`,- `snapshots`,- `tool_effects`, and a sibling- `media`table for externalized blobs (see- [Persisting media](#persisting-media)below). WAL mode is enabled;- `tool_effects`upserts per- `(run_id, tool_call_id)`so the latest state wins; snapshots use- `AUTOINCREMENT seq`to mirror- `FileStepStore._next_snapshot_seq`. Pass- `connection=`instead of- `database=`to share a- `sqlite3.Connection`with the rest of your application; the connection must be opened with- `check_same_thread=False`because hook calls are dispatched onto a worker thread.
+- `SqliteStepStore(database='runs.db')`— single SQLite file with tables- `runs`,- `events`,- `snapshots`,- `tool_effects`, and a sibling- `media`table for externalized blobs (see- [Persisting media](#persisting-media)below). WAL mode is enabled;- `tool_effects`upserts per- `(run_id, tool_call_id)`so the latest state wins; snapshots use- `AUTOINCREMENT seq`to mirror- `FileStepStore._next_snapshot_seq`. Databases created before the snapshot- `state`column existed gain it automatically on open (existing rows read as- `complete`). Pass- `connection=`instead of- `database=`to share a- `sqlite3.Connection`with the rest of your application; the connection must be opened with- `check_same_thread=False`because hook calls are dispatched onto a worker thread.
 
 All three implement the same async `StepStore` protocol, so capability hooks never block the event loop on the file/sqlite backends (I/O is dispatched via `anyio.to_thread`).
 
@@ -339,14 +343,21 @@ Append-only step log + continuable snapshots + tool-effect ledger.
 The capability emits a `StepEvent` at every interesting boundary
 (run/model-request/tool-call start, completion, failure), records a
 `ToolEffectRecord` per tool call so the orchestrator can decide whether
-replay is safe, and saves a `ContinuableSnapshot` at every
-provider-valid boundary — the end of each `CallToolsNode` — plus a
-fallback save at `after_run` if the run reached no such boundary.
+replay is safe, and saves a `ContinuableSnapshot` at every settled
+`CallToolsNode` boundary — folding in the pending tool-return request, so
+the point is durable the moment the tool completes — plus a fallback save
+at `after_run` when the run ends past that boundary. A run that *fails*
+saves the live at-failure history (see `on_run_error`), classified by its
+tool-work state: `complete` when every tool call is resolved,
+`interrupted` otherwise.
 
 A run that crashes between `before_tool_execute` and `after_tool_execute`
-leaves a visible event trail and a `started` tool-effect record, but no
-new continuable snapshot — the latest snapshot reflects the last
-provider-valid state.
+leaves a visible event trail, a `started` tool-effect record (the
+`unknown_after_crash` signal), and an `interrupted` snapshot carrying
+every completed cycle. The default `latest_snapshot` / `continue_run`
+read path only returns `complete` snapshots; pass
+`include_interrupted=True` to resume from the interrupted frontier after
+consulting `list_unresolved_tool_effects`.
 
 ```
 from pydantic_ai import Agent
@@ -485,12 +496,16 @@ def after_run(
 ```
 Emit `run_completed`, saving a final snapshot only as a fallback.
 
-The terminal `CallToolsNode` already saved the final provider-valid
-snapshot via `after_node_run`, carrying the correct `step_index`. By
-`after_run`, `ctx.run_step` is reset to 0, so re-saving here would both
-duplicate the tail and stamp a misleading `step_index`. We only save
-when the run produced no snapshot at all (no provider-valid node
-boundary was reached), as a last-resort capture of the final state.
+When a terminal `CallToolsNode` already saved the final history via
+`after_node_run` it carries the correct `step_index`, whereas by
+`after_run` `ctx.run_step` is reset to 0 — so re-saving would both
+duplicate the tail and stamp a misleading `step_index`. We save only
+when the run ended past the newest boundary snapshot.
+
+That covers a run which reached no provider-valid boundary at all, and
+`Agent.run_stream`, which ends through `SetFinalResult` rather than a
+terminal `CallToolsNode` and appends its closing response after the last
+boundary — leaving `after_run` the only hook that sees the full run.
 
 `@async`
 
@@ -501,7 +516,39 @@ def on_run_error(
     error: BaseException,
 ) -> AgentRunResult[Any]
 ```
-Emit `run_failed` so a killed run leaves a visible event trail.
+Persist the live at-failure history as the run’s last resume point, then emit `run_failed`.
+
+The single error-path save site: reads the list reference stashed by
+`after_node_run` (see `_stash_live_history`), whose content at this
+point is the full history the run had built when it failed — including
+a failing model request’s payload and any partial tool returns captured
+by the graph during unwind. Nothing is compared against the store:
+the live history is by definition the newest state, so an earlier
+boundary snapshot is simply superseded, and a history a sticky
+processor trimmed is persisted as trimmed — exactly what the next
+request would have sent.
+
+The history is saved whenever it contains a model response (a bare
+prompt equals restarting the run), classified `complete` when every
+tool call is resolved and `interrupted` otherwise. Interrupted
+snapshots stay off the default `latest_snapshot` read path.
+
+`@async`
+
+```
+def on_model_request_error(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    error: Exception,
+) -> ModelResponse
+```
+Emit `model_request_failed` and re-raise.
+
+No snapshot is saved here: the failing request’s payload already sits
+in the live history (the graph appends the request before sending), so
+`on_run_error`’s save covers it. A failure the model layer recovers
+from (retry, fallback) needs no rescue at all.
 
 `@async`
 
@@ -513,12 +560,30 @@ def after_node_run(
     result: NodeResult[AgentDepsT],
 ) -> NodeResult[AgentDepsT]
 ```
-Save a mid-run continuable snapshot after `CallToolsNode` succeeds.
+Save a continuable snapshot after a settled `CallToolsNode`, and refresh the live-history stash.
 
 At that boundary every tool call from the preceding `ModelRequestNode`
-has a matching tool return, so the history is provider-valid.
-Snapshots are filtered through `is_provider_valid` defensively in case
-a custom node reshapes history.
+has a matching tool return, so the history is provider-valid. The
+returned `ModelRequestNode` carries those returns and is not yet in
+`ctx.messages`, so its request is folded in before validation —
+without it a worker killed right after a completed tool call would
+leave no resume point at all (#373). `is_provider_valid` doubles as a
+defense in case a custom node reshapes history, and the saved count
+goes to `snapshot_saved` so `after_run` can tell whether the run ended
+past this boundary.
+
+This save is the durable one: it lands in the store while the run is
+still healthy, so it survives a hard kill that fires no hook. The
+error path (`on_run_error`) only rescues histories that a raise unwinds
+through.
+
+Every node boundary also re-stashes the live message list so that
+`on_run_error` can persist the at-failure history when a later node
+raises before its own `after_node_run` fires. The stash holds that list
+by reference, so the snapshot candidate rebinds to a new list rather
+than appending to it — an append would leak `result.request` into the
+history the error path later reads, duplicating it once the graph
+appends the request itself.
 
 `NodeResult`[`AgentDepsT`]
 

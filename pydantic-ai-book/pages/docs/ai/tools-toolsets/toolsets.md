@@ -2,12 +2,12 @@
 type: Web Page
 title: Toolsets | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/toolsets
-timestamp: '2026-07-13T09:36:10.292247+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Toolsets
 
-A toolset represents a collection of [tools](/docs/ai/tools-toolsets/tools) that can be registered with an agent in one go. They can be reused by different agents, swapped out at runtime or during testing, and composed in order to dynamically filter which tools are available, modify tool definitions, or change tool execution behavior. A toolset can contain locally defined functions, depend on an external service to provide them, or implement custom logic to list available tools and handle them being called. Toolsets can also be provided via [capabilities](/docs/ai/core-concepts/capabilities), which bundle tools with hooks, instructions, and model settings.
+A toolset represents a collection of [tools](/docs/ai/tools-toolsets/tools) that can be registered with an agent in one go. They can be reused by different agents, swapped out at runtime or during testing, and composed in order to dynamically filter which tools are available, modify tool definitions, or change tool execution behavior. A toolset can contain locally defined functions, depend on an external service to provide them, or implement custom logic to list available tools and handle them being called. Toolsets can also be provided via [capabilities](/docs/ai/capabilities/overview), which bundle tools with hooks, instructions, and model settings.
 
 Toolsets are used (among many other things) to define [MCP servers](/docs/ai/mcp/client) available to an agent. Pydantic AI includes many kinds of toolsets which are described below, and you can define a [custom toolset](#building-a-custom-toolset) by inheriting from the [ AbstractToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset) class.
 
@@ -173,11 +173,15 @@ If your agent needs to be able to call [external tools](/docs/ai/tools-toolsets/
 
 `ToolCallPart`sWhen the tool call results are received from the upstream service or frontend, you can build a [ DeferredToolResults](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolResults) object with a 
 
-`calls` dictionary that maps each tool call ID to an arbitrary value to be returned to the model, a [object, or a](/docs/ai/tools-toolsets/tools-advanced#advanced-tool-returns)
+`calls` dictionary that maps each tool call ID to an arbitrary value to be returned to the model, a [object, or an exception in case the tool call failed: a](/docs/ai/tools-toolsets/tools-advanced#advanced-tool-returns)
 
-`ToolReturn`[exception in case the tool call failed and the model should](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry)
+`ToolReturn`[if the model should](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry)
 
-`ModelRetry`[try again](/docs/ai/tools-toolsets/tools-advanced#tool-retries). This
+`ModelRetry`[try again](/docs/ai/tools-toolsets/tools-advanced#tool-retries), or a
+
+[if the failure should be reported to the model as a](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed)
+
+`ToolFailed`[failed result](/docs/ai/tools-toolsets/tools-advanced#tool-failed)(without consuming the tool’s retry budget) so it can decide how to proceed. This
 
 `DeferredToolResults` object can then be provided to one of the agent run methods as `deferred_tool_results`, alongside the original run’s [message history](/docs/ai/core-concepts/message-history).
 
@@ -236,11 +240,11 @@ Toolsets support lifecycle hooks for per-run isolation and per-step state manage
 - `for_run(ctx)`- `__aenter__`. Return a fresh instance to isolate state between runs. Default: returns- `self`.
 - `for_run_step(ctx)`- `self`.
 
-Third-party toolsets can also be wrapped as [capabilities](/docs/ai/core-concepts/capabilities), which bundle tools with hooks, instructions, and model settings. See [Extensibility](/docs/ai/guides/extensibility) for the full ecosystem.
+Third-party toolsets can also be wrapped as [capabilities](/docs/ai/capabilities/overview), which bundle tools with hooks, instructions, and model settings. See [Extensibility](/docs/ai/guides/extensibility) for the full ecosystem.
 
 Pydantic AI provides [ MCPToolset](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset) for connecting to and calling tools on local and remote MCP servers, with the 
 
-[as the recommended higher-level entry point. See the](/docs/ai/core-concepts/capabilities#mcp)
+[as the recommended higher-level entry point. See the](/docs/ai/capabilities/mcp)
 
 `MCP` capability[MCP overview](/docs/ai/mcp/overview)and
 

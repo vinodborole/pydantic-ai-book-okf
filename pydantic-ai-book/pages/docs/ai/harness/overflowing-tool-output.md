@@ -4,7 +4,7 @@ title: Overflowing Tool Output | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/overflowing-tool-output
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Overflowing Tool Output
@@ -269,9 +269,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Register the `read_tool_result` tool for reading spilled payloads on demand.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@async`
+`AgentDepsT`] | 
+
+`None``@async`
 
 ```
 def after_tool_execute(

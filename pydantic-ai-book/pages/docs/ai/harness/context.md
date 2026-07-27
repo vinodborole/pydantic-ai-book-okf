@@ -4,7 +4,7 @@ title: Context | Pydantic Docs
 description: Discover and load a repo's accumulated coding-assistant context engineering
   -- instruction files, skills, sub-agents, and hooks.
 resource: https://pydantic.dev/docs/ai/harness/context
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Context
@@ -186,9 +186,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 The asset-inventory toolset, or `None` when the tool is disabled.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@async`
+`AgentDepsT`] | 
+
+`None``@async`
 
 ```
 def after_tool_execute(

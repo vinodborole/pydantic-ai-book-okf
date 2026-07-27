@@ -2,7 +2,7 @@
 type: Web Page
 title: Installation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/install
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Installation
@@ -11,7 +11,7 @@ Pydantic AI is available on PyPI as [ pydantic-ai](https://pypi.org/project/pyda
 
 (Requires Python 3.10+)
 
-This installs the `pydantic_ai` package, core dependencies, and libraries required to use the OpenAI, Anthropic, and Google models, plus the [CLI](/docs/ai/integrations/cli), [MCP](/docs/ai/mcp/client), [Evals](/docs/ai/evals/evals), [Web UI](/docs/ai/integrations/ui/overview), [Retries](/docs/ai/advanced-features/retries), and [Logfire](/docs/ai/integrations/logfire) integrations.
+This installs the `pydantic_ai` package, core dependencies, and libraries required to use the OpenAI, Anthropic, and Google models, plus the [CLI](/docs/ai/integrations/cli), [MCP](/docs/ai/mcp/client), [Evals](/docs/ai/evals/evals), [Web UI](/docs/ai/integrations/ui/overview), [Retries](/docs/ai/models/http-request-retries), and [Logfire](/docs/ai/integrations/logfire) integrations.
 To use any other models or integrations, add the relevant extras to your install command, e.g. `pydantic-ai[bedrock,temporal]`. Alternatively, you can install the [ pydantic-ai-slim](#slim-install) package with only the extras you need.
 
 Pydantic AI has an excellent (but completely optional) integration with [Pydantic Logfire](https://pydantic.dev/logfire) to help you view and understand agent runs.
@@ -42,6 +42,7 @@ For example, if you’re using just
 - `mistral`— installs- [Mistral Model](/docs/ai/models/mistral)dependency- `mistralai`- [PyPI ↗](https://pypi.org/project/mistralai)
 - `cohere`- installs- [Cohere Model](/docs/ai/models/cohere)dependency- `cohere`- [PyPI ↗](https://pypi.org/project/cohere)
 - `bedrock`- installs- [Bedrock Model](/docs/ai/models/bedrock)dependency- `boto3`- [PyPI ↗](https://pypi.org/project/boto3)
+- `bedrock-mantle`- installs- [Bedrock Mantle Model](/docs/ai/models/bedrock#bedrock-mantle)dependencies- `openai`- [PyPI ↗](https://pypi.org/project/openai)and- `botocore`- [PyPI ↗](https://pypi.org/project/botocore)
 - `xai`- installs- [xAI Model](/docs/ai/models/xai)dependency- `xai-sdk`- [PyPI ↗](https://pypi.org/project/xai-sdk)
 - `openrouter`- installs the- [OpenRouter](/docs/ai/models/openrouter)dependency- `openai`- [PyPI ↗](https://pypi.org/project/openai)
 - `huggingface`- installs- [Hugging Face Model](/docs/ai/models/huggingface)dependency- `huggingface-hub`- [PyPI ↗](https://pypi.org/project/huggingface-hub)
@@ -56,10 +57,10 @@ For example, if you’re using just
 - `ui`- installs- [UI Event Streams](/docs/ai/integrations/ui/overview)dependency- `starlette`- [PyPI ↗](https://pypi.org/project/starlette)
 - `web`- installs- [Web UI](/docs/ai/integrations/ui/overview)dependencies- `starlette`- [PyPI ↗](https://pypi.org/project/starlette),- `httpx`- [PyPI ↗](https://pypi.org/project/httpx), and- `uvicorn`- [PyPI ↗](https://pypi.org/project/uvicorn)
 - `ag-ui`- installs- [AG-UI Event Stream Protocol](/docs/ai/integrations/ui/ag-ui)dependencies- `ag-ui-protocol`- [PyPI ↗](https://pypi.org/project/ag-ui-protocol)and- `starlette`- [PyPI ↗](https://pypi.org/project/starlette)
-- `retries`- installs- [HTTP Retries](/docs/ai/advanced-features/retries)dependency- `tenacity`- [PyPI ↗](https://pypi.org/project/tenacity)
-- `temporal`- installs- [Temporal Durable Execution](/docs/ai/integrations/durable_execution/temporal)dependency- `temporalio`- [PyPI ↗](https://pypi.org/project/temporalio)
-- `dbos`- installs- [DBOS Durable Execution](/docs/ai/integrations/durable_execution/dbos)dependency- `dbos`- [PyPI ↗](https://pypi.org/project/dbos)
-- `prefect`- installs- [Prefect Durable Execution](/docs/ai/integrations/durable_execution/prefect)dependency- `prefect`- [PyPI ↗](https://pypi.org/project/prefect)
+- `retries`- installs- [HTTP Retries](/docs/ai/models/http-request-retries)dependency- `tenacity`- [PyPI ↗](https://pypi.org/project/tenacity)
+- `temporal`- installs- [Temporal Durable Execution](/docs/ai/capabilities/durable_execution/temporal)dependency- `temporalio`- [PyPI ↗](https://pypi.org/project/temporalio)
+- `dbos`- installs- [DBOS Durable Execution](/docs/ai/capabilities/durable_execution/dbos)dependency- `dbos`- [PyPI ↗](https://pypi.org/project/dbos)
+- `prefect`- installs- [Prefect Durable Execution](/docs/ai/capabilities/durable_execution/prefect)dependency- `prefect`- [PyPI ↗](https://pypi.org/project/prefect)
 - `spec`- installs- [AgentSpec](/docs/ai/core-concepts/agent-spec)dependencies- `pyyaml`- [PyPI ↗](https://pypi.org/project/PyYAML)and- `pydantic-handlebars`- [PyPI ↗](https://pypi.org/project/pydantic-handlebars)
 
 You can also install dependencies for multiple models and use cases, for example:

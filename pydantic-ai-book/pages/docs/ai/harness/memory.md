@@ -4,7 +4,7 @@ title: Memory | Pydantic Docs
 description: Persistent, namespaced agent notebooks with bounded prompt injection,
   on-demand search, and concurrency-safe stores.
 resource: https://pydantic.dev/docs/ai/harness/memory
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Memory
@@ -117,6 +117,23 @@ agent = Agent(
 ```
 Namespace isolation controls which records the capability addresses. It is not an authorization system for a custom or shared backing store. Validate the identity in application dependencies, restrict backend credentials, and ensure custom stores cannot escape the resolved namespace.
 
+An agent can carry several `Memory` capabilities at once, for example a personal notebook plus a shared org notebook. Two constraints apply:
+
+- Give each instance a distinct `agent_name`or`namespace`. Injected blocks are tracked by their resolved scope, so instances that differ only in their store resolve the same scope and replace each other’s injection.
+- All instances define the same tool names, so wrap every instance but one in `prefix_tools`to keep the tool schemas distinct.
+
+```
+from pydantic_ai import Agent
+from pydantic_ai_harness.memory import FileStore, Memory
+agent = Agent(
+    'anthropic:claude-sonnet-4-6',
+    capabilities=[
+        Memory(FileStore('/var/lib/myapp/memory')),
+        Memory(FileStore('/var/lib/myapp/memory'), agent_name='org').prefix_tools('org'),
+    ],
+    defer_model_check=True,
+)
+```
 `search_memory` performs literal text search and always applies three bounds:
 
 - `max_search_results`limits returned matches, default 10.
@@ -278,9 +295,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Provide the stable `memory` toolset.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-```
+`AgentDepsT`] | 
+
+`None````
 def get_instructions() -> AgentInstructions[AgentDepsT] | None
 ```
 Provide trusted static guidance about using memory.
@@ -300,8 +319,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Add a bounded memory snapshot to only the current user request.
-
-`ModelRequestContext`
 
 `@classmethod`
 

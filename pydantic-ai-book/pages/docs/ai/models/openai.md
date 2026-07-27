@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # OpenAI
@@ -84,13 +84,54 @@ agent = Agent(model, model_settings=settings)
 OpenAI supports controlling the [service tier](https://platform.openai.com/docs/api-reference/responses/create#responses-create-service_tier) to trade off latency and cost.
 You can use the unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field or the provider-specific 
 
-`openai_service_tier` field. Both accept `'auto'`, `'default'`, `'flex'`, and `'priority'`, passed through unchanged. `openai_service_tier` takes precedence over the unified field when both are set.The features below are specific to the Responses API and only available on [ OpenAIResponsesModel](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) (the default). For background on how the Responses API differs from Chat Completions, see the 
+`openai_service_tier` field. Both accept `'auto'`, `'default'`, `'flex'`, and `'priority'`, passed through unchanged. `openai_service_tier` takes precedence over the unified field when both are set.GPT-5.6 models support OpenAI’s [implicit and explicit prompt cache breakpoints](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-breakpoints) with both the Responses and Chat Completions APIs. OpenAI creates an implicit breakpoint by default. To control the cacheable prefix precisely, insert [ CachePoint](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint) after the user content block that should end the prefix:
+
+```
+from pydantic_ai import Agent, CachePoint
+from pydantic_ai.models.openai import OpenAIResponsesModelSettings
+settings = OpenAIResponsesModelSettings(
+    openai_prompt_cache_key='product-docs-v1',
+    openai_prompt_cache_options={'mode': 'explicit', 'ttl': '30m'},
+)
+agent = Agent('openai:gpt-5.6-sol', model_settings=settings)
+result = agent.run_sync([
+    'Long-lived reference material...',
+    CachePoint(),
+    'Answer using the reference material.',
+])
+```
+Caching requires a prefix of at least 1024 tokens; shorter prefixes are not cached even when explicitly marked. With `mode='implicit'` (the default), OpenAI may write one implicit and up to three explicit breakpoints. With `mode='explicit'`, it may write up to four explicit breakpoints and no implicit breakpoint. The TTL is request-wide: OpenAI currently accepts only `'30m'`, configured through `openai_prompt_cache_options`, and ignores the generic per-marker [ CachePoint.ttl](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint.ttl) value. For GPT-5.6 and later models, set a stable 
+
+`openai_prompt_cache_key` to use OpenAI’s more reliable matching for both implicit and explicit caching. Requests without a key may still receive automatic cache hits, but do not use the improved matching. Use different keys to partition unrelated workloads.When OpenAI reports prompt cache writes, Pydantic AI exposes them as [ result.usage.cache_write_tokens](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage.cache_write_tokens). Cache reads are available as 
+
+[. For GPT-5.6 and later model families, OpenAI bills cache writes at 1.25 times the uncached input token rate.](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage.cache_read_tokens)
+
+`result.usage.cache_read_tokens`Both the Responses and Chat Completions APIs can run [moderation](https://platform.openai.com/docs/guides/moderation) on the input and output of a request. Moderation is off by default; enable it with `openai_moderation`:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIResponsesModel, OpenAIResponsesModelSettings
+model = OpenAIResponsesModel('gpt-5.2')
+settings = OpenAIResponsesModelSettings(
+    openai_moderation={'model': 'omni-moderation-latest'}
+)
+agent = Agent(model, model_settings=settings)
+result = agent.run_sync('Your prompt here')
+moderation = result.response.provider_details.get('moderation')
+```
+When the response includes moderation results, they are stored under the `'moderation'` key of [ ModelResponse.provider_details](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.provider_details), with 
+
+`input` and `output` entries each carrying the flagged status, per-category flags, and category scores.With [ OpenAIChatModel](#chat-completions-api), use 
+
+[instead. The results are surfaced the same way on both the non-streaming and streaming paths, except that the Chat Completions API nests each entry one level deeper, under a](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModelSettings)
+
+`OpenAIChatModelSettings``results` list.The features below are specific to the Responses API and only available on [ OpenAIResponsesModel](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) (the default). For background on how the Responses API differs from Chat Completions, see the 
 
 [OpenAI API docs](https://platform.openai.com/docs/guides/migrate-to-responses).
 
 Models that support it (currently the GPT-5.6 family) can use OpenAI’s [ standard and pro reasoning modes](https://developers.openai.com/api/docs/guides/reasoning#reasoning-mode). 
 
-`standard` is the default; `pro` performs more model work to improve reliability on difficult tasks, at the cost of higher latency and token usage. The mode is independent of the reasoning effort: any combination of mode and effort is valid, and the unified [setting only ever influences the effort, so](/docs/ai/advanced-features/thinking)
+`standard` is the default; `pro` performs more model work to improve reliability on difficult tasks, at the cost of higher latency and token usage. The mode is independent of the reasoning effort: any combination of mode and effort is valid, and the unified [setting only ever influences the effort, so](/docs/ai/capabilities/thinking)
 
 `thinking``pro` is used only when you set it explicitly.Configure the mode with [ openai_reasoning_mode](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_reasoning_mode); there is no separate 
 
@@ -112,7 +153,7 @@ The Responses API has native tools that you can use instead of building your own
 - [File search](https://platform.openai.com/docs/guides/tools-file-search): allow models to search your files for relevant information before generating a response.
 - [Computer use](https://platform.openai.com/docs/guides/tools-computer-use): allow models to use a computer to perform tasks on your behalf.
 
-Web search, Code interpreter, Image generation, and File search are natively supported through the [Native tools](/docs/ai/overview/native-tools) feature.
+Web search, Code interpreter, Image generation, and File search are natively supported through the [Native tools](/docs/ai/tools-toolsets/native-tools) feature.
 
 Computer use can be enabled by passing an [ openai.types.responses.ComputerToolParam](https://github.com/openai/openai-python/blob/main/src/openai/types/responses/computer_tool_param.py) in the 
 

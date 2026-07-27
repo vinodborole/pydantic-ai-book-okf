@@ -2,12 +2,12 @@
 type: Web Page
 title: Third-Party Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/third-party-tools
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Third-Party Tools
 
-Pydantic AI supports integration with various third-party tool libraries, allowing you to leverage existing tool ecosystems in your agents. Third-party tools are also available as [capabilities](/docs/ai/core-concepts/capabilities#third-party-capabilities) — see [Extensibility](/docs/ai/guides/extensibility) for the full ecosystem.
+Pydantic AI supports integration with various third-party tool libraries, allowing you to leverage existing tool ecosystems in your agents. Third-party tools are also available as [capabilities](/docs/ai/capabilities/third-party) — see [Extensibility](/docs/ai/guides/extensibility) for the full ecosystem.
 
 See the [MCP Client](/docs/ai/mcp/client) documentation for how to use MCP servers with Pydantic AI as [toolsets](/docs/ai/tools-toolsets/toolsets).
 

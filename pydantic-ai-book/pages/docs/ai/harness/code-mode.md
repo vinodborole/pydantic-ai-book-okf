@@ -4,27 +4,29 @@ title: Code Mode | Pydantic Docs
 description: Wrap an agent's tools into a single sandboxed run_code tool so the model
   orchestrates many calls in one Python program instead of many round-trips.
 resource: https://pydantic.dev/docs/ai/harness/code-mode
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Code Mode
 
 `CodeMode` replaces individual tool calls with a single sandboxed Python execution environment. Instead of the model issuing one tool call per action, it writes a Python program that calls your tools as functions — with loops, conditionals, variables, and `asyncio.gather` — all inside a sandboxed [Monty](https://github.com/pydantic/monty) runtime.
 
-Standard tool calling costs one model round-trip per tool call. An agent that needs to fetch 10 items and process each one makes 11+ model calls — slow, expensive, and heavy on context. The conversation history grows with every intermediate result, and everything runs sequentially unless the model deliberately batches parallel tool calls.
+Standard tool calling often needs another model turn for each dependent batch of tool calls. An agent that needs to fetch 10 items and then process their results can require many model turns, increasing latency, cost, and context use. Intermediate results also grow the conversation history.
 
-`CodeMode` wraps the agent’s tools into a single `run_code` tool. The model writes one Python snippet that orchestrates many tool calls locally: fan them out with `asyncio.gather`, filter and transform results in plain Python, and return only what matters.
+`CodeMode` wraps eligible tools into a single `run_code` tool. The model writes sandboxed orchestration code that fans calls out with `asyncio.gather`, filters and transforms results, and returns only what matters. Calls from that code are dispatched through Pydantic AI to the host tools.
 
 | Standard tool calling | Code mode | 
 |---|---|
-| 1 model call per tool | 1 model call for N tools | 
-| Sequential by default | Parallel via `asyncio.gather` | 
+| Dependent tool batches across model turns | Many dependent calls in one `run_code` | 
+| Parallel only when the model emits a batch | Parallelism expressed in Python | 
 | No local computation | Filter, transform, aggregate in code | 
 | Large conversation history | Compact — fewer messages | 
 
+Durable execution integrations can record nested calls for deterministic replay.
+
 Code mode requires the Monty sandbox, available via the `codemode` extra (the `code-mode` extra is an equivalent alias):
 
-Construct an `Agent` with `CodeMode()` in its `capabilities`, then register tools as usual. Every tool becomes callable from inside `run_code`:
+Construct an `Agent` with `CodeMode()` in its `capabilities`, then register tools as usual. Every eligible regular tool becomes callable from inside `run_code`:
 
 ```
 from pydantic_ai import Agent
@@ -34,10 +36,6 @@ agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[CodeMode()])
 def get_weather(city: str) -> dict:
     """Get current weather for a city."""
     return {'city': city, 'temp_f': 72, 'condition': 'sunny'}
-@agent.tool_plain
-def convert_temp(fahrenheit: float) -> float:
-    """Convert Fahrenheit to Celsius."""
-    return round((fahrenheit - 32) * 5 / 9, 1)
 result = agent.run_sync("What's the weather in Paris and Tokyo, in Celsius?")
 print(result.output)
 ```
@@ -49,13 +47,13 @@ paris, tokyo = await asyncio.gather(
     get_weather(city='Paris'),
     get_weather(city='Tokyo'),
 )
-paris_c = await convert_temp(fahrenheit=paris['temp_f'])
-tokyo_c = await convert_temp(fahrenheit=tokyo['temp_f'])
+paris_c = round((paris['temp_f'] - 32) * 5 / 9, 1)
+tokyo_c = round((tokyo['temp_f'] - 32) * 5 / 9, 1)
 {'paris': paris_c, 'tokyo': tokyo_c}
 ```
-Both weather lookups run in parallel, the conversions run locally, and the whole thing collapses into one model round-trip instead of five.
+Both weather lookups run in parallel and the conversions run inside Monty, all within one `run_code` call.
 
-By default, `CodeMode(tools='all')` sandboxes every tool. The `tools` field is a Pydantic AI `ToolSelector`, so you can control precisely which tools go through the sandbox. Tools that match the selector become callables inside `run_code`; non-matching tools stay visible to the model as regular tool calls.
+By default, `CodeMode(tools='all')` sandboxes every eligible regular tool. Framework control tools, undiscovered deferred tools, native fallbacks, and other code-execution tools remain native. The `tools` field is a Pydantic AI `ToolSelector`, so you can control which eligible tools go through the sandbox. Tools that match the selector become callables inside `run_code`; non-matching tools stay visible to the model as regular tool calls.
 
 ```
 from pydantic_ai_harness import CodeMode
@@ -100,15 +98,60 @@ Pass `dynamic_catalog=True`to keep`run_code`’s description static across disco
 - 
 To instead keep a Tool Search corpus fully native — never folded into `run_code`, but not callable from inside it — exclude it with a`tools`selector; corpus members carry`with_native`set to the managing native tool:`from pydantic_ai_harness import CodeMode CodeMode(tools=lambda ctx, td: td.with_native is None)`
 
-The last expression in the snippet is automatically captured as the return value — the model does not need to `print()`. Reserve `print()` for supplementary logging: printed text is surfaced separately, wrapped alongside the last-expression result.
+The last expression in the snippet is automatically captured as the return value — the model does not need to `print()`. An assignment stores a value in the REPL but does not return it. A final expression that evaluates to `None` is also treated as no result. Without a non-`None` final expression or print output, `run_code` returns `{}`. Put the assigned name on the final line:
+
+```
+result = await get_weather(city='Paris')
+result
+```
+Reserve `print()` for supplementary logging: printed text is surfaced separately, wrapped alongside the last-expression result.
 
 | Scenario | Return | 
 |---|---|
-| No print output | Last expression value | 
-| With print output | `{'output': '<printed text>', 'result': <last expression>}` | 
-| Multimodal content (e.g. images) | Returned natively for model processing | 
+| Non- `None`final expression with no print output | Last expression value | 
+| Final assignment or `None`result with no print output | `{}` | 
+| Print output with no final expression or a `None`result | `{'output': '<printed text>'}` | 
+| Print output with a plain, non- `None`final expression | `{'output': '<printed text>', 'result': <last expression>}` | 
+| Multimodal final expression with no print output | Returned natively for model processing | 
+| Print output with a multimodal final expression | List with printed text followed by native multimodal content | 
+
+Printed output is limited to 10 MiB. Exceeding the limit makes `run_code` return a model retry.
 
 State persists between `run_code` calls within the same agent run — variables, imports, and function definitions carry over. Pass `restart: true` in the tool call to reset state.
+
+Install both integrations:
+
+Construct the named agent and its stable-ID toolsets outside the workflow, then attach
+`TemporalDurability` alongside `CodeMode`:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.durable_exec.temporal import TemporalDurability
+from pydantic_ai_harness import CodeMode
+agent = Agent(
+    'openai:gpt-5.6-sol',
+    name='coding-agent',
+    capabilities=[CodeMode(), TemporalDurability()],
+)
+```
+Follow the [Pydantic AI Temporal guide](/docs/ai/capabilities/durable_execution/temporal/) to call the
+plain agent from a workflow and register its activities with `PydanticAIPlugin` and either
+`__pydantic_ai_agents__` or `AgentPlugin`.
+
+`PydanticAIPlugin` passes `pydantic_monty` through Temporal’s workflow sandbox. This makes Monty
+runnable there, but `run_code` still executes in workflow code and is re-executed during replay.
+Model requests and, by default, nested tool calls cross Temporal activity boundaries;
+`asyncio.gather` can schedule nested tool activities concurrently. The REPL is process-local state
+for one agent run, not durable storage. Replay reconstructs it by running the recorded snippets
+again against recorded activity results.
+
+Keep workflow-side code deterministic. `mount` reads and writes, `os_access` callbacks, and
+host-clock calls happen again during replay; changing their results can change which activities the
+workflow schedules and cause a `NondeterminismError`. Put external reads, writes, clock access, and
+other side effects in wrapped tools so Temporal records them as activities. Replay may not flag
+changed arguments when the same activity remains at the same history position, so replay validation
+is not a substitute for this boundary. Temporal activity timeouts apply to nested tools, not pure
+computation inside `run_code`, so keep sandbox loops bounded.
 
 Nested tool calls inside `run_code` produce their own spans when instrumented with [Logfire](https://pydantic.dev/logfire) or any OpenTelemetry backend — the easiest way to understand what code mode actually did, since each `run_code` span fans out into the tool calls the model issued from inside the sandbox. See the [Pydantic AI Logfire docs](/docs/ai/integrations/logfire/) for setup.
 
@@ -135,9 +178,9 @@ A representative run wires `CodeMode` up against an MCP server and a web search 
 
 ** See the full Logfire trace ->** Each 
 
-`run_code` span fans out into the tool calls the model issued from inside the sandbox.Sandboxed code runs with no access to the host’s files, environment, or clock. Two parameters grant it access — reach for them only when the agent’s task genuinely needs the host.
+`run_code` span fans out into the tool calls the model issued from inside the sandbox.Sandboxed code starts with no access to the host’s files, environment, or clock. Two parameters add controlled filesystem, environment, or clock behavior.
 
-Both parameters are fixed when the capability is built, so construct `CodeMode` per request to scope host access to that request.
+Both parameters are fixed when the capability is built, so construct `CodeMode` per request to scope the configured access to that request.
 
 Reach for `mount` when the agent works with real files: analyzing a dataset you’ve dropped in a folder and writing a report back, editing a checkout, or processing a batch of documents. Sandboxed `pathlib` code reads and writes under the mounted path. (For environment variables or the clock, use `os_access` instead.)
 
@@ -148,10 +191,10 @@ from pydantic_ai_harness import CodeMode
 # The agent can read /work/data.csv and write /work/summary.md back to the host:
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
-    capabilities=[CodeMode(mount=MountDir('/work', '/tmp/agent-workspace', mode='read-write'))],
+    capabilities=[CodeMode(mount=MountDir(virtual_path='/work', host_path='/tmp/agent-workspace', mode='read-write'))],
 )
 ```
-A `MountDir` defaults to copy-on-write `mode='overlay'`: the sandbox reads host files and sees its own writes, but those writes do **not** reach the host. Pass `mode='read-write'` to persist them, or `mode='read-only'` to forbid writes. `mount` also accepts a list of `MountDir` for multiple mount points.
+A `MountDir` defaults to copy-on-write `mode='overlay'`: the sandbox reads host files and sees writes made during the current `run_code` call, but Monty discards those writes before the next call and they do **not** reach the host. Pass `mode='read-write'` when later calls need to read the writes, or `mode='read-only'` to forbid writes. `mount` also accepts a list of `MountDir` for multiple mount points.
 
 Reach for `os_access` when the agent needs environment variables, the current date and time, or filesystem behavior you control. Hand it a ready-made OS implementation (`AbstractOS`), or a callback that decides each call — so you can inject just the secrets it needs, pin “now” for reproducible runs, or route file access to your own store.
 
@@ -188,9 +231,9 @@ Your callback’s return value decides the call’s fate, and the two outcomes a
 
 Code runs inside [Monty](https://github.com/pydantic/monty), a sandboxed Python subset. Key restrictions:
 
-- No class definitions.
-- No third-party imports. Allowed stdlib modules: `sys`,`typing`,`asyncio`,`math`,`json`,`re`,`datetime`,`os`,`pathlib`(each must be imported before use).
-- No wall-clock or timing primitives by default: `asyncio.sleep`,`datetime.datetime.now()`,`datetime.date.today()`, and the`time`module.`datetime.datetime.now()`/`datetime.date.today()`become available with an`os_access`handler (above);`asyncio.sleep`and`time`never do.
+- No third-party imports. Allowed stdlib modules: `sys`,`typing`,`asyncio`,`math`,`json`,`re`,`unicodedata`,`datetime`,`os`,`pathlib`(each must be imported before use).
+- `asyncio.gather(...)`accepts positional awaitables but no keyword arguments. Other task creation and wait APIs are unavailable.
+- No wall-clock or timing primitives by default: `asyncio.sleep`,`datetime.datetime.now()`,`datetime.date.today()`, and the`time`module.`datetime.datetime.now()`/`datetime.date.today()`become available when an`os_access`handler implements them (the built-in`OSAccess`does);`asyncio.sleep`and`time`never do.
 - No `import *`.
 - Filesystem I/O needs an `os_access`handler or a`mount`;`os.getenv`/`os.environ`need an`os_access`handler.
 - Tools requiring approval or with deferred (`CallDeferred`) execution are sandboxed like any other tool; without a`HandleDeferredToolCalls`(or equivalent) capability on the agent to resolve them inline, calling one from`run_code`raises an error that surfaces to the model as a retry.
@@ -220,15 +263,17 @@ capabilities:
 ```
 - [Tool use via code](https://www.anthropic.com/engineering/code-execution-with-mcp)(Anthropic)
 - [Code mode in production](https://blog.cloudflare.com/code-mode/)(Cloudflare)
-- [Pydantic AI capabilities](/docs/ai/core-concepts/capabilities/)
+- [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Capability that exposes selected tools as callables inside a `run_code` sandbox.
 
-By default (`tools='all'`) every tool the agent has is wrapped behind a single
-`run_code` tool — the model writes Python that calls them as functions instead
-of issuing tool calls directly.
+By default (`tools='all'`) every eligible regular tool the agent has is wrapped
+behind a single `run_code` tool — the model writes Python that calls them as
+functions instead of issuing tool calls directly. Framework control tools,
+undiscovered deferred tools, native fallbacks, and other code-execution tools
+remain native.
 
 Pass a list of tool names or a callable predicate to `tools` to split the
 toolset: matching tools become callables inside the sandbox, and the rest
@@ -247,15 +292,17 @@ By default, sandboxed code cannot touch the host — no filesystem, environment 
 - `mount`shares specific host directories: reach for it when the agent reads or writes real files.
 - `os_access`routes the sandbox’s OS calls to a handler you provide: reach for it when the agent needs environment variables, the clock, or filesystem behavior you control.
 
-Both expose the real host to model-written code, so grant only what the task needs.
+`mount` exposes selected host directories. The built-in `OSAccess` has an
+isolated filesystem and environment but uses the host clock by default; custom
+OS handlers can expose other host resources.
 
 ```
 from pydantic_monty import MountDir
-agent = Agent('openai:gpt-5', capabilities=[CodeMode(mount=MountDir('/work', '/tmp/agent-work'))])
+agent = Agent('openai:gpt-5', capabilities=[CodeMode(mount=MountDir(virtual_path='/work', host_path='/tmp/agent-work'))])
 ```
 Which wrapped tools should be sandboxed inside `run_code`.
 
-- `'all'`(default): every tool the agent has is sandboxed.
+- `'all'`(default): every eligible regular tool the agent has is sandboxed.
 - `Sequence[str]`: only tools whose names are listed are sandboxed.
 - Callable `(ctx, tool_def) -> bool | Awaitable[bool]`: tools where the callable returns`True`are sandboxed; the rest stay as native tool calls.
 

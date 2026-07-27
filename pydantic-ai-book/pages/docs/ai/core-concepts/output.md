@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Output
@@ -60,7 +60,13 @@ As with tool functions, output function arguments provided by the model are vali
 
 [to ask the model to try again with modified arguments (or with a different output type).](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry)
 
-`ModelRetry`To specify output functions, you set the agent’s `output_type` to either a single function (or bound instance method), or a list of functions. The list can also contain other output types like simple scalars or entire Pydantic models.
+`ModelRetry`Output functions do not support [ ToolFailed](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed), which is reserved for 
+
+[function-tool failures](/docs/ai/tools-toolsets/tools-advanced#tool-failed). Here,
+
+`ToolFailed` is treated like any ordinary exception: an [can recover from it, otherwise it aborts the run.](/docs/ai/core-concepts/hooks#error-hooks)
+
+`on_output_process_error` hookTo specify output functions, you set the agent’s `output_type` to either a single function (or bound instance method), or a list of functions. The list can also contain other output types like simple scalars or entire Pydantic models.
 You typically do not want to also register your output function as a tool (using the `@agent.tool` decorator or `tools` argument), as this could confuse the model about which it should be calling.
 
 Here’s an example of all of these features in action:
@@ -215,10 +221,14 @@ Each [ ModelRetry](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.M
 
 `ctx.retry`[How output retries are enforced](/docs/ai/core-concepts/agent#how-output-retries-are-enforced)for the full enforcement model.
 
-If you want to implement separate validation logic for different output types, it’s recommended to use [output functions](#output-functions) instead, to save you from having to do `isinstance` checks inside the output validator.
+Output validators do not support [ ToolFailed](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed). Raise 
+
+`ModelRetry` to ask the model for another output. Here, `ToolFailed` is treated like any ordinary exception: an [can recover from it, otherwise it aborts the run.](/docs/ai/core-concepts/hooks#error-hooks)
+
+`on_output_process_error` hookIf you want to implement separate validation logic for different output types, it’s recommended to use [output functions](#output-functions) instead, to save you from having to do `isinstance` checks inside the output validator.
 If you want the model to output plain text, do your own processing or validation, and then have the agent’s final output be the result of your function, it’s recommended to use an [output function](#output-functions) with the [ TextOutput marker class](#text-output).
 
-Here’s a simplified variant of the [SQL Generation example](/docs/ai/examples/sql-gen):
+Here’s a simplified variant of the [SQL Generation example](/docs/ai/examples/data-analytics/sql-gen):
 
 *(This example is complete, it can be run “as is”)*
 
@@ -233,7 +243,7 @@ For all [other run methods](/docs/ai/core-concepts/agent#running-agents), `parti
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 
-Some models can generate images as part of their response, for example those that support the [Image Generation native tool](/docs/ai/overview/native-tools#image-generation-tool) and OpenAI models using the [Code Execution native tool](/docs/ai/overview/native-tools#code-execution-tool) when told to generate a chart.
+Some models can generate images as part of their response, for example those that support the [Image Generation native tool](/docs/ai/tools-toolsets/native-tools#image-generation-tool) and OpenAI models using the [Code Execution native tool](/docs/ai/tools-toolsets/native-tools#code-execution-tool) when told to generate a chart.
 
 To use the generated image as the output of the agent run, you can set `output_type` to [ BinaryImage](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage). If no image-generating native tool is explicitly specified, the 
 
@@ -243,13 +253,13 @@ To use the generated image as the output of the agent run, you can set `output_t
 
 If an agent does not need to always generate an image, you can use a union of `BinaryImage` and `str`. If the model generates both, the image will take precedence as output and the text will be available on [ ModelResponse.text](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.text):
 
-Some agents perform their work entirely through tool calls and don’t need to produce a final output — for example, an agent that updates a record via a tool and then stops. But with `str` in the `output_type` — including the default — the model is required to end its final turn with text. If it considers its work finished and has nothing left to say, it will return an empty response, or one containing only [thinking](/docs/ai/advanced-features/thinking) content (as [Anthropic](/docs/ai/models/anthropic) models notably do), and Pydantic AI will ask it to produce text anyway.
+Some agents perform their work entirely through tool calls and don’t need to produce a final output — for example, an agent that updates a record via a tool and then stops. But with `str` in the `output_type` — including the default — the model is required to end its final turn with text. If it considers its work finished and has nothing left to say, it will return an empty response, or one containing only [thinking](/docs/ai/capabilities/thinking) content (as [Anthropic](/docs/ai/models/anthropic) models notably do), and Pydantic AI will ask it to produce text anyway.
 
 Include `None` in the `output_type` when finishing without a final message is a valid outcome for your agent, and you’d rather receive `None` than have the model say something for the sake of saying it:
 
 When the model returns an empty response and `None` is an allowed output type, the agent will return `None` instead of retrying. [Output validator functions](#output-validator-functions) still run with `None` as the argument, so you can raise [ ModelRetry](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to reject it if needed.
 
-`output_type=str | None` is the canonical case: it’s handled as regular text output, and the **only** way the model signals `None` is by returning a response with no text output — either an empty response, or one containing only [thinking](/docs/ai/advanced-features/thinking) content, which some reasoning models emit after completing their work through a tool call. There’s no output tool or structured schema involved. This mirrors how plain `str` is already treated specially as free-form text output rather than a structured tool call.
+`output_type=str | None` is the canonical case: it’s handled as regular text output, and the **only** way the model signals `None` is by returning a response with no text output — either an empty response, or one containing only [thinking](/docs/ai/capabilities/thinking) content, which some reasoning models emit after completing their work through a tool call. There’s no output tool or structured schema involved. This mirrors how plain `str` is already treated specially as free-form text output rather than a structured tool call.
 
 `None` is also supported in the other output modes, with an extra structured commit path in addition to (or in place of) the empty-response fallback:
 
@@ -282,6 +292,16 @@ The optional `debounce_by` argument of [ stream_text()](/docs/ai/api/pydantic-ai
 Here’s an example of streaming a user profile as it’s built:
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+
+If a structured response takes a long time to appear in your application, make sure you stream validated partial output rather than waiting for the full run to finish. [ stream_output()](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.stream_output) yields the accumulated output as the model produces it, with partial validation applied to each snapshot and full validation applied to the final output.
+
+When you also need events from intermediate model requests and tool calls, use [ agent.iter()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.iter). Iterate over each 
+
+`AgentStream` until the model starts producing the final result, then switch to `stream_output()` for validated partial output:*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+
+Each value from `stream_output()` is an accumulated snapshot, not a delta. An incomplete field or list item may be absent until enough data has arrived for it to pass partial validation, so update the rendered value from each snapshot rather than appending every yield.
+
+`AgentStream` is a single iterator. Once you switch to `stream_output()`, it consumes the remaining final-output events while validating them, so those raw events are not also yielded to the preceding loop. If you need to retain every raw event, use [ run_stream_events()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) and reconstruct and validate the output yourself.
 
 As setting an `output_type` uses the [Tool Output](#tool-output) mode by default, this will only work if the model supports streaming tool arguments. For models that don’t, try [Native Output](#native-output) or [Prompted Output](#prompted-output) instead. With Gemini 3, use Native Output; with earlier Gemini models that also use function tools, use Prompted Output.
 
@@ -329,7 +349,9 @@ If you `break` out of `stream_text()` and then leave the surrounding `async with
 
 When using [ agent.iter()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) for fine-grained control over the agent graph, you can cancel the 
 
-`AgentStream` inside a `ModelRequestNode.stream()` context:`AgentStream.cancel()` cancels the stream at the model request level.
+[inside a](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.AgentStream)
+
+`AgentStream``ModelRequestNode.stream()` context:`AgentStream.cancel()` cancels the stream at the model request level.
 
 *(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
 

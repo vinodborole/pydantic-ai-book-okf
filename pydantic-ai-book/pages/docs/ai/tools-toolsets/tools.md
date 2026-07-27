@@ -2,7 +2,7 @@
 type: Web Page
 title: Function Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Function Tools
@@ -108,7 +108,7 @@ For more tool features and integrations, see:
 
 - [Advanced Tool Features](/docs/ai/tools-toolsets/tools-advanced)- Custom schemas, dynamic tools, tool execution and retries
 - [Toolsets](/docs/ai/tools-toolsets/toolsets)- Managing collections of tools
-- [Native Tools](/docs/ai/overview/native-tools)- Native tools provided by LLM providers
+- [Native Tools](/docs/ai/tools-toolsets/native-tools)- Native tools provided by LLM providers
 - [Common Tools](/docs/ai/tools-toolsets/common-tools)- Ready-to-use tool implementations
 - [Third-Party Tools](/docs/ai/tools-toolsets/third-party-tools)- Integrations with MCP, LangChain, and other tool libraries
 - [Deferred Tools](/docs/ai/tools-toolsets/deferred-tools)- Tools requiring approval or external execution

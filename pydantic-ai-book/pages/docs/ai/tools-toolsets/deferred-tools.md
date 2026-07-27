@@ -2,7 +2,7 @@
 type: Web Page
 title: Deferred Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Deferred Tools
@@ -20,8 +20,8 @@ To support these use cases, Pydantic AI provides the concept of deferred tools, 
 
 When the model calls a deferred tool, there are two ways to resolve it:
 
-- **Resolve it inline**, using a- `HandleDeferredToolCalls`- [capability](/docs/ai/core-concepts/capabilities)with a handler that resolves some or all of the pending calls. The agent run continues in a single call without needing to end and restart — use this when the resolver (e.g. an approval gate, an external service client) lives in the same process as the agent. See- [Resolving deferred calls with a handler](#resolving-deferred-calls-with-a-handler).
-- **End the run**with a- `DeferredToolRequests`- [message history](/docs/ai/core-concepts/message-history)plus a- `DeferredToolResults`
+- **Resolve it inline**, using a- `HandleDeferredToolCalls`- [capability](/docs/ai/capabilities/overview)with a handler that resolves some or all of the pending calls. The agent run continues in a single call without needing to end and restart — use this when the resolver (e.g. an approval gate, an external service client) lives in the same process as the agent. See- [Resolving deferred calls with a handler](#resolving-deferred-calls-with-a-handler).
+- **End the run**with a- `DeferredToolRequests`- [message history](/docs/ai/core-concepts/message-history)plus a- `DeferredToolResults`- `run_id`- `conversation_id`. Use this when the resolver lives outside the agent process — e.g. a UI adapter that surfaces pending calls to a user and starts a follow-up run once it has their response.
 
 The two flows compose: a handler can resolve a subset of calls and let the rest bubble up as `DeferredToolRequests` output for an outer caller to handle.
 
@@ -35,7 +35,7 @@ The stop-the-world flow requires `DeferredToolRequests` to be in the `Agent`’s
 
 `agent.run_stream()`[. Note that the run-time](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter)
 
-`agent.iter()``output_type` overrides the one specified at construction time (for type inference reasons), so you’ll need to include the original output type explicitly.The recommended way to handle deferred tool calls is to register a `HandleDeferredToolCalls`[capability](/docs/ai/core-concepts/capabilities) whose handler receives the [ DeferredToolRequests](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolRequests) and returns a 
+`agent.iter()``output_type` overrides the one specified at construction time (for type inference reasons), so you’ll need to include the original output type explicitly.The recommended way to handle deferred tool calls is to register a `HandleDeferredToolCalls`[capability](/docs/ai/capabilities/overview) whose handler receives the [ DeferredToolRequests](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolRequests) and returns a 
 
 [resolving some or all of them. The tool execution pipeline applies the results inline and the agent run continues in a single call, as if the deferred tools had returned normally.](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolResults)
 
@@ -55,13 +55,13 @@ If the handler declines to resolve some or all of the calls (by omitting them fr
 
 `handle_deferred_tool_calls`[output. To allow that bubble-up, include](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolRequests)
 
-`DeferredToolRequests``DeferredToolRequests` in the agent’s `output_type` — so you can combine inline handling with the stop-the-world flow when it makes sense.If you’re [building a custom capability](/docs/ai/core-concepts/capabilities#building-custom-capabilities) that needs to resolve approvals or external calls itself (e.g. a sandbox that exposes deferred tools), override the [ handle_deferred_tool_calls](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.handle_deferred_tool_calls) hook directly on your capability instead of registering a separate 
+`DeferredToolRequests``DeferredToolRequests` in the agent’s `output_type` — so you can combine inline handling with the stop-the-world flow when it makes sense.If you’re [building a custom capability](/docs/ai/capabilities/custom) that needs to resolve approvals or external calls itself (e.g. a sandbox that exposes deferred tools), override the [ handle_deferred_tool_calls](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.handle_deferred_tool_calls) hook directly on your capability instead of registering a separate 
 
 `HandleDeferredToolCalls`. The same hook is also available via the [capability — see](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks)
 
 `Hooks`[Hooks](/docs/ai/core-concepts/hooks#deferred-tool-call-hook).
 
-The sections below describe the two kinds of deferred tools the handler can resolve, as well as the alternative stop-the-world flow for each. See [Capabilities](/docs/ai/core-concepts/capabilities) for how multiple capabilities compose, including [ WrapperCapability](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WrapperCapability) and the 
+The sections below describe the two kinds of deferred tools the handler can resolve, as well as the alternative stop-the-world flow for each. See [Capabilities](/docs/ai/capabilities/overview) for how multiple capabilities compose, including [ WrapperCapability](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WrapperCapability) and the 
 
 `capabilities=[...]` list.If a tool function always requires approval, you can pass the `requires_approval=True` argument to the [ @agent.tool](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool) decorator, 
 
@@ -117,11 +117,15 @@ If whether a tool call should be executed externally depends on the tool call ar
 
 `ToolCallPart`sOnce the tool call results are ready, you can build a [ DeferredToolResults](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.DeferredToolResults) object with a 
 
-`calls` dictionary that maps each tool call ID to an arbitrary value to be returned to the model, a [object, or a](/docs/ai/tools-toolsets/tools-advanced#advanced-tool-returns)
+`calls` dictionary that maps each tool call ID to an arbitrary value to be returned to the model, a [object, or an exception in case the tool call failed: a](/docs/ai/tools-toolsets/tools-advanced#advanced-tool-returns)
 
-`ToolReturn`[exception in case the tool call failed and the model should](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry)
+`ToolReturn`[if the model should](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry)
 
-`ModelRetry`[try again](/docs/ai/tools-toolsets/tools-advanced#tool-retries). This
+`ModelRetry`[try again](/docs/ai/tools-toolsets/tools-advanced#tool-retries), or a
+
+[if the failure should be reported to the model as a](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed)
+
+`ToolFailed`[failed result](/docs/ai/tools-toolsets/tools-advanced#tool-failed)(without consuming the tool’s retry budget) so it can decide how to proceed. This
 
 `DeferredToolResults` object can then be provided to one of the agent run methods as `deferred_tool_results`, alongside the original run’s [message history](/docs/ai/core-concepts/message-history).
 
@@ -144,7 +148,7 @@ Like any other tool call, a deferred tool call emits a [ FunctionToolCallEvent](
 `AgentStreamEvent`- `DeferredToolRequestsEvent`- `DeferredToolRequests`- `HandleDeferredToolCalls`- `DeferredToolRequests`output.
 - `DeferredToolResultsEvent`- `DeferredToolResults`- `FunctionToolResultEvent`- `deferred_tool_results`, as in that case the caller already knows them.
 
-This keeps resolution and presentation decoupled: a handler can contain pure resolution logic (e.g. waiting for a signal in a [durable execution](/docs/ai/integrations/durable_execution/overview) workflow), while a stream consumer owns all communication with the frontend, without maintaining its own mapping of which tools are interactive.
+This keeps resolution and presentation decoupled: a handler can contain pure resolution logic (e.g. waiting for a signal in a [durable execution](/docs/ai/capabilities/durable_execution/overview) workflow), while a stream consumer owns all communication with the frontend, without maintaining its own mapping of which tools are interactive.
 
 Continuing the [handler example](#resolving-deferred-calls-with-a-handler) from above:
 
@@ -153,7 +157,7 @@ Continuing the [handler example](#resolving-deferred-calls-with-a-handler) from 
 - [Function Tools](/docs/ai/tools-toolsets/tools)- Basic tool concepts and registration
 - [Advanced Tool Features](/docs/ai/tools-toolsets/tools-advanced)- Custom schemas, dynamic tools, and execution details
 - [Toolsets](/docs/ai/tools-toolsets/toolsets)- Managing collections of tools, including- `ExternalToolset`for external tools
-- [Message History](/docs/ai/core-concepts/message-history)- Understanding how to work with message history for deferred tools
+- [Message History](/docs/ai/core-concepts/message-history)- Working with message history for deferred tools, including- `run_id`/- `conversation_id`
 
 # Citations
 

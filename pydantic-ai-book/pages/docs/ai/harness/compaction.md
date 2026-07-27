@@ -4,7 +4,7 @@ title: Compaction | Pydantic Docs
 description: A menu of strategies -- clear, dedupe, trim, or summarize -- for keeping
   an agent's conversation history within the model's context window.
 resource: https://pydantic.dev/docs/ai/harness/compaction
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Compaction
@@ -81,7 +81,7 @@ A part is clamped only when it is oversized *and* the clamp actually shrinks it,
 It clamps two kinds of part inside each `ModelResponse`:
 
 - **Response text**(- `TextPart`) — the critical case, a runaway model-response text part.
-- **Tool-call args**(- `ToolCallPart`), when- `clamp_tool_call_args=True`(the default) — the same failure shape for a giant payload (for example a runaway- `write_plan`). The args are replaced with a small JSON object- `{"_clamped": "<head>...<tail>"}`so they stay valid function arguments; the original call already executed, so this only shrinks the history copy. Set- `clamp_tool_call_args=False`to clamp response text only.
+- **Tool-call args**(- `ToolCallPart`), when- `clamp_tool_call_args=True`(the default) — the same failure shape for a giant payload (for example a runaway- `write_plan`). The args are replaced with a small JSON object- `{"_clamped": "<head>...<tail>"}`so they stay valid function arguments; the original call already executed, so this only shrinks the history copy. Set- `clamp_tool_call_args=False`to clamp response text only. Framework-typed call parts — core’s- `search_tools`and- `load_capability`calls — are never clamped, because their typed args are validated when persisted history is restored (for example a- `StepPersistence`resume) and the- `_clamped`object would fail that round-trip.
 
 Request-side parts (user prompts, tool *returns*, system prompts) are deliberately out of scope: user input should not be silently rewritten, and oversized tool returns are the job of `ClearToolResults`.
 
@@ -102,6 +102,8 @@ TieredCompaction(
 )
 ```
 Tool outputs typically dominate an agent’s context, and the agent can usually re-run a tool if it needs the data again. `ClearToolResults` replaces the content of the oldest tool *results* with a short placeholder while keeping the most recent `keep_pairs` tool-call / tool-return pairs intact. The tool calls stay paired with their now-blanked results, so the history stays valid.
+
+Framework-typed tool results — core’s `search_tools` and `load_capability` returns — are left intact (a small token floor), because their structured content is re-parsed on later requests and rewriting it via `dataclasses.replace` would bypass validation and corrupt the part.
 
 ```
 from pydantic_ai import Agent
@@ -254,8 +256,6 @@ def before_model_request(
 ```
 Escalate through the tiers when the conversation exceeds `target_tokens`.
 
-`ModelRequestContext`
-
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Zero-cost head/tail truncation of any single oversized message part.
@@ -272,7 +272,7 @@ slice loses little. No LLM calls are made.
 What it clamps, in each `ModelResponse`:
 
 - `TextPart`content (the critical case — a runaway model-response text part).
-- `ToolCallPart`args, when- `clamp_tool_call_args`is set (the same failure shape for a giant tool-call payload). The args are replaced with a small JSON object so they stay valid function arguments; the original call already executed, so this only shrinks the history copy.
+- `ToolCallPart`args, when- `clamp_tool_call_args`is set (the same failure shape for a giant tool-call payload). The args are replaced with a small JSON object so they stay valid function arguments; the original call already executed, so this only shrinks the history copy. Framework-typed subclasses (- `ToolSearchCallPart`,- `LoadCapabilityCallPart`) are never clamped: their typed args must survive the- `ModelMessagesTypeAdapter`round-trip that persistence relies on.
 
 Request-side parts (user prompts, tool returns, system prompts) are out of scope: user
 input should not be silently rewritten, and oversized tool *returns* are the job of
@@ -344,8 +344,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Clamp any oversized response part before the request is sent.
-
-`ModelRequestContext`
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -438,8 +436,6 @@ def before_model_request(
 ```
 Clear old tool results if the conversation exceeds the configured threshold.
 
-`ModelRequestContext`
-
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Zero-cost in-place clearing of superseded file reads.
@@ -511,8 +507,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Deduplicate file reads, optionally gated on a size threshold.
-
-`ModelRequestContext`
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -586,8 +580,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Trim the message list if it exceeds the configured threshold.
-
-`ModelRequestContext`
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -683,8 +675,6 @@ def before_model_request(
 ```
 Summarize older messages when the threshold is exceeded.
 
-`ModelRequestContext`
-
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Injects a warning message when the agent approaches configured limits.
@@ -738,8 +728,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Strip old warnings, then inject a new one if thresholds are exceeded.
-
-`ModelRequestContext`
 
 # Citations
 

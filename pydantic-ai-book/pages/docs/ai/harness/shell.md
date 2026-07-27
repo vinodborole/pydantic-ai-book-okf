@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Shell
@@ -19,7 +19,7 @@ Agents frequently need to run a build, a test suite, a linter, or a quick
 killing runaway processes, and cleaning up background jobs at the end of a run —
 is fiddly boilerplate that every agent reinvents.
 
-`Shell` bundles that plumbing into a single [capability](/docs/ai/core-concepts/capabilities/):
+`Shell` bundles that plumbing into a single [capability](/docs/ai/capabilities/overview/):
 configurable allow/deny lists, output truncation tuned to keep the useful tail,
 optional sticky working directory, environment control that can keep host
 secrets out of spawned commands, and automatic cleanup of background processes

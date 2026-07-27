@@ -4,7 +4,7 @@ title: Pydantic AI Docs | Pydantic Docs
 description: Give an agent a tool that locates and returns Pydantic AI documentation
   on demand instead of preloading it into the system prompt.
 resource: https://pydantic.dev/docs/ai/harness/pydantic-ai-docs
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Pydantic AI Docs
@@ -114,9 +114,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Toolset providing `read_pyai_docs` over the resolved local path and shared cache.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@classmethod`
+`AgentDepsT`] | 
+
+`None``@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None

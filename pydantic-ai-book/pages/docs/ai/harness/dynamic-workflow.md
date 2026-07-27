@@ -5,14 +5,12 @@ description: Let an orchestrator agent coordinate a catalog of sub-agents by wri
   one sandboxed Python script -- fan-out, chaining, voting, and retry loops in a single
   tool call.
 resource: https://pydantic.dev/docs/ai/harness/dynamic-workflow
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Dynamic Workflow
 
 `DynamicWorkflow` is for the case where the coordination *between* sub-agents is the actual work. Say you have a few specialists — one reviews code, one summarizes findings, one writes the final note. Each is easy to call on its own; the hard part is the choreography: review three files at once, keep only the reports that found something, summarize those, and hand the summary to the writer. Reach for this capability when that orchestration involves fan-out, chaining, voting, or retry loops that you do not want to run one model turn at a time, with every intermediate result flowing back through the orchestrator’s context.
-
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
 
 The usual way to coordinate sub-agents is one tool call per step. The agent calls the reviewer and waits, reads the result, calls the reviewer again, waits again, and so on. Every intermediate result travels back into the agent’s context, and every step that depends on the previous one is a separate model turn.
 
@@ -96,7 +94,7 @@ A sub-agent is non-deterministic, costs tokens, and can fan out into more sub-ag
 ```
 DynamicWorkflow(agents=[...], max_agent_calls=50)  # 50 is the default
 ```
-A hard, host-enforced ceiling on the number of sub-agent runs in one parent run. It is one budget shared across every `run_workflow` call in that run, and it holds exactly even when the script fans out with `asyncio.gather`. When the budget runs out, the workflow stops calling sub-agents and returns a terminal result that includes the sub-agent results that did complete, so nothing you already paid for is wasted. This is the only knob that bounds the number of runs exactly.
+A hard, host-enforced ceiling on the number of sub-agent runs in one parent run. It is one budget shared across every `run_workflow` call in that run, and it holds exactly even when the script fans out with `asyncio.gather`. When the budget runs out, the workflow stops calling sub-agents and returns a terminal result with bounded previews of up to the 20 most recent completed results. This is the only knob that bounds the number of runs exactly.
 
 `sub_agent_usage_limits` is a `UsageLimits` applied to each sub-agent run. `forward_usage` controls whether the whole tree shares one usage counter:
 
@@ -105,12 +103,12 @@ A hard, host-enforced ceiling on the number of sub-agent runs in one parent run.
 | `True`(default) | the parent’s `usage`is shared across the tree | a tree-wide cap. Under concurrent fan-out it is best-effort: several sub-agents can pass the check before any of them adds to the count. | 
 | `False` | each sub-agent run counts on its own | per-run limits. A per-run `total_tokens_limit`of`T`with`max_agent_calls`of`N`bounds the tree to roughly`N * T`tokens. | 
 
-These limits guard the orchestration script’s own memory and allocations, not the sub-agents it calls. The default backstop is 256 MB and 50 million allocations, with no time limit.
+These limits guard the orchestration script’s own memory, not the sub-agents it calls. The default backstop is 256 MB with no time limit. Printed output is collected separately with Monty’s 10 MiB default cap.
 
 ```
 DynamicWorkflow(agents=[...], resource_limits={'max_duration_secs': 30})
 ```
-`max_duration_secs` measures the time your script spends running sandbox code, not wall-clock time. While the script waits on a sub-agent it is suspended and that time does not count, so the cap will not fire on a normal workflow no matter how long the sub-agents take. Its one job is catching a pure-CPU runaway — a `while True:` loop that never awaits, which none of the sub-agent budgets can stop because it never calls a sub-agent. Pass `'unlimited'` to remove every limit, or a partial dict that merges onto the backstop so you override only the caps you name.
+`max_duration_secs` measures the time your script spends running sandbox code, not wall-clock time. While the script waits on a sub-agent it is suspended and that time does not count, so the cap will not fire on a normal workflow no matter how long the sub-agents take. Its one job is catching a pure-CPU runaway — a `while True:` loop that never awaits, which none of the sub-agent budgets can stop because it never calls a sub-agent. Pass `'unlimited'` to remove every sandbox resource limit; the separate 10 MiB print cap remains. A partial dict merges onto the backstop so you override only the caps you name.
 
 A sub-agent cannot start its own workflow; a nested `run_workflow` call returns a terminal error instead of running. The practical rule: do not give the sub-agents in your catalog the `DynamicWorkflow` capability. They are the leaves of the orchestration, not orchestrators.
 
@@ -149,16 +147,16 @@ DynamicWorkflow(
     defer_loading=True,
 )
 ```
-`defer_loading=True` needs a stable `id`. See [on-demand capabilities](/docs/ai/core-concepts/capabilities/#on-demand-capabilities) for the full picture.
+`defer_loading=True` needs a stable `id`. See [on-demand capabilities](/docs/ai/capabilities/on-demand/) for the full picture.
 
 The script runs in Monty, a subset of Python. Knowing the edges matters:
 
-- No class definitions, and no third-party libraries.
-- Useful standard-library modules: `asyncio`,`math`,`json`,`re`,`typing`. Import what you use; other modules are unavailable or stubbed.
-- No wall-clock or timing primitives — no `asyncio.sleep`, no`datetime.now()`, no`time`.
-- `asyncio.gather(...)`runs sub-agents concurrently but does not support- `return_exceptions=True`.
+- No third-party libraries.
+- Importable standard-library modules include `sys`,`typing`,`asyncio`,`math`,`json`,`re`,`unicodedata`,`datetime`,`os`, and`pathlib`. Import what you use. Filesystem, environment, and clock operations are not configured for workflow scripts.
+- No wall-clock or timing primitives — no `asyncio.sleep`, no`datetime.datetime.now()`, no`datetime.date.today()`, and no`time`module.
+- `asyncio.gather(...)`runs sub-agents concurrently with positional awaitables but no keyword arguments, including- `return_exceptions=True`. Other task creation and wait APIs are unavailable.
 
-Before a script runs it is statically type-checked against the sub-agent signatures. A misspelled function, a positional `task`, or a wrong-typed argument costs one retry, but no sub-agent budget and no sandbox execution.
+Before a script runs it is statically type-checked against the sub-agent signatures. An ordinary, statically provable mistake such as a misspelled function, a positional `task`, or a wrong-typed argument costs one retry but no sub-agent budget or sandbox execution. Values typed as `Any` can reach runtime validation; they are still rejected before a sub-agent runs.
 
 The [Logfire](https://pydantic.dev/logfire) trace is the best way to see what a workflow did. Each sub-agent run appears nested under the `run_workflow` span, and the span carries the exact `code` argument the model wrote, so you can read the script it actually ran. Until first-class progress streaming ships, set `event_stream_handler` on each sub-agent `Agent` to watch sub-agent runs inside the one tool call.
 
@@ -171,15 +169,15 @@ DynamicWorkflow(                  # all parameters are keyword-only
     forward_usage=True,
     inherit_model=False,          # True -> sub-agents run with the parent run's resolved model
     sub_agent_usage_limits=None,  # UsageLimits per sub-agent run; None -> pydantic-ai default
-    resource_limits=None,         # None -> backstop (256 MB, 50M allocs, no time cap);
-                                  # 'unlimited' -> off; a dict is merged onto the backstop
+    resource_limits=None,         # None -> backstop (256 MB, no time cap);
+                                  # 'unlimited' -> sandbox limits off; a dict merges onto the backstop
     id=None,                      # required when defer_loading=True
     description=None,             # one-line catalog entry shown while deferred
     defer_loading=False,
 )
 workflow.reveal(agent)            # AbstractAgent | WorkflowAgent; validates before appending
 WorkflowAgent(
-    agent,                        # Agent, required, positional
+    agent,                        # AbstractAgent, required, positional
     name=None,                    # sandbox function name; falls back to agent.name
     description=None,             # function docstring; falls back to agent.description
 )
@@ -191,7 +189,7 @@ Source: [ pydantic_ai_harness/dynamic_workflow/](https://github.com/pydantic/pyd
 - [Code Mode](/docs/ai/harness/code-mode)— the same sandbox, calling the agent’s own tools instead of sub-agents.
 - [Subagents](/docs/ai/harness/subagents)— one-delegation-per-tool-call sub-agents, without the scripted choreography.
 - [Rewriting Bun in Rust](https://bun.com/blog/bun-in-rust)(Bun) — the same pattern at scale, via Claude Code’s dynamic workflows.
-- [Capabilities](/docs/ai/core-concepts/capabilities/)and- [on-demand capabilities](/docs/ai/core-concepts/capabilities/#on-demand-capabilities).
+- [Capabilities](/docs/ai/capabilities/overview/)and- [on-demand capabilities](/docs/ai/capabilities/on-demand/).
 
 # Citations
 

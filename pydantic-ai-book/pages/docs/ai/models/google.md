@@ -2,7 +2,7 @@
 type: Web Page
 title: Google | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/google
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 The `GoogleModel` is a model that uses the [ google-genai](https://pypi.org/project/google-genai/) package under the hood to
@@ -11,7 +11,7 @@ access Google’s Gemini models via both the Gemini API and Google Cloud (former
 Two providers wrap those endpoints:
 
 - `GoogleProvider`- `'google:'`prefix.
-- `GoogleCloudProvider`— Google Cloud (formerly known as Vertex AI), surfaced under the- `'google-cloud:'`prefix.
+- `GoogleCloudProvider`- `'google-cloud:'`prefix.
 
 To use `GoogleModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `google` optional group:
 
@@ -93,6 +93,17 @@ agent = Agent(model)
 ...
 ```
 You can specify the location and/or project when using Google Cloud:
+
+In addition to the single-region values listed in
+[ GoogleCloudLocation](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.google.GoogleCloudLocation), 
+
+`GoogleCloudProvider` accepts the
+`'global'` location and the `'us'`/`'eu'` multi-regions. The multi-region values are routed to the
+`aiplatform.{us,eu}.rep.googleapis.com` data-residency endpoints — use them when an org policy blocks the
+global endpoint for data residency, or when a model is initially available only on `global` and the
+multi-regions rather than a single region. Model availability differs between single regions, multi-regions,
+and `global`; see the
+[Vertex AI locations docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#available-regions).
 
 The unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field works on both Google subsystems, with 
 
@@ -212,7 +223,7 @@ YouTube video URLs can be passed directly to Google models:
 
 Files can be uploaded via the [Files API](https://ai.google.dev/gemini-api/docs/files) and passed as URLs:
 
-See the [input documentation](/docs/ai/advanced-features/input) for more details and examples.
+See the [input documentation](/docs/ai/core-concepts/input) for more details and examples.
 
 You can customize model behavior using [ GoogleModelSettings](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings):
 
@@ -253,7 +264,7 @@ model_settings = GoogleModelSettings(google_thinking_config={'include_thoughts':
 agent = Agent(model, model_settings=model_settings)
 ...
 ```
-See [Thinking](/docs/ai/advanced-features/thinking) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
+See [Thinking](/docs/ai/capabilities/thinking) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
 
 You can customize the safety settings by setting the `google_safety_settings` field.
 
@@ -297,6 +308,33 @@ logprobs = result.response.provider_details.get('logprobs')
 avg_logprobs = result.response.provider_details.get('avg_logprobs')
 ```
 See the [Google Dev Blog](https://developers.googleblog.com/unlock-gemini-reasoning-with-logprobs-on-vertex-ai/) for more information.
+
+[Model Armor](https://docs.cloud.google.com/model-armor/overview) is a Google Cloud security service that screens prompts and responses for risks like prompt injection, jailbreaking, and sensitive data leakage.
+
+You can configure it via `google_model_armor_config` in [ GoogleModelSettings](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings):
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.models.google import GoogleModel, GoogleModelSettings
+from pydantic_ai.providers.google_cloud import GoogleCloudProvider
+model_settings = GoogleModelSettings(
+    google_model_armor_config={
+        'prompt_template_name': 'projects/my-project/locations/europe-west4/templates/prompt-template',
+        'response_template_name': 'projects/my-project/locations/europe-west4/templates/response-template',
+    }
+)
+model = GoogleModel(
+    model_name='gemini-2.5-flash',
+    provider=GoogleCloudProvider(location='europe-west4'),
+)
+agent = Agent(model, model_settings=model_settings)
+...
+```
+Templates must be created in advance in the [Google Cloud Console](https://console.cloud.google.com/security/modelarmor) and must reside in the same region as the model endpoint. See the [Model Armor Vertex AI integration docs](https://docs.cloud.google.com/model-armor/model-armor-vertex-integration) for supported locations.
+
+When a prompt or response is blocked, a [ ContentFilterError](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ContentFilterError) is raised.
+
+Note that response templates only screen non-streaming requests: with streaming, Google Cloud returns the response text unscreened, so apply your own output handling if you rely on response-side blocking.
 
 When you’ve created a Gemini [cached content resource](https://ai.google.dev/gemini-api/docs/caching), pass its resource name through [ google_cached_content](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cached_content) to reuse it across requests:
 

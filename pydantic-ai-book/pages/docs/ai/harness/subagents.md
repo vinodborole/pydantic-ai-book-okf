@@ -4,7 +4,7 @@ title: Subagents | Pydantic Docs
 description: Let an agent delegate self-contained tasks to named child agents via
   a single delegate_task tool, with per-delegate budgets and failure handling.
 resource: https://pydantic.dev/docs/ai/harness/subagents
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Subagents
@@ -327,9 +327,11 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Toolset providing the delegate tool, or `None` when no sub-agents are configured.
 
-`AgentToolset`[`AgentDepsT`] | `None`
+[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
 
-`@classmethod`
+`AgentDepsT`] | 
+
+`None``@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None

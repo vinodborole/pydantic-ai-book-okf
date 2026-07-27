@@ -6,6 +6,7 @@
 - [Cohere | Pydantic Docs](/pages/docs/ai/models/cohere.md)
 - [Google | Pydantic Docs](/pages/docs/ai/models/google.md)
 - [Groq | Pydantic Docs](/pages/docs/ai/models/groq.md)
+- [HTTP Request Retries | Pydantic Docs](/pages/docs/ai/models/http-request-retries.md)
 - [Hugging Face | Pydantic Docs](/pages/docs/ai/models/huggingface.md)
 - [Mistral | Pydantic Docs](/pages/docs/ai/models/mistral.md)
 - [Ollama | Pydantic Docs](/pages/docs/ai/models/ollama.md)
@@ -13,3 +14,4 @@
 - [OpenRouter | Pydantic Docs](/pages/docs/ai/models/openrouter.md)
 - [Overview | Pydantic Docs](/pages/docs/ai/models/overview.md)
 - [xAI | Pydantic Docs](/pages/docs/ai/models/xai.md)
+- [Z.AI | Pydantic Docs](/pages/docs/ai/models/zai.md)

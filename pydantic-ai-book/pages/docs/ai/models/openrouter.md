@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenRouter | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openrouter
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # OpenRouter
@@ -81,6 +81,39 @@ OpenRouter supports [prompt caching](https://openrouter.ai/docs/guides/best-prac
 - **Cache the Last Message**: Set- `OpenRouterModelSettings.openrouter_cache_messages`- `True`to automatically cache the last message in the conversation
 - **Cache Tool Definitions**: Set- `OpenRouterModelSettings.openrouter_cache_tool_definitions`- `True`or specify- `'5m'`/- `'1h'`directly
 - **Fine-Grained Control with**: Insert a- `CachePoint`- `CachePoint`marker in user messages to cache everything before it
+
+[ OpenRouterModel](/docs/ai/api/models/openrouter/#pydantic_ai.models.openrouter.OpenRouterModel) does not currently translate 
+
+[into OpenAI’s breakpoint protocol (OpenAI models on OpenRouter still get automatic caching). For explicit GPT-5.6 breakpoints, combine](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint)
+
+`CachePoint`[(or](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel)
+
+`OpenAIResponsesModel`[) with](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel)
+
+`OpenAIChatModel`[:](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.openrouter.OpenRouterProvider)
+
+`OpenRouterProvider````
+from pydantic_ai import Agent, CachePoint
+from pydantic_ai.models.openai import OpenAIResponsesModel, OpenAIResponsesModelSettings
+from pydantic_ai.providers.openrouter import OpenRouterProvider
+model = OpenAIResponsesModel(
+    'openai/gpt-5.6-sol',
+    provider=OpenRouterProvider(api_key='your-openrouter-api-key'),
+)
+settings = OpenAIResponsesModelSettings(
+    openai_prompt_cache_key='product-docs-v1',
+    openai_prompt_cache_options={'mode': 'explicit', 'ttl': '30m'},
+    # OpenRouter also offers Azure routes for GPT-5.6, where explicit caching is not documented.
+    extra_body={'provider': {'only': ['openai']}},
+)
+agent = Agent(model, model_settings=settings)
+result = agent.run_sync([
+    'Long-lived reference material...',
+    CachePoint(),
+    'Answer using the reference material.',
+])
+```
+The OpenRouter Responses API uses the same request-wide TTL and usage fields as OpenAI. Restricting the downstream provider to `openai` avoids routing explicit-cache requests to endpoints where these fields are not documented. OpenRouter currently documents explicit breakpoints only on text blocks, so place `CachePoint` markers after text content.
 
 Use [ OpenRouterModelSettings](/docs/ai/api/models/openrouter/#pydantic_ai.models.openrouter.OpenRouterModelSettings) to enable explicit caching for system instructions, the last conversation message, and tool definitions:
 

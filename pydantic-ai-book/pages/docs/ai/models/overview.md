@@ -2,7 +2,7 @@
 type: Web Page
 title: Overview | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Overview
@@ -39,9 +39,9 @@ In addition, many providers are compatible with the OpenAI API, and can be used 
 - [Together AI](/docs/ai/models/openai#together-ai)
 - [Vercel AI Gateway](/docs/ai/models/openai#vercel-ai-gateway)
 
-Pydantic AI also comes with [ TestModel](/docs/ai/models/test) and 
+Pydantic AI also comes with [ TestModel](/docs/ai/api/models/test) and 
 
-[for testing and development.](/docs/ai/models/function)
+[for testing and development.](/docs/ai/api/models/function)
 
 `FunctionModel`To use each model provider, you need to configure your local environment and make sure you have the right packages installed. If you try to use the model without having done so, you’ll be told what to install.
 
@@ -80,7 +80,7 @@ print(WebSearchTool in profile['supported_native_tools'])
 `profile['supports_tools']` works. If you supply `profile=` as a callable (or otherwise have a partial profile dict), use `profile.get('supports_tools', DEFAULT_PROFILE['supports_tools'])` (after importing `DEFAULT_PROFILE`) to tolerate missing keys.
 Any [instance exposes its resolved profile the same way, so the same check works whether the model was selected automatically from a](/docs/ai/api/models/base/#pydantic_ai.models.Model)
 
-`Model``<provider>:<model>` name or instantiated directly. Don’t confuse this with [Capabilities](/docs/ai/core-concepts/capabilities), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
+`Model``<provider>:<model>` name or instantiated directly. Don’t confuse this with [Capabilities](/docs/ai/capabilities/overview), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
 
 When a [ Provider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) creates its own HTTP client (i.e. you don’t pass a custom 
 

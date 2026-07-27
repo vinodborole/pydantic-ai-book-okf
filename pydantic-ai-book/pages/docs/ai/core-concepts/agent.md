@@ -2,7 +2,7 @@
 type: Web Page
 title: Agents | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Agents
@@ -19,11 +19,11 @@ The [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) class has 
 | [Function tool(s)](/docs/ai/tools-toolsets/tools)and[toolsets](/docs/ai/tools-toolsets/toolsets) | Functions that the LLM may call to get information while generating a response. | 
 | [Structured output type](/docs/ai/core-concepts/output) | The structured datatype the LLM must return at the end of a run, if specified. | 
 | [Dependency type constraint](/docs/ai/core-concepts/dependencies) | Dynamic instructions functions, tools, and output functions may all use dependencies when they’re run. | 
-| [LLM model](/docs/ai/models/base) | Optional default LLM model associated with the agent. Can also be specified when running the agent. | 
+| [LLM model](/docs/ai/api/models/base) | Optional default LLM model associated with the agent. Can also be specified when running the agent. | 
 | [Model Settings](#additional-configuration) | Optional default model settings to help fine tune requests. Can also be specified when running the agent. | 
-| [Capabilities](/docs/ai/core-concepts/capabilities) | Reusable bundles of tools, hooks, instructions, and model settings that extend agent behavior. | 
+| [Capabilities](/docs/ai/capabilities/overview) | Reusable bundles of tools, hooks, instructions, and model settings that extend agent behavior. | 
 
-While each of these can be configured individually, [capabilities](/docs/ai/core-concepts/capabilities) let you bundle related behavior into reusable units that are easier to compose, share, and [load from configuration files](/docs/ai/core-concepts/agent-spec).
+While each of these can be configured individually, [capabilities](/docs/ai/capabilities/overview) let you bundle related behavior into reusable units that are easier to compose, share, and [load from configuration files](/docs/ai/core-concepts/agent-spec).
 
 In typing terms, agents are generic in their dependency and output types, e.g., an agent which required dependencies of type `Foobar` and produced outputs of type `list[str]` would have type `Agent[Foobar, list[str]]`. In practice, you shouldn’t need to care about this, it should just mean your IDE can tell you when you have the right type, and if you choose to use [static type checking](#static-type-checking) it should work well with Pydantic AI.
 
@@ -172,7 +172,7 @@ except UsageLimitExceeded as e:
     The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
     """
 ```
-Tools and [capabilities](/docs/ai/core-concepts/capabilities) can read the run’s limits from [ ctx.usage_limits](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage_limits) (alongside 
+Tools and [capabilities](/docs/ai/capabilities/overview) can read the run’s limits from [ ctx.usage_limits](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage_limits) (alongside 
 
 [for usage so far), so a budget-aware tool or capability can disclose or adapt to the remaining budget without being configured with a duplicate copy of the limits. It reflects what the run is already enforcing and is read-only by convention.](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage)
 
@@ -218,7 +218,7 @@ Both agent-level and run-level `model_settings` accept a callable that receives 
 
 - **Model defaults**(- `model.settings`)
 - **Agent-level**(- `Agent(model_settings=...)`)
-- **Capability-level**(e.g. from- `Thinking()`- [Capabilities](/docs/ai/core-concepts/capabilities#providing-model-settings))
+- **Capability-level**(e.g. from- `Thinking()`- [Capabilities](/docs/ai/capabilities/custom#providing-model-settings))
 - **Run-level**(- `agent.run(model_settings=...)`)
 
 Inside a callable, `ctx.model_settings` contains the merged result of all *previous* layers (position-dependent). For example, an agent-level callable sees only model defaults, while a run-level callable sees model defaults + agent-level + capability-level settings. To reset a field set by a previous layer, set it explicitly (e.g. `{'temperature': None}`).
@@ -346,7 +346,7 @@ information like the dependencies used on that run.Another dynamic instruction, 
 
 Note that returning an empty string will result in no instruction message added.
 
-Instructions can also come from [capabilities](/docs/ai/core-concepts/capabilities) via [ get_instructions()](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_instructions), or from 
+Instructions can also come from [capabilities](/docs/ai/capabilities/overview) via [ get_instructions()](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_instructions), or from 
 
 [template strings](/docs/ai/core-concepts/agent-spec#template-strings)rendered against the agent’s dependencies.
 
@@ -358,7 +358,7 @@ You can also raise [ ModelRetry](/docs/ai/api/pydantic-ai/exceptions/#pydantic_a
 
 [output function](/docs/ai/core-concepts/output#output-functions)to tell the model it should retry generating a response.
 
-- The default retry count is **1**but can be altered for the[entire agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__)with`retries`or`AgentRetries`[specific tool](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool), or[outputs](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__). The output side of the agent retry budget can also be overridden per run via`agent.run(retries={'output': ...})`and friends.
+- The default retry count is **1**but can be altered for the[entire agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__)with`retries`or`AgentRetries`[specific tool](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool), or[outputs](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__). Both the tool and output sides of the agent retry budget can also be overridden per run via`agent.run(retries={'tools': ..., 'output': ...})`and friends (or for a block of runs via`agent.override()``int`overrides both budgets, just like at construction — pass a dict such as`retries={'tools': ...}`to override just one. The tool-retry default and its per-run override apply to function tools and output tools; MCP tools used through a durable-exec wrapper (`TemporalAgent``DBOSAgent``max_retries`(default`1`); see[pydantic-ai#5180](https://github.com/pydantic/pydantic-ai/issues/5180).
 - You can access the current retry count from within a tool, output validator, or output function via `ctx.retry`
 
 Pydantic AI enforces the output retry budget differently depending on how the model returns its final output:
@@ -368,7 +368,7 @@ Pydantic AI enforces the output retry budget differently depending on how the mo
 
 For how the budget appears inside [output validators](/docs/ai/core-concepts/output#output-validator-functions) — including what `ctx.max_retries` and `ctx.retry` reflect on each path — see the [Output validators](/docs/ai/core-concepts/output#output-validator-functions) section.
 
-Tool retries are tracked per tool — see [Tool Execution and Retries](/docs/ai/tools-toolsets/tools-advanced#tool-retries) for the per-tool counter model and the three configuration levels.
+Tool retries are tracked per tool — see [Tool Execution, Retries, and Failures](/docs/ai/tools-toolsets/tools-advanced#tool-retries) for the per-tool counter model and the three configuration levels.
 
 Here’s an example:
 

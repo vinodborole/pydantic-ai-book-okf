@@ -2,7 +2,7 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Native Tools
@@ -19,6 +19,7 @@ Pydantic AI supports the following native tools:
 - `MemoryTool`
 - `MCPServerTool`
 - `FileSearchTool`
+- `AdvisorTool`
 
 These tools are passed to the agent’s `capabilities` list, wrapped in [ NativeTool](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool), and are executed by the model provider’s infrastructure.
 
@@ -68,6 +69,7 @@ The `WebSearchTool` supports several configuration parameters:
 | `blocked_domains` | ❌ | ✅ | ✅ | ✅ | ❌ | 
 | `allowed_domains` | ✅ | ✅ | ✅ | ✅ | ❌ | 
 | `max_uses` | ❌ | ✅ | ❌ | ❌ | ❌ | 
+| `external_web_access` | ✅ | ❌ | ❌ | ❌ | ❌ | 
 
 The [ XSearchTool](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) allows your agent to search X/Twitter for real-time posts and content. Natively supported by xAI models; usable on other models via the 
 
@@ -232,6 +234,36 @@ The Anthropic SDK provides an abstract [ BetaAbstractMemoryTool](https://github.
 
 *(This example is complete, it can be run “as is”)*
 
+The [ AdvisorTool](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.AdvisorTool) lets an executor model consult another model mid-generation. See the 
+
+[Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool)and
+
+[OpenRouter](https://openrouter.ai/docs/guides/features/server-tools/advisor)documentation for current model compatibility.
+
+| Provider | Supported | Notes | 
+|---|---|---|
+| Anthropic | ✅ | Available on the Claude API and Claude Platform on AWS. | 
+| OpenRouter | ✅ | Works with any executor model. | 
+| OpenAI | ❌ | |
+| ❌ | ||
+| xAI | ❌ | |
+| Groq | ❌ | |
+| Bedrock | ❌ | |
+| Mistral | ❌ | |
+| Cohere | ❌ | |
+| HuggingFace | ❌ | 
+
+For OpenRouter, use any `openrouter:` executor and pass an OpenRouter model slug to `model`, for example `anthropic/claude-opus-4.8`. Pydantic AI sends `forward_transcript=false`; `max_uses` and `caching` are ignored. Pydantic AI surfaces aggregate consultation counts under `ModelResponse.provider_details``['server_tool_use']`.
+
+With Anthropic, Pydantic AI preserves plaintext and encrypted advisor results in message history, and strips advisor blocks when the tool is no longer enabled. Streaming pauses while the advisor runs. Advisor usage is reported under `advisor_*` keys in `RequestUsage.details` and excluded from the executor’s top-level token totals.
+
+| Parameter | Anthropic | OpenRouter | 
+|---|---|---|
+| `model` | ✅ (required — the advisor model to consult) | ✅ (required — an OpenRouter catalog slug) | 
+| `max_uses` | ✅ (cap on advisor consultations per request) | ❌ (fixed gateway limit; ignored) | 
+| `max_tokens` | ✅ (cap on advisor output tokens, minimum 1024; makes the result carry a `stop_reason`) | ✅ (maps to `max_completion_tokens`) | 
+| `caching` | ✅ ( `'5m'`or`'1h'`— ephemeral caching of the advisor context) | ❌ (no equivalent; ignored) | 
+
 The [ MCPServerTool](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.MCPServerTool) allows your agent to use remote MCP servers with communication handled by the model provider.
 
 This requires the MCP server to live at a public URL the provider can reach and does not support many of the advanced features of Pydantic AI’s agent-side [MCP support](/docs/ai/mcp/client),
@@ -301,7 +333,7 @@ With Gemini, you need to first [create a file search store via the Files API](ht
 
 With xAI, `FileSearchTool` maps to the [collections search](https://docs.x.ai/developers/tools/collections-search) tool. Pass collection IDs as `file_store_ids`.
 
-For complete API documentation, see the [API Reference](/docs/ai/api/native_tools).
+For complete API documentation, see the [API Reference](/docs/ai/api/pydantic-ai/native_tools).
 
 # Citations
 

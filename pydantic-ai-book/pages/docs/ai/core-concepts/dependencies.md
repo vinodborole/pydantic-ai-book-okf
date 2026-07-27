@@ -2,7 +2,7 @@
 type: Web Page
 title: Dependencies | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/dependencies
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-07-27T09:59:11.298696+00:00'
 ---
 
 # Dependencies
@@ -51,13 +51,15 @@ In addition to [ .deps](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunCon
 
 [hooks](/docs/ai/core-concepts/hooks), or
 
-[capabilities](/docs/ai/core-concepts/capabilities)need to read agent properties like
+[capabilities](/docs/ai/capabilities/overview)need to read agent properties like
 
 [or](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.name)
 
 `name`[.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.output_type)
 
-`output_type`Dependency fields can also be referenced in instructions and descriptions via [template strings](/docs/ai/core-concepts/agent-spec#template-strings) — for example, `TemplateStr('Hello {{name}}')` renders `name` from the deps object at runtime. This is especially useful in [agent specs](/docs/ai/core-concepts/agent-spec) where callables aren’t available.
+`output_type`Dependency fields can also be referenced in instructions and descriptions via [template strings](/docs/ai/core-concepts/agent-spec#template-strings) — for example, [ TemplateStr('Hello {{name}}')](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr) renders 
+
+`name` from the deps object at runtime. This is especially useful in [agent specs](/docs/ai/core-concepts/agent-spec)where callables aren’t available.
 
 [System prompt functions](/docs/ai/core-concepts/agent#system-prompts), [function tools](/docs/ai/tools-toolsets/tools) and [output validators](/docs/ai/core-concepts/output#output-validator-functions) are all run in the async context of an agent run.
 
