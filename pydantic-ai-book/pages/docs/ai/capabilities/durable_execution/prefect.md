@@ -2,7 +2,7 @@
 type: Web Page
 title: Prefect | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/durable_execution/prefect
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Prefect
@@ -11,8 +11,8 @@ timestamp: '2026-07-27T09:59:11.298696+00:00'
 
 Prefect 3.0 brings [transactional semantics](https://www.prefect.io/blog/transactional-ml-pipelines-with-prefect-3-0) to your Python workflows, allowing you to group tasks into atomic units and define failure modes. If any part of a transaction fails, the entire transaction can be rolled back to a clean state.
 
-- **Flows**are the top-level entry points for your workflow. They can contain tasks and other flows.
-- **Tasks**are individual units of work that can be retried, cached, and monitored independently.
+- **Flows** are the top-level entry points for your workflow. They can contain tasks and other flows.
+- **Tasks** are individual units of work that can be retried, cached, and monitored independently.
 
 Prefect 3.0’s approach to transactional orchestration makes your workflows automatically **idempotent**: rerunnable without duplication or inconsistency across any environment. Every task is executed within a transaction that governs when and where the task’s result record is persisted. If the task runs again under an identical context, it will not re-execute but instead load its previous result.
 
@@ -55,17 +55,9 @@ The diagram below shows the overall architecture of an agentic application with 
 ```
 See the [Prefect documentation](https://docs.prefect.io/) for more information.
 
-Add durable execution to any [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) by attaching the 
+Add durable execution to any [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) by attaching the `PrefectDurability`[capability](/docs/ai/capabilities/overview). When the agent runs inside a Prefect flow, the capability routes [model requests](/docs/ai/models/overview), [tool calls](/docs/ai/tools-toolsets/tools), and [MCP communication](/docs/ai/mcp/client) through Prefect tasks. To make a run durable, call `agent.run()` inside a `@flow`.
 
-`PrefectDurability`[capability](/docs/ai/capabilities/overview). When the agent runs inside a Prefect flow, the capability routes
-
-[model requests](/docs/ai/models/overview),
-
-[tool calls](/docs/ai/tools-toolsets/tools), and
-
-[MCP communication](/docs/ai/mcp/client)through Prefect tasks. To make a run durable, call
-
-`agent.run()` inside a `@flow`.The agent stays a normal `Agent` everywhere — outside a Prefect flow the capability is transparent, and the original agent, model, and MCP server can still be used as normal.
+The agent stays a normal `Agent` everywhere — outside a Prefect flow the capability is transparent, and the original agent, model, and MCP server can still be used as normal.
 
 See [Streaming](#streaming) for event handling inside tasks and flow code.
 
@@ -79,15 +71,13 @@ Attach durability via `capabilities=[...]`. The capability routes model requests
 
 Wrap `agent.run()` in your own `@flow` to make the run durable.
 
-*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
-Because the same agent works inside and outside a Prefect flow, [ PrefectDurability](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) composes with all other 
-
-[capabilities](/docs/ai/capabilities/overview)without each needing a Prefect-specific wrapper variant.
+Because the same agent works inside and outside a Prefect flow, [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) composes with all other [capabilities](/docs/ai/capabilities/overview) without each needing a Prefect-specific wrapper variant.
 
 For more information on how to use Prefect in Python applications, see their [Python documentation](https://docs.prefect.io/v3/how-to-guides/workflows/write-and-run).
 
-Any agent can be wrapped in a [ PrefectAgent](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectAgent) to get a durable agent variant that routes model requests, tool calls, and MCP communication through Prefect tasks:
+Any agent can be wrapped in a [`PrefectAgent`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectAgent) to get a durable agent variant that routes model requests, tool calls, and MCP communication through Prefect tasks:
 
 Migrating to the capability means attaching `PrefectDurability` and adding the flow decorator that `PrefectAgent` used to apply for you:
 
@@ -105,108 +95,84 @@ When using Prefect with Pydantic AI agents, there are a few important considerat
 
 Each agent instance must have a unique `name` so Prefect can correctly identify and track its flows and tasks.
 
-Toolsets that implement their own tool listing and calling (i.e. [ FunctionToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset), 
+Toolsets that implement their own tool listing and calling (i.e. [`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset), [`MCPToolset`](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset), and `DynamicToolset`) must have a unique [`id`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.id) set, which is used to identify their tasks within the flow.
 
-[, and](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset)
+`Agent.run(model=...)` supports both model strings (like `'openai:gpt-5.6-sol'`) and model instances. A model instance can’t be serialized across the task boundary, and rebuilding one from its `model_id` string would build a *different* model — the same model name on whatever provider the worker’s environment implies, so the request would go to another endpoint with other credentials. An instance that isn’t registered ahead of time is therefore rejected with a `UserError`. There are two ways to use a specific instance: pre-register it by passing a `models` dict to [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) and reference it by key (or pass the registered instance), or pass a model-name string and build the instance inside the task with a [`ResolveModelId`](/docs/ai/capabilities/resolve-model-id) capability — the right choice when the model depends on the run’s `deps`, e.g. per-user credentials. Model-name strings themselves never need registering. The agent’s own model, set at construction, is always available as the default.
 
-`MCPToolset``DynamicToolset`) must have a unique [set, which is used to identify their tasks within the flow.](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.id)
+To customize how a model string is built — a custom provider, or per-user credentials carried on the run’s `deps` — add a [`ResolveModelId`](/docs/ai/capabilities/resolve-model-id) capability before `PrefectDurability`: it gets first crack at every string, and the resolver runs again inside the task with the run’s actual `deps`, so it must be deterministic for a given `(model_id, deps)` and must not perform external I/O.
 
-`id``Agent.run(model=...)` supports both model strings (like `'openai:gpt-5.6-sol'`) and model instances. A model instance can’t be serialized across the task boundary, so it’s sent as its `model_id` string and rebuilt inside the task. That faithfully reproduces model-name strings and models with standard providers, but not an instance whose exact behavior depends on a custom provider, client, or settings — pre-register those by passing a `models` dict to [ PrefectDurability](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) and reference them by key (or pass the registered instance). The agent’s own model, set at construction, is always available as the default.
+Agent tools are automatically wrapped as Prefect tasks, which means they benefit from:
 
-To customize how a model string is built — a custom provider, or per-user credentials carried on the run’s `deps` — add a [ ResolveModelId](/docs/ai/capabilities/resolve-model-id) capability before 
+- **Retry logic** : Failed tool calls can be retried automatically
+- **Caching** : Tool results are cached based on their inputs
+- **Observability** : Tool execution is tracked in the Prefect UI
 
-`PrefectDurability`: it gets first crack at every string, and the resolver runs again inside the task with the run’s actual `deps`, so it must be deterministic for a given `(model_id, deps)` and must not perform external I/O.Agent tools are automatically wrapped as Prefect tasks, which means they benefit from:
+For a `DynamicToolset`, including one contributed by a [`DynamicCapability`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.DynamicCapability), each tool call runs as a task and resolves and enters the toolset inside that task, so a task retry re-resolves it. Tool discovery runs in flow code and is re-executed when the flow retries, like the rest of the flow — including a `DynamicCapability`’s factory, which should therefore be deterministic given the run’s `deps`. A `DynamicCapability` reuses the capability resolved for the run inside its tool tasks.
 
-- **Retry logic**: Failed tool calls can be retried automatically
-- **Caching**: Tool results are cached based on their inputs
-- **Observability**: Tool execution is tracked in the Prefect UI
-
-For a `DynamicToolset`, including one contributed by a [ DynamicCapability](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.DynamicCapability), each tool call runs as a task and resolves and enters the toolset inside that task, so a task retry re-resolves it. Tool discovery runs in flow code and is re-executed when the flow retries, like the rest of the flow — including a 
-
-`DynamicCapability`’s factory, which should therefore be deterministic given the run’s `deps`. A `DynamicCapability` reuses the capability resolved for the run inside its tool tasks.A default [ TaskConfig](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.TaskConfig) for all tools can be passed as 
-
-`tool_task_config` to the [constructor. Per-tool config lives on the tool’s](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability)
-
-`PrefectDurability`[field —](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset.tool)
-
-`metadata``PrefectDurability` looks for a `'prefect'` key. You can set the metadata directly on the tool definition, or apply it across a selection of tools via the [capability. See the](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata)
-
-`SetToolMetadata`[capabilities documentation](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata)for the full selector vocabulary.
+A default [`TaskConfig`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.TaskConfig) for all tools can be passed as `tool_task_config` to the [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) constructor. Per-tool config lives on the tool’s [`metadata`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset.tool) field — `PrefectDurability` looks for a `'prefect'` key. You can set the metadata directly on the tool definition, or apply it across a selection of tools via the [`SetToolMetadata`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata) capability. See the [capabilities documentation](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata) for the full selector vocabulary.
 
 Inline: declare the task config alongside the tool definition. Per-tool config merges on top of the base `tool_task_config`.
 
 Set `'prefect': False` to skip task wrapping entirely for that tool.
 
-Selector-based: [ SetToolMetadata](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata) applies the same metadata across a selection of tools (
+Selector-based: [`SetToolMetadata`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata) applies the same metadata across a selection of tools (`'all'`, a name list, a dict, or a callable).
 
-`'all'`, a name list, a dict, or a callable).`tool_task_config` sets the default config for every tool.
+`tool_task_config` sets the default config for every tool.
 
-`Agent.run_stream()`, `Agent.run_stream_events()`, and [ Agent.iter()](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) work inside a Prefect flow, but their events are buffered rather than delivered in real time. The model stream runs inside the durable task, and its events are replayed to the flow after the task completes.
+`Agent.run_stream()`, `Agent.run_stream_events()`, and [`Agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) work inside a Prefect flow, but their events are buffered rather than delivered in real time. The model stream runs inside the durable task, and its events are replayed to the flow after the task completes.
 
-For handlers with I/O side effects, pass `event_stream_handler=` to [ PrefectDurability](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability). Model events are delivered live inside each model-request task, while each tool event is delivered in its own event-handler task. Configure those per-event tasks with 
+For handlers with I/O side effects, pass `event_stream_handler=` to [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability). Model events are delivered live inside each model-request task, while each tool event is delivered in its own event-handler task. Configure those per-event tasks with `event_stream_handler_task_config=`. As with any Prefect task, a handler may run more than once if a task retries, so keep its side effects idempotent.
 
-`event_stream_handler_task_config=`. As with any Prefect task, a handler may run more than once if a task retries, so keep its side effects idempotent.Alternatively, register [ ProcessEventStream](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ProcessEventStream). Its handler runs in flow code and must be deterministic because it re-runs on flow replay. Tool and final-output events arrive live, while the real captured model events are replayed after each model request completes. For examples, see the 
-
-[streaming docs](/docs/ai/core-concepts/agent#streaming-all-events).
+Alternatively, register [`ProcessEventStream`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ProcessEventStream). Its handler runs in flow code and must be deterministic because it re-runs on flow replay. Tool and final-output events arrive live, while the real captured model events are replayed after each model request completes. For examples, see the [streaming docs](/docs/ai/core-concepts/agent#streaming-all-events).
 
 A durability `event_stream_handler=` and a separately registered `ProcessEventStream` are two distinct handlers, and each fires once. The durability handler receives live events inside the durable task, while `ProcessEventStream` sees the buffered replay in flow code.
 
 A per-run handler passed to `Agent.run(event_stream_handler=...)` also runs flow-side against replayed model events.
 
-Because the model stream is consumed inside the task, cancelling it from the flow side (e.g. with [ AgentStream.cancel()](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.AgentStream.cancel)) is not available across the durable boundary.
+Because the model stream is consumed inside the task, cancelling it from the flow side (e.g. with [`AgentStream.cancel()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.AgentStream.cancel)) is not available across the durable boundary.
 
-`Agent.run_stream_sync()` is not for flow code: it requires no running event loop and wraps `run_stream()`. Under [ PrefectDurability](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability), use the buffered async streaming APIs above or 
+`Agent.run_stream_sync()` is not for flow code: it requires no running event loop and wraps `run_stream()`. Under [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability), use the buffered async streaming APIs above or `Agent.run()` with an event stream handler. Outside a flow, an agent with `PrefectDurability` behaves like a normal agent, so `run_stream_sync()` works as usual. (Wrapper `PrefectAgent` forbids `run_stream` inside flows — use `run` + event stream handler there.)
 
-`Agent.run()` with an event stream handler. Outside a flow, an agent with `PrefectDurability` behaves like a normal agent, so `run_stream_sync()` works as usual. (Wrapper `PrefectAgent` forbids `run_stream` inside flows — use `run` + event stream handler there.)When a provider pauses a model turn mid-flight (Anthropic `pause_turn`) or runs it as a server-side job that’s polled until it’s ready ([OpenAI background mode](/docs/ai/models/openai#background-mode)), each segment runs in a separate model request task. The suspended [ ModelResponse](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse) and background job ID are checkpointed between segments, while the final response is merged and usage is recorded once. A 
+When a provider pauses a model turn mid-flight (Anthropic `pause_turn`) or runs it as a server-side job that’s polled until it’s ready ([OpenAI background mode](/docs/ai/models/openai#background-mode)), each segment runs in a separate model request task. The suspended [`ModelResponse`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse) and background job ID are checkpointed between segments, while the final response is merged and usage is recorded once. A [`message_history`](/docs/ai/core-concepts/message-history) ending in a suspended response is passed to the first task. Size `timeout_seconds` in [Task Configuration](#task-configuration) for one provider round trip. If an error abandons a suspended job, its provider teardown runs in a dedicated cancellation task.
 
-[ending in a suspended response is passed to the first task. Size](/docs/ai/core-concepts/message-history)
+Additional toolsets can be passed per run via `agent.run(toolsets=...)`, but only toolsets that don’t need durable wrapping are supported: non-executing toolsets like [`ExternalToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.ExternalToolset), whose tools are executed outside the agent run, and [`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset)s whose tools all opt out of task wrapping with `metadata={'prefect': False}`. Other executing toolsets ([`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset) and [`MCPToolset`](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset)) and dynamic toolsets must be set when constructing the agent so their tasks are registered before the flow runs; passing them at runtime raises a `UserError`.
 
-`message_history``timeout_seconds` in [Task Configuration](#task-configuration)for one provider round trip. If an error abandons a suspended job, its provider teardown runs in a dedicated cancellation task.
+You can customize Prefect task behavior, such as retries and timeouts, by passing [`TaskConfig`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.TaskConfig) objects to the [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability) constructor:
 
-Additional toolsets can be passed per run via `agent.run(toolsets=...)`, but only toolsets that don’t need durable wrapping are supported: non-executing toolsets like [ ExternalToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.ExternalToolset), whose tools are executed outside the agent run, and 
-
-[s whose tools all opt out of task wrapping with](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset)
-
-`FunctionToolset``metadata={'prefect': False}`. Other executing toolsets ([and](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset)
-
-`FunctionToolset`[) and dynamic toolsets must be set when constructing the agent so their tasks are registered before the flow runs; passing them at runtime raises a](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset)
-
-`MCPToolset``UserError`.You can customize Prefect task behavior, such as retries and timeouts, by passing [ TaskConfig](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.TaskConfig) objects to the 
-
-[constructor:](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability)
-
-`PrefectDurability`- `mcp_task_config`: Configuration for MCP server communication tasks
-- `model_task_config`: Configuration for model request tasks
-- `event_stream_handler_task_config`: Configuration for event stream handler tasks
-- `tool_task_config`: Default configuration for all tool calls (per-tool overrides go on the tool’s- `'prefect'`metadata — see- [Tool Wrapping](#tool-wrapping)above)
+- `mcp_task_config` : Configuration for MCP server communication tasks
+- `model_task_config` : Configuration for model request tasks
+- `event_stream_handler_task_config` : Configuration for event stream handler tasks
+- `tool_task_config` : Default configuration for all tool calls (per-tool overrides go on the tool’s`'prefect'` metadata — see[Tool Wrapping](#tool-wrapping) above)
 
 Available `TaskConfig` options:
 
-- `retries`: Maximum number of retries for the task (default:- `0`)
-- `retry_delay_seconds`: Delay between retries in seconds (can be a single value or list for exponential backoff, default:- `1.0`)
-- `timeout_seconds`: Maximum time in seconds for the task to complete
-- `cache_policy`: Custom Prefect cache policy for the task
-- `persist_result`: Whether to persist the task result
-- `result_storage`: Prefect result storage for the task (e.g.,- `'s3-bucket/my-storage'`or a- `WritableFileSystem`block)
-- `log_prints`: Whether to log print statements from the task (default:- `False`)
+- `retries` : Maximum number of retries for the task (default:`0` )
+- `retry_delay_seconds` : Delay between retries in seconds (can be a single value or list for exponential backoff, default:`1.0` )
+- `timeout_seconds` : Maximum time in seconds for the task to complete
+- `cache_policy` : Custom Prefect cache policy for the task
+- `persist_result` : Whether to persist the task result
+- `result_storage` : Prefect result storage for the task (e.g.,`'s3-bucket/my-storage'` or a`WritableFileSystem` block)
+- `log_prints` : Whether to log print statements from the task (default:`False` )
 
 Example:
 
-*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
 Pydantic AI and provider API clients have their own retry logic. When using Prefect, you may want to:
 
-- Disable [HTTP Request Retries](/docs/ai/models/http-request-retries)in Pydantic AI
-- Turn off your provider API client’s retry logic (e.g., `max_retries=0`on a[custom OpenAI client](/docs/ai/models/openai#custom-openai-client))
+- Disable [HTTP Request Retries](/docs/ai/models/http-request-retries) in Pydantic AI
+- Turn off your provider API client’s retry logic (e.g., `max_retries=0` on a[custom OpenAI client](/docs/ai/models/openai#custom-openai-client) )
 - Rely on Prefect’s task-level retry configuration for consistency
 
 This prevents requests from being retried multiple times at different layers.
 
 Prefect 3.0 provides built-in caching and transactional semantics. Tasks with identical inputs will not re-execute if their results are already cached, making workflows naturally idempotent and resilient to failures.
 
-- **Task inputs**: Messages, settings, parameters, tool arguments, and serializable dependencies
+- **Task inputs** : A model request’s messages, settings and parameters; a tool call’s name, arguments, definition and[`tool_call_id`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tool_call_id) (so two parallel calls to the same tool with the same arguments each execute); and the run state the task’s work can depend on: dependencies,[`metadata`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.metadata) ,[`validation_context`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.validation_context) , the prompt, and the message history.
 
-**Note**: For user dependencies to be included in cache keys, they must be serializable (e.g., Pydantic models or basic Python types). Non-serializable dependencies are automatically excluded from cache computation.
+Per-run identifiers like [`run_id`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.run_id) and [`conversation_id`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.conversation_id), and message timestamps, are deliberately left out, so an otherwise identical run replays recorded results instead of re-executing them.
+
+**Note**: For user dependencies, `metadata` and `validation_context` to be included in cache keys, they must be serializable (e.g., Pydantic models or basic Python types). Non-serializable values are automatically excluded from cache computation.
 
 Prefect provides a built-in UI for monitoring flow runs, task executions, and failures. You can:
 
@@ -216,33 +182,29 @@ Prefect provides a built-in UI for monitoring flow runs, task executions, and fa
 
 To access the Prefect UI, you can either:
 
-- Use [Prefect Cloud](https://www.prefect.io/cloud)(managed service)
-- Run a local [Prefect server](https://docs.prefect.io/v3/how-to-guides/self-hosted/server-cli)with`prefect server start`
+1. Use [Prefect Cloud](https://www.prefect.io/cloud) (managed service)
+2. Run a local [Prefect server](https://docs.prefect.io/v3/how-to-guides/self-hosted/server-cli) with`prefect server start`
 
 You can also use [Pydantic Logfire](/docs/ai/integrations/logfire) for detailed observability. When using both Prefect and Logfire, you’ll get complementary views:
 
-- **Prefect**: Workflow-level orchestration, task status, and retry history
-- **Logfire**: Fine-grained tracing of agent runs, model requests, and tool invocations
+- **Prefect** : Workflow-level orchestration, task status, and retry history
+- **Logfire** : Fine-grained tracing of agent runs, model requests, and tool invocations
 
 When using Logfire with Prefect, you can enable distributed tracing to see spans for your Prefect runs included with your agent runs, model requests, and tool invocations.
 
 For more information about Prefect monitoring, see the [Prefect documentation](https://docs.prefect.io/).
 
-To deploy and schedule a Prefect-durable agent, wrap it in a Prefect flow and use the flow’s [ serve()](https://docs.prefect.io/v3/how-to-guides/deployments/create-deployments#create-a-deployment-with-serve) or 
+To deploy and schedule a Prefect-durable agent, wrap it in a Prefect flow and use the flow’s [`serve()`](https://docs.prefect.io/v3/how-to-guides/deployments/create-deployments#create-a-deployment-with-serve) or [`deploy()`](https://docs.prefect.io/v3/how-to-guides/deployments/deploy-via-python) methods:
 
-[methods:](https://docs.prefect.io/v3/how-to-guides/deployments/deploy-via-python)
-
-`deploy()`Each flow run executes in an isolated process, and all inputs and dependencies must be serializable. Because Agent instances cannot be serialized, instantiate the agent inside the flow rather than at the module level.
+Each flow run executes in an isolated process, and all inputs and dependencies must be serializable. Because Agent instances cannot be serialized, instantiate the agent inside the flow rather than at the module level.
 
 The `serve()` method accepts scheduling options:
 
-- `cron`- `'0 9 * * *'`for daily at 9am)
-- `interval`
-- `rrule`
+- **`cron`** : Cron schedule string (e.g.,`'0 9 * * *'` for daily at 9am)
+- **`interval`** : Schedule interval in seconds or as a timedelta
+- **`rrule`** : iCalendar RRule schedule string
 
-For production deployments with Docker, Kubernetes, or other infrastructure, use the flow’s [ deploy()](https://docs.prefect.io/v3/how-to-guides/deployments/deploy-via-python) method. See the 
-
-[Prefect deployment documentation](https://docs.prefect.io/v3/how-to-guides/deployments/create-deploymentsy)for more information.
+For production deployments with Docker, Kubernetes, or other infrastructure, use the flow’s [`deploy()`](https://docs.prefect.io/v3/how-to-guides/deployments/deploy-via-python) method. See the [Prefect deployment documentation](https://docs.prefect.io/v3/how-to-guides/deployments/create-deploymentsy) for more information.
 
 # Citations
 

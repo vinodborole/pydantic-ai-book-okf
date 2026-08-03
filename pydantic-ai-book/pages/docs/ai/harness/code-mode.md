@@ -4,7 +4,7 @@ title: Code Mode | Pydantic Docs
 description: Wrap an agent's tools into a single sandboxed run_code tool so the model
   orchestrates many calls in one Python program instead of many round-trips.
 resource: https://pydantic.dev/docs/ai/harness/code-mode
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Code Mode
@@ -66,9 +66,9 @@ CodeMode(tools={'code_mode': True})
 ```
 Use metadata when the decision should travel with a tool or toolset, rather than with one `CodeMode` instance. This suits shared toolsets: the toolset author tags the tools that are safe and useful to call from generated code, and each agent opts into that tag with `CodeMode(tools={...})`.
 
-`CodeMode(tools={'code_mode': True})` uses the standard Pydantic AI [ ToolSelector](/docs/ai/api/pydantic-ai/tools/) metadata form. A tool is sandboxed when its 
+`CodeMode(tools={'code_mode': True})` uses the standard Pydantic AI [`ToolSelector`](/docs/ai/api/pydantic-ai/tools/) metadata form. A tool is sandboxed when its `ToolDefinition.metadata` contains all of the selector’s key-value pairs. Extra metadata on the tool is fine, and nested dictionaries are matched by deep inclusion.
 
-`ToolDefinition.metadata` contains all of the selector’s key-value pairs. Extra metadata on the tool is fine, and nested dictionaries are matched by deep inclusion.The common pattern is to tag an entire toolset with `.with_metadata(...)`:
+The common pattern is to tag an entire toolset with `.with_metadata(...)`:
 
 ```
 from pydantic_ai import Agent
@@ -89,14 +89,21 @@ agent = Agent(
 ```
 Here `search` and `fetch` are removed from the model-facing tool list and become callable functions inside `run_code`. Tools without `metadata['code_mode'] == True` stay visible as regular tool calls.
 
-When you mark tools or whole toolsets `defer_loading=True` ([Tool Search](/docs/ai/tools-toolsets/tools-advanced/#tool-search)), `CodeMode` keeps them out of `run_code` while they’re undiscovered — they pass straight through, so Tool Search drives them as usual (sent on the wire with `defer_loading` on providers with native tool search; otherwise dropped until discovered, with a `search_tools` tool alongside `run_code`). Once the model discovers a tool it comes back with `defer_loading=False`, and from then on `CodeMode` folds it into `run_code` like any other tool, so it’s callable from generated code.
+When you mark tools or whole toolsets `defer_loading=True` ([Tool Search](/docs/ai/tools-toolsets/tools-advanced/#tool-search)), `CodeMode` keeps them out of `run_code` while they’re undiscovered — they pass straight through, so Tool Search drives them as usual (sent on the wire with `defer_loading` on providers with native tool search; otherwise dropped until discovered, with a `search_tools` tool alongside `run_code`). `CodeMode` uses `RunContext.is_tool_available` to follow that reveal state. Once the model discovers a tool — or loads the deferred capability that owns it — `CodeMode` folds it into `run_code` like any other tool from then on, so it’s callable from generated code. (The tool keeps `defer_loading=True`, which records what its author asked for; what changes is its availability for the run.)
 
 That fold-in grows `run_code`’s description, which invalidates the prompt-cache prefix once at the moment of discovery (turns with no discovery stay cache-warm). Two ways to avoid the bust:
 
 - 
-Pass `dynamic_catalog=True`to keep`run_code`’s description static across discoveries. The catalog of sandboxed-tool signatures moves into the agent instructions (as a dynamic`InstructionPart``ctx.enqueue``from pydantic_ai_harness import CodeMode CodeMode(dynamic_catalog=True)`This pays off when paired with Tool Search: the tool-definitions block stays byte-stable so the prefix cache survives discoveries, at the cost of a larger (but cache-friendly) system prompt. With a fixed toolset and no Tool Search, the default keeps the system prompt shorter and is the better choice. 
+Pass `dynamic_catalog=True` to keep`run_code` ’s description static across discoveries. The catalog of sandboxed-tool signatures moves into the agent instructions (as a dynamic[`InstructionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart) ) and newly-discovered tools are announced via[`ctx.enqueue`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) instead of by rebuilding the description:```
+from pydantic_ai_harness import CodeMode
+CodeMode(dynamic_catalog=True)
+```
+This pays off when paired with Tool Search: the tool-definitions block stays byte-stable so the prefix cache survives discoveries, at the cost of a larger (but cache-friendly) system prompt. With a fixed toolset and no Tool Search, the default keeps the system prompt shorter and is the better choice.
 - 
-To instead keep a Tool Search corpus fully native — never folded into `run_code`, but not callable from inside it — exclude it with a`tools`selector; corpus members carry`with_native`set to the managing native tool:`from pydantic_ai_harness import CodeMode CodeMode(tools=lambda ctx, td: td.with_native is None)`
+To instead keep a Tool Search corpus fully native — never folded into `run_code` , but not callable from inside it — exclude it with a`tools` selector; corpus members carry`with_native` set to the managing native tool:```
+from pydantic_ai_harness import CodeMode
+CodeMode(tools=lambda ctx, td: td.with_native is None)
+```
 
 The last expression in the snippet is automatically captured as the return value — the model does not need to `print()`. An assignment stores a value in the REPL but does not return it. A final expression that evaluates to `None` is also treated as no result. Without a non-`None` final expression or print output, `run_code` returns `{}`. Put the assigned name on the final line:
 
@@ -108,16 +115,16 @@ Reserve `print()` for supplementary logging: printed text is surfaced separately
 
 | Scenario | Return | 
 |---|---|
-| Non- `None`final expression with no print output | Last expression value | 
-| Final assignment or `None`result with no print output | `{}` | 
-| Print output with no final expression or a `None`result | `{'output': '<printed text>'}` | 
-| Print output with a plain, non- `None`final expression | `{'output': '<printed text>', 'result': <last expression>}` | 
+| Non- `None` final expression with no print output | Last expression value | 
+| Final assignment or `None` result with no print output | `{}` | 
+| Print output with no final expression or a `None` result | `{'output': '<printed text>'}` | 
+| Print output with a plain, non- `None` final expression | `{'output': '<printed text>', 'result': <last expression>}` | 
 | Multimodal final expression with no print output | Returned natively for model processing | 
 | Print output with a multimodal final expression | List with printed text followed by native multimodal content | 
 
 Printed output is limited to 10 MiB. Exceeding the limit makes `run_code` return a model retry.
 
-State persists between `run_code` calls within the same agent run — variables, imports, and function definitions carry over. Pass `restart: true` in the tool call to reset state.
+State persists between `run_code` calls within the same agent run — variables, imports, and function definitions carry over. Pass `restart: true` in the tool call to reset state. If a worker crash or host-side execution failure invalidates the session, `run_code` returns a model retry that reports the reset; the next snippet must recreate any required state.
 
 Install both integrations:
 
@@ -176,9 +183,9 @@ for msg in result.all_messages():
 ```
 A representative run wires `CodeMode` up against an MCP server and a web search and asks it to find the most-discussed Hacker News story across three feeds, pull the comment thread and the submitter’s profile, and search the web for follow-up coverage. `CodeMode` collapses that into two `run_code` calls: the first fetches all three feeds in parallel via `asyncio.gather`, dedupes by id, filters by score, and ranks by comment count — in plain Python; the second batches the three follow-up calls (`hn_get_thread`, `hn_get_user`, `duckduckgo_search`) together.
 
-** See the full Logfire trace ->** Each 
+**[See the full Logfire trace ->](https://logfire-us.pydantic.dev/public-trace/84bcf123-2106-49da-9f6f-5c26395339bb?spanId=7650806a0785b946)** Each `run_code` span fans out into the tool calls the model issued from inside the sandbox.
 
-`run_code` span fans out into the tool calls the model issued from inside the sandbox.Sandboxed code starts with no access to the host’s files, environment, or clock. Two parameters add controlled filesystem, environment, or clock behavior.
+Sandboxed code starts with no access to the host’s files, environment, or clock. Two parameters add controlled filesystem, environment, or clock behavior.
 
 Both parameters are fixed when the capability is built, so construct `CodeMode` per request to scope the configured access to that request.
 
@@ -226,17 +233,17 @@ agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[CodeMode(os_access=my
 ```
 Your callback’s return value decides the call’s fate, and the two outcomes are easy to confuse:
 
-- **Return any value**— including- `None`,- `''`, or- `0`— and that becomes the result the sandbox sees.- `os.getenv`returning- `None`looks exactly like a normal unset variable, so the agent’s code keeps running. This is how you- *hide*something: answer with an empty value.
-- **Return**and the call is treated as unsupported: it raises inside the sandbox and the model gets a retry. This- `NOT_HANDLED`- *refuses*a capability outright — use it to block, not to say “no value”. Returning- `NOT_HANDLED`for a key the agent reasonably expects will burn retries.
+- **Return any value** — including`None` ,`''` , or`0` — and that becomes the result the sandbox sees.`os.getenv` returning`None` looks exactly like a normal unset variable, so the agent’s code keeps running. This is how you*hide* something: answer with an empty value.
+- **Return `NOT_HANDLED`** and the call is treated as unsupported: it raises inside the sandbox and the model gets a retry. This*refuses* a capability outright — use it to block, not to say “no value”. Returning`NOT_HANDLED` for a key the agent reasonably expects will burn retries.
 
 Code runs inside [Monty](https://github.com/pydantic/monty), a sandboxed Python subset. Key restrictions:
 
-- No third-party imports. Allowed stdlib modules: `sys`,`typing`,`asyncio`,`math`,`json`,`re`,`unicodedata`,`datetime`,`os`,`pathlib`(each must be imported before use).
-- `asyncio.gather(...)`accepts positional awaitables but no keyword arguments. Other task creation and wait APIs are unavailable.
-- No wall-clock or timing primitives by default: `asyncio.sleep`,`datetime.datetime.now()`,`datetime.date.today()`, and the`time`module.`datetime.datetime.now()`/`datetime.date.today()`become available when an`os_access`handler implements them (the built-in`OSAccess`does);`asyncio.sleep`and`time`never do.
-- No `import *`.
-- Filesystem I/O needs an `os_access`handler or a`mount`;`os.getenv`/`os.environ`need an`os_access`handler.
-- Tools requiring approval or with deferred (`CallDeferred`) execution are sandboxed like any other tool; without a`HandleDeferredToolCalls`(or equivalent) capability on the agent to resolve them inline, calling one from`run_code`raises an error that surfaces to the model as a retry.
+- No third-party imports. Allowed stdlib modules: `sys` ,`typing` ,`asyncio` ,`math` ,`json` ,`re` ,`unicodedata` ,`datetime` ,`os` ,`pathlib` (each must be imported before use).
+- `asyncio.gather(...)` accepts positional awaitables but no keyword arguments. Other task creation and wait APIs are unavailable.
+- No wall-clock or timing primitives by default: `asyncio.sleep` ,`datetime.datetime.now()` ,`datetime.date.today()` , and the`time` module.`datetime.datetime.now()` /`datetime.date.today()` become available when an`os_access` handler implements them (the built-in`OSAccess` does);`asyncio.sleep` and`time` never do.
+- No `import *` .
+- Filesystem I/O needs an `os_access` handler or a`mount` ;`os.getenv` /`os.environ` need an`os_access` handler.
+- Tools requiring approval or with deferred (`CallDeferred` ) execution are sandboxed like any other tool; without a`HandleDeferredToolCalls` (or equivalent) capability on the agent to resolve them inline, calling one from`run_code` raises an error that surfaces to the model as a retry.
 
 `CodeMode` works with Pydantic AI’s [agent spec](/docs/ai/core-concepts/agent-spec/) feature for defining agents in YAML or JSON:
 
@@ -261,8 +268,8 @@ capabilities:
       tools: ['search', 'fetch']
       max_retries: 5
 ```
-- [Tool use via code](https://www.anthropic.com/engineering/code-execution-with-mcp)(Anthropic)
-- [Code mode in production](https://blog.cloudflare.com/code-mode/)(Cloudflare)
+- [Tool use via code](https://www.anthropic.com/engineering/code-execution-with-mcp) (Anthropic)
+- [Code mode in production](https://blog.cloudflare.com/code-mode/) (Cloudflare)
 - [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
 
 **Bases:** `AbstractCapability[AgentDepsT]`
@@ -289,8 +296,11 @@ agent = Agent('openai:gpt-5', capabilities=[CodeMode(tools=['search', 'fetch'])]
 ```
 By default, sandboxed code cannot touch the host — no filesystem, environment variables, or clock. Two parameters open it up:
 
-- `mount`shares specific host directories: reach for it when the agent reads or writes real files.
-- `os_access`routes the sandbox’s OS calls to a handler you provide: reach for it when the agent needs environment variables, the clock, or filesystem behavior you control.
+- `mount` shares specific host directories: reach for it when the agent reads or
+writes real files.
+- `os_access` routes the sandbox’s OS calls to a handler you provide: reach for it
+when the agent needs environment variables, the clock, or filesystem behavior you
+control.
 
 `mount` exposes selected host directories. The built-in `OSAccess` has an
 isolated filesystem and environment but uses the host clock by default; custom
@@ -302,9 +312,10 @@ agent = Agent('openai:gpt-5', capabilities=[CodeMode(mount=MountDir(virtual_path
 ```
 Which wrapped tools should be sandboxed inside `run_code`.
 
-- `'all'`(default): every eligible regular tool the agent has is sandboxed.
-- `Sequence[str]`: only tools whose names are listed are sandboxed.
-- Callable `(ctx, tool_def) -> bool | Awaitable[bool]`: tools where the callable returns`True`are sandboxed; the rest stay as native tool calls.
+- `'all'` (default): every eligible regular tool the agent has is sandboxed.
+- `Sequence[str]` : only tools whose names are listed are sandboxed.
+- Callable `(ctx, tool_def) -> bool | Awaitable[bool]` : tools where the
+callable returns`True` are sandboxed; the rest stay as native tool calls.
 
 **Type:** `ToolSelector`[`AgentDepsT`] **Default:** `field(default='all')`
 
@@ -324,26 +335,30 @@ Keep the `run_code` tool definition cache-stable as the sandboxed toolset grows.
 
 By default the signatures of all sandboxed tools are rendered into `run_code`’s
 description, which lives in the prompt-cache-keyed tool-definitions block. When the
-toolset changes mid-run — e.g. [ ToolSearch](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ToolSearch)
-reveals a new tool that then gets folded into 
+toolset changes mid-run — e.g. [`ToolSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ToolSearch)
+reveals a new tool that then gets folded into `run_code` — the description changes and
+busts the prefix cache from that point on.
 
-`run_code` — the description changes and
-busts the prefix cache from that point on.Set `dynamic_catalog=True` to instead:
+Set `dynamic_catalog=True` to instead:
 
 - keep only the static base prose (sandbox restrictions, return-value contract) in
-`run_code.description`, so the tool-definitions block stays byte-stable across discoveries;
+`run_code.description` , so the tool-definitions block stays byte-stable across
+discoveries;
 - move the “available functions” catalog (TypedDict definitions + signatures) into
 agent instructions as a dynamic
-`InstructionPart`
+[`InstructionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart) , which providers with
+static/dynamic instruction splitting (Anthropic, Bedrock) place after the cache
+breakpoint;
 - announce newly-discovered tools via a short
-`SystemPromptPart``RunContext.enqueue`
+[`SystemPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.SystemPromptPart) enqueued through[`RunContext.enqueue`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) , so the model knows the
+new functions are callable without rewriting the cached description.
 
-This pays off when paired with [ ToolSearch](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ToolSearch): the
+This pays off when paired with [`ToolSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ToolSearch): the
 tool-definitions cache survives discoveries at the cost of a larger (but
-cache-friendly) system prompt. With a fixed toolset and no 
+cache-friendly) system prompt. With a fixed toolset and no `ToolSearch`, the default
+keeps the system prompt shorter and is the better choice.
 
-`ToolSearch`, the default
-keeps the system prompt shorter and is the better choice.**Type:** `bool`**Default:** `False`
+**Type:** `bool`**Default:** `False`
 
 ```
 def get_ordering() -> CapabilityOrdering
@@ -368,11 +383,9 @@ def get_wrapper_toolset(
 ```
 Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
 
-[ AbstractToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[
+[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
 
-`AgentDepsT`] | 
-
-`None``@async`
+`@async`
 
 ```
 def after_tool_execute(
@@ -387,11 +400,11 @@ def after_tool_execute(
 Announce newly-discovered tools from a local `search_tools` return.
 
 Only active with `dynamic_catalog=True`. The native-search path is handled by
-[ after_model_request](/docs/ai/harness/code-mode/#pydantic_ai_harness.CodeMode.after_model_request) instead
-(server-side search emits a 
+[`after_model_request`](/docs/ai/harness/code-mode/#pydantic_ai_harness.CodeMode.after_model_request) instead
+(server-side search emits a `NativeToolSearchReturnPart` rather than a regular tool
+execute result).
 
-`NativeToolSearchReturnPart` rather than a regular tool
-execute result).`@async`
+`@async`
 
 ```
 def after_model_request(

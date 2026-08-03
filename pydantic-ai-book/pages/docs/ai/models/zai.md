@@ -2,7 +2,7 @@
 type: Web Page
 title: Z.AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/zai
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Z.AI
@@ -31,7 +31,7 @@ model = ZaiModel('glm-5')
 agent = Agent(model)
 ...
 ```
-Z.AI’s `glm-5.2`, `glm-5.1`, `glm-5`, `glm-4.7`, `glm-4.6` (hybrid thinking), and `glm-4.5` (interleaved thinking) models support thinking/reasoning mode, where the model produces reasoning content before the final response. This includes the `glm-4.6v` and `glm-4.5v` vision models. Configure this through the unified [ thinking](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
+Z.AI’s `glm-5.2`, `glm-5.1`, `glm-5`, `glm-4.7`, `glm-4.6` (hybrid thinking), and `glm-4.5` (interleaved thinking) models support thinking/reasoning mode, where the model produces reasoning content before the final response. This includes the `glm-4.6v` and `glm-4.5v` vision models. Configure this through the unified [`thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
 
 ```
 from pydantic_ai import Agent
@@ -60,11 +60,9 @@ agent = Agent(
 ```
 See the [Z.AI thinking mode documentation](https://docs.z.ai/guides/capabilities/thinking-mode#preserved-thinking) for more details.
 
-You can provide a custom [ Provider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) via the 
+You can provide a custom [`Provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) via the `provider` argument. In the simplest case, pass [`ZaiProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.zai.ZaiProvider) with just an API key. If you also want to customize the underlying `httpx.AsyncClient`, pass it when constructing the provider:
 
-`provider` argument. In the simplest case, pass [with just an API key. If you also want to customize the underlying](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.zai.ZaiProvider)
-
-`ZaiProvider``httpx.AsyncClient`, pass it when constructing the provider:```
+```
 from httpx import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.zai import ZaiModel

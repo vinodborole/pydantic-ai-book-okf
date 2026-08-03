@@ -2,7 +2,7 @@
 type: Web Page
 title: Cohere | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/cohere
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Cohere
@@ -56,7 +56,7 @@ model = CohereModel(
 agent = Agent(model)
 ...
 ```
-You can customize model behavior using [ CohereModelSettings](/docs/ai/api/models/cohere/#pydantic_ai.models.cohere.CohereModelSettings):
+You can customize model behavior using [`CohereModelSettings`](/docs/ai/api/models/cohere/#pydantic_ai.models.cohere.CohereModelSettings):
 
 ```
 from pydantic_ai import Agent

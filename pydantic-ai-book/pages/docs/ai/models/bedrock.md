@@ -2,32 +2,30 @@
 type: Web Page
 title: Bedrock | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/bedrock
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Bedrock
 
 [Amazon Bedrock](https://aws.amazon.com/bedrock/) exposes foundation models from many providers, and Pydantic AI reaches it through two separate AWS APIs. Pick the route by model prefix:
 
-- [Bedrock Converse](#bedrock-converse)- `bedrock:`) — the broadest catalog, including Anthropic, Amazon, Cohere, Meta, Mistral, DeepSeek, Qwen, and- [many more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName), through the Bedrock Runtime Converse API. This is the route for almost every Bedrock model.
-- [Bedrock Mantle](#bedrock-mantle)- `bedrock-mantle:`) — the modern OpenAI models (GPT-5.x and GPT-OSS), which Bedrock serves only through- [Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html)’s OpenAI-compatible API.
+- **[Bedrock Converse](#bedrock-converse)** (`bedrock:` ) — the broadest catalog, including Anthropic, Amazon, Cohere, Meta, Mistral, DeepSeek, Qwen, and[many more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) , through the Bedrock Runtime Converse API. This is the route for almost every Bedrock model.
+- **[Bedrock Mantle](#bedrock-mantle)** (`bedrock-mantle:` ) — the modern OpenAI models (GPT-5.x and GPT-OSS), which Bedrock serves only through[Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html) ’s OpenAI-compatible API.
 
 Both routes authenticate with the same AWS credentials. The `bedrock:` prefix always uses Converse; requesting a frontier OpenAI model (GPT-5.4 or newer) through it raises an error pointing you to `bedrock-mantle:`, since Converse doesn’t serve those models.
 
 | Route | Prefix | Models | Optional group | Model class | 
 |---|---|---|---|---|
-| [Converse](#bedrock-converse) | `bedrock:` | Anthropic, Amazon, Cohere, Meta, Mistral, and [more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) | `bedrock` | `BedrockConverseModel` | 
-| [Mantle](#bedrock-mantle) | `bedrock-mantle:` | OpenAI GPT-5.x and GPT-OSS | `bedrock-mantle` | ,`BedrockMantleResponsesModel``BedrockMantleChatModel` | 
+| [Converse](#bedrock-converse) | `bedrock:` | Anthropic, Amazon, Cohere, Meta, Mistral, and [more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) | `bedrock` | [`BedrockConverseModel`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) | 
+| [Mantle](#bedrock-mantle) | `bedrock-mantle:` | OpenAI GPT-5.x and GPT-OSS | `bedrock-mantle` | [`BedrockMantleResponsesModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleResponsesModel) ,[`BedrockMantleChatModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleChatModel) | 
 
-[ BedrockConverseModel](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) talks to the 
-
-[Bedrock Runtime Converse API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html), which serves the broadest set of Bedrock models.
+[`BedrockConverseModel`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) talks to the [Bedrock Runtime Converse API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html), which serves the broadest set of Bedrock models.
 
 To use `BedrockConverseModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `bedrock` optional group:
 
 To use [AWS Bedrock](https://aws.amazon.com/bedrock/), you’ll need an AWS account with Bedrock enabled and appropriate credentials. You can use either AWS credentials directly or a pre-configured boto3 client.
 
-[ BedrockModelName](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) contains a list of available Bedrock models, including models from Anthropic, Amazon, Cohere, Meta, and Mistral.
+[`BedrockModelName`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) contains a list of available Bedrock models, including models from Anthropic, Amazon, Cohere, Meta, and Mistral.
 
 You can set your AWS credentials as environment variables ([among other options](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables)):
 
@@ -49,28 +47,26 @@ agent = Agent(model)
 ```
 You can customize the Bedrock Runtime API calls by adding additional parameters, such as [guardrail
 configurations](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) and [performance settings](https://docs.aws.amazon.com/bedrock/latest/userguide/latency-optimized-inference.html). For a complete list of configurable parameters, refer to the
-documentation for [ BedrockModelSettings](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings).
+documentation for [`BedrockModelSettings`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings).
 
 Bedrock supports controlling the [service tier](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles.html) to manage throughput and cost.
-You can use the unified [ service_tier](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field or the provider-specific 
+You can use the unified [`service_tier`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field or the provider-specific [`bedrock_service_tier`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_service_tier) field. `bedrock_service_tier` takes precedence over the unified field when both are set.
 
-[field.](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_service_tier)
+The unified field maps as follows for Bedrock:
 
-`bedrock_service_tier``bedrock_service_tier` takes precedence over the unified field when both are set.The unified field maps as follows for Bedrock:
+- `'auto'` : the`serviceTier` field is omitted from the request, so AWS applies its server-side default (Standard tier).
+- `'default'` : explicitly sent as`{'type': 'default'}` — opts out of any future server-side auto-promotion to premium tiers.
+- `'flex'` : sent as`{'type': 'flex'}` .
+- `'priority'` : sent as`{'type': 'priority'}` .
 
-- `'auto'`: the- `serviceTier`field is omitted from the request, so AWS applies its server-side default (Standard tier).
-- `'default'`: explicitly sent as- `{'type': 'default'}`— opts out of any future server-side auto-promotion to premium tiers.
-- `'flex'`: sent as- `{'type': 'flex'}`.
-- `'priority'`: sent as- `{'type': 'priority'}`.
-
-To request Bedrock’s `'reserved'` tier (which requires a pre-purchased capacity reservation), set [ bedrock_service_tier](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_service_tier) directly — it isn’t reachable through the unified field.
+To request Bedrock’s `'reserved'` tier (which requires a pre-purchased capacity reservation), set [`bedrock_service_tier`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_service_tier) directly — it isn’t reachable through the unified field.
 
 Bedrock supports [prompt caching](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html) on Anthropic models so you can reuse expensive context across requests. Pydantic AI provides four ways to use prompt caching:
 
-- **Cache User Messages with**: Insert a- `CachePoint`- `CachePoint`marker to cache everything before it in the current user message. Pass- `CachePoint(ttl='1h')`to opt into the extended cache duration.
-- **Cache System Instructions**: Set- `BedrockModelSettings.bedrock_cache_instructions`- `True`(uses 5m TTL by default) or specify- `'5m'`/- `'1h'`directly. When you have both static and dynamic- [instructions](/docs/ai/core-concepts/agent#instructions), the cache point is placed after the last static instruction, so dynamic instructions can change without invalidating the static cache.
-- **Cache Tool Definitions**: Set- `BedrockModelSettings.bedrock_cache_tool_definitions`- `True`(uses 5m TTL by default) or specify- `'5m'`/- `'1h'`directly.
-- **Cache All Messages**: Set- `BedrockModelSettings.bedrock_cache_messages`- `True`(uses 5m TTL by default) or specify- `'5m'`/- `'1h'`directly to automatically cache the last user message.
+1. **Cache User Messages with [`CachePoint`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint)** : Insert a`CachePoint` marker to cache everything before it in the current user message. Pass`CachePoint(ttl='1h')` to opt into the extended cache duration.
+2. **Cache System Instructions** : Set[`BedrockModelSettings.bedrock_cache_instructions`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_cache_instructions) to`True` (uses 5m TTL by default) or specify`'5m'` /`'1h'` directly. When you have both static and dynamic[instructions](/docs/ai/core-concepts/agent#instructions) , the cache point is placed after the last static instruction, so dynamic instructions can change without invalidating the static cache.
+3. **Cache Tool Definitions** : Set[`BedrockModelSettings.bedrock_cache_tool_definitions`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_cache_tool_definitions) to`True` (uses 5m TTL by default) or specify`'5m'` /`'1h'` directly.
+4. **Cache All Messages** : Set[`BedrockModelSettings.bedrock_cache_messages`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_cache_messages) to`True` (uses 5m TTL by default) or specify`'5m'` /`'1h'` directly to automatically cache the last user message.
 
 Use `bedrock_cache_messages` to automatically cache the last user message:
 
@@ -129,7 +125,7 @@ result = agent.run_sync([
 ])
 print(result.output)
 ```
-Access cache usage statistics via [ RequestUsage](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RequestUsage):
+Access cache usage statistics via [`RequestUsage`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RequestUsage):
 
 ```
 from pydantic_ai import Agent, CachePoint
@@ -150,9 +146,9 @@ Bedrock enforces a maximum of 4 cache points per request. Pydantic AI automatica
 
 Cache points can be placed in three locations:
 
-- **System Prompt**: Via- `bedrock_cache_instructions`setting (adds cache point to last system prompt block)
-- **Tool Definitions**: Via- `bedrock_cache_tool_definitions`setting (adds cache point to last tool definition)
-- **Messages**: Via- `CachePoint`markers or- `bedrock_cache_messages`setting (adds cache points to message content)
+1. **System Prompt** : Via`bedrock_cache_instructions` setting (adds cache point to last system prompt block)
+2. **Tool Definitions** : Via`bedrock_cache_tool_definitions` setting (adds cache point to last tool definition)
+3. **Messages** : Via`CachePoint` markers or`bedrock_cache_messages` setting (adds cache points to message content)
 
 Each setting uses **at most 1 cache point**, but you can combine them.
 
@@ -186,8 +182,8 @@ print(result.output)
 **Key Points**:
 
 - System and tool cache points are **always preserved**
-- The cache point created by `bedrock_cache_messages`is**always preserved**(as it’s the newest message cache point)
-- Additional `CachePoint`markers in messages are removed from oldest to newest when the limit is exceeded
+- The cache point created by `bedrock_cache_messages` is**always preserved** (as it’s the newest message cache point)
+- Additional `CachePoint` markers in messages are removed from oldest to newest when the limit is exceeded
 - This ensures critical caching (instructions/tools) is maintained while still benefiting from message-level caching
 
 You can provide a custom `BedrockProvider` via the `provider` argument. This is useful when you want to specify credentials directly or use a custom boto3 client:
@@ -224,7 +220,7 @@ model = BedrockConverseModel(
 agent = Agent(model)
 ...
 ```
-AWS Bedrock supports [custom application inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-create.html) for cost tracking and resource management. Set [ bedrock_inference_profile](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_inference_profile) to route requests through an inference profile while keeping the base model name for detecting model capabilities:
+AWS Bedrock supports [custom application inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-create.html) for cost tracking and resource management. Set [`bedrock_inference_profile`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_inference_profile) to route requests through an inference profile while keeping the base model name for detecting model capabilities:
 
 ```
 from pydantic_ai import Agent
@@ -266,9 +262,9 @@ model = BedrockConverseModel(
 )
 agent = Agent(model)
 ```
-- `'legacy'`(default): 5 attempts, basic retry behavior
-- `'standard'`: 3 attempts, more comprehensive error coverage
-- `'adaptive'`: 3 attempts with client-side rate limiting (recommended for handling- `ThrottlingException`)
+- `'legacy'` (default): 5 attempts, basic retry behavior
+- `'standard'` : 3 attempts, more comprehensive error coverage
+- `'adaptive'` : 3 attempts with client-side rate limiting (recommended for handling`ThrottlingException` )
 
 For more details on boto3 retry configuration, see the [AWS boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html).
 
@@ -280,11 +276,9 @@ agent = Agent('bedrock-mantle:openai.gpt-5.6-luna')
 ```
 It requires the `bedrock-mantle` optional group:
 
-The [ BedrockMantleProvider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.bedrock_mantle.BedrockMantleProvider) authenticates with the same AWS credentials as the 
+The [`BedrockMantleProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.bedrock_mantle.BedrockMantleProvider) authenticates with the same AWS credentials as the [Converse route](#environment-variables) — a bearer token via `AWS_BEARER_TOKEN_BEDROCK`, or AWS access keys / profile via SigV4 — and derives its endpoint from `region_name` (or the `AWS_DEFAULT_REGION` / `AWS_REGION` environment variables).
 
-[Converse route](#environment-variables)— a bearer token via
-
-`AWS_BEARER_TOKEN_BEDROCK`, or AWS access keys / profile via SigV4 — and derives its endpoint from `region_name` (or the `AWS_DEFAULT_REGION` / `AWS_REGION` environment variables).The model name determines the endpoint family:
+The model name determines the endpoint family:
 
 | Model name | Interface | 
 |---|---|
@@ -292,9 +286,9 @@ The [ BedrockMantleProvider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.pro
 | GPT-OSS, e.g. `bedrock-mantle:openai.gpt-oss-120b` | OpenAI Responses at `/v1` | 
 | GPT-OSS Safeguard, e.g. `bedrock-mantle:openai.gpt-oss-safeguard-20b` | OpenAI Chat Completions at `/v1` | 
 
-To use a custom Mantle origin (for example a proxy), pass a `base_url` to [ BedrockMantleProvider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.bedrock_mantle.BedrockMantleProvider); its origin (with any 
+To use a custom Mantle origin (for example a proxy), pass a `base_url` to [`BedrockMantleProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.bedrock_mantle.BedrockMantleProvider); its origin (with any `/openai/v1` or `/v1` suffix stripped) is used to route between the two endpoint families per model, just like `region_name`:
 
-`/openai/v1` or `/v1` suffix stripped) is used to route between the two endpoint families per model, just like `region_name`:```
+```
 from pydantic_ai import Agent
 from pydantic_ai.models.bedrock_mantle import BedrockMantleResponsesModel
 from pydantic_ai.providers.bedrock_mantle import BedrockMantleProvider
@@ -302,17 +296,9 @@ provider = BedrockMantleProvider(base_url='https://bedrock-mantle.us-east-1.api.
 model = BedrockMantleResponsesModel('openai.gpt-5.6-luna', provider=provider)
 agent = Agent(model)
 ```
-Mantle models are served by Pydantic AI’s OpenAI model classes — [ BedrockMantleResponsesModel](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleResponsesModel) and 
+Mantle models are served by Pydantic AI’s OpenAI model classes — [`BedrockMantleResponsesModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleResponsesModel) and [`BedrockMantleChatModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleChatModel) — so they accept the same settings as the direct [OpenAI](/docs/ai/models/openai) models ([`OpenAIResponsesModelSettings`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings) and [`OpenAIChatModelSettings`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModelSettings)).
 
-[— so they accept the same settings as the direct](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleChatModel)
-
-`BedrockMantleChatModel`[OpenAI](/docs/ai/models/openai)models (
-
-[and](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings)
-
-`OpenAIResponsesModelSettings`[).](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModelSettings)
-
-`OpenAIChatModelSettings`The Converse-route features above — [prompt caching](#prompt-caching), [service tier](#service-tier), and [application inference profiles](#using-aws-application-inference-profiles) — are specific to the Converse API and don’t apply to the Mantle route.
+The Converse-route features above — [prompt caching](#prompt-caching), [service tier](#service-tier), and [application inference profiles](#using-aws-application-inference-profiles) — are specific to the Converse API and don’t apply to the Mantle route.
 
 # Citations
 

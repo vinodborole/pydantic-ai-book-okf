@@ -2,35 +2,31 @@
 type: Web Page
 title: Pydantic AI Gateway | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/gateway
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Pydantic AI Gateway
 
-** Pydantic AI Gateway** is a unified interface for accessing multiple AI providers with a single key, managed through 
-
-[Pydantic Logfire](https://pydantic.dev/logfire). Features include built-in OpenTelemetry observability, real-time cost monitoring, failover management, and native integration with the other tools in the
-
-[Pydantic stack](https://pydantic.dev/).
+**[Pydantic AI Gateway](https://pydantic.dev/ai-gateway)** is a unified interface for accessing multiple AI providers with a single key, managed through [Pydantic Logfire](https://pydantic.dev/logfire). Features include built-in OpenTelemetry observability, real-time cost monitoring, failover management, and native integration with the other tools in the [Pydantic stack](https://pydantic.dev/).
 
 Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/).
 
 To help you get started with Pydantic AI Gateway, some code examples on the Pydantic AI documentation include a “Via Pydantic AI Gateway” tab, alongside a “Direct to Provider API” tab with the standard Pydantic AI model string. The main difference between them is that when using Gateway, model strings use the `gateway/` prefix.
 
-- **API key management**: Access multiple LLM providers with a single Gateway key.
-- **Cost Limits**: Set spending limits at project, user, and API key levels with daily, weekly, and monthly caps.
-- **BYOK and managed providers:**Bring your own API keys (BYOK) from LLM providers, or pay for inference directly through the platform.
-- **Multi-provider support:**Access models from OpenAI, Anthropic, Google Vertex, Groq, and AWS Bedrock.- *More providers coming soon*.
-- **Routing groups:**Configure- [routing groups](#routing-groups)to fail over between providers serving the same model, or load-balance traffic across them by weight.
-- **Backend observability:**Log every request through- [Pydantic Logfire](https://pydantic.dev/logfire)or any OpenTelemetry backend (- *coming soon*).
-- **Zero translation**: Unlike traditional AI gateways that translate everything to one common schema,- **Pydantic AI Gateway**allows requests to flow through directly in each provider’s native format. This gives you immediate access to new model features as soon as they are released.
-- **Enterprise ready**: Inherits Logfire’s enterprise features — including SSO, custom roles and permissions.
+- **API key management** : Access multiple LLM providers with a single Gateway key.
+- **Cost Limits** : Set spending limits at project, user, and API key levels with daily, weekly, and monthly caps.
+- **BYOK and managed providers:** Bring your own API keys (BYOK) from LLM providers, or pay for inference directly through the platform.
+- **Multi-provider support:** Access models from OpenAI, Anthropic, Google Vertex, Groq, and AWS Bedrock.*More providers coming soon* .
+- **Routing groups:** Configure[routing groups](#routing-groups) to fail over between providers serving the same model, or load-balance traffic across them by weight.
+- **Backend observability:** Log every request through[Pydantic Logfire](https://pydantic.dev/logfire) or any OpenTelemetry backend (*coming soon* ).
+- **Zero translation** : Unlike traditional AI gateways that translate everything to one common schema,**Pydantic AI Gateway** allows requests to flow through directly in each provider’s native format. This gives you immediate access to new model features as soon as they are released.
+- **Enterprise ready** : Inherits Logfire’s enterprise features — including SSO, custom roles and permissions.
 
 This section contains instructions on how to set up your account and run your app with Pydantic AI Gateway credentials.
 
-- Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/)
-- Choose a region and create an account.
-- Activate the gateway in your organizations settings.
+1. Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/)
+2. Choose a region and create an account.
+3. Activate the gateway in your organizations settings.
 
 Go to your organization’s Gateway settings in Logfire and create an API key.
 
@@ -40,7 +36,7 @@ To use different models, change the model string `gateway/<api_format>:<model_na
 
 Examples of providers and models that can be used are:
 
-| Provider | API Format | Example Model | 
+| **Provider** | **API Format** | **Example Model** | 
 |---|---|---|
 | OpenAI | `openai` | `gateway/openai:gpt-5.2` | 
 | Anthropic | `anthropic` | `gateway/anthropic:claude-sonnet-4-6` | 
@@ -54,7 +50,7 @@ Set the `PYDANTIC_AI_GATEWAY_API_KEY` environment variable to your Gateway API k
 
 You can access multiple models with the same API key, as shown in the code snippet below.
 
-Pass your API key directly using the [ gateway_provider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.gateway.gateway_provider):
+Pass your API key directly using the [`gateway_provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.gateway.gateway_provider):
 
 To use an alternate provider or routing group, you can specify it in the route parameter:
 
@@ -97,8 +93,6 @@ For more details on configuring custom providers in Codex, see the [Codex custom
 If you already have a `~/.codex/config.toml`, add the `[model_providers.pydantic_gateway]` block and update `model_provider` instead of replacing the whole file. Replace `gpt-5.4` with whichever OpenAI Responses model you want Codex to use.
 
 Launch Codex by typing `codex`. All requests will now route through the Pydantic AI Gateway.
-
-Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`).
 
 Use the base URL that matches your Logfire region (`gateway-us` or `gateway-eu`).
 
@@ -148,19 +142,19 @@ main().catch((err) => {
 ```
 A **routing group** is a named collection of providers that all serve the same model. Each member has a **priority**, a **weight**, and an **active** flag, and those three values together let a single group express two different routing strategies:
 
-- **Failover / fallback**: Assign members different priorities. The Gateway always tries the highest-priority active member first, and only falls through to a lower-priority member when the higher one is unavailable (for example if it is down, rate-limited, or returns an error).
-- **Load balancing**: Assign two or more members the same priority and give each a weight. The Gateway splits traffic across those members in proportion to their weights.
+- **Failover / fallback** : Assign members different priorities. The Gateway always tries the highest-priority active member first, and only falls through to a lower-priority member when the higher one is unavailable (for example if it is down, rate-limited, or returns an error).
+- **Load balancing** : Assign two or more members the same priority and give each a weight. The Gateway splits traffic across those members in proportion to their weights.
 
 The two strategies compose: you can have, for example, a top priority tier with two providers load-balanced 70/30, and a second priority tier that only receives traffic when both top-tier providers fail.
 
 Routing groups are managed from your organization’s Gateway settings in Logfire:
 
-- Open **Gateway -> Routing Groups**and click**Add Routing Group**.
-- Give the group a slug (e.g. `anthropic-routing`) and an optional description.
-- Open the group’s **Members**page and add one or more providers. For each member set:- **Priority**- higher values are tried first. Use different priorities across members for failover.
-- **Weight**- load-balancing weight used between members that share the same priority.
-- **Active**- inactive members are skipped during routing.
- 
+1. Open **Gateway -> Routing Groups** and click**Add Routing Group** .
+2. Give the group a slug (e.g. `anthropic-routing` ) and an optional description.
+3. Open the group’s **Members** page and add one or more providers. For each member set:
+  - **Priority** - higher values are tried first. Use different priorities across members for failover.
+  - **Weight** - load-balancing weight used between members that share the same priority.
+  - **Active** - inactive members are skipped during routing.
 
 Point the Gateway provider at the group via the `route` parameter (the group’s slug):
 
@@ -172,10 +166,10 @@ Each provider has a **Require pricing data** toggle in its settings. When enable
 
 The rejection response depends on the provider type:
 
-- **Built-in providers**(Pydantic-managed):- `404`with a message asking you to let us know on Slack so we can add the model.
-- **Custom providers**(your own API keys):- `400`indicating that pricing data is required, with a hint to disable the toggle if you want the request through anyway.
+- **Built-in providers** (Pydantic-managed):`404` with a message asking you to let us know on Slack so we can add the model.
+- **Custom providers** (your own API keys):`400` indicating that pricing data is required, with a hint to disable the toggle if you want the request through anyway.
 
-We are actively working on supporting more providers and models. If there’s a specific provider or model you’d like to see supported, please let us know on [Slack](https://logfire.pydantic.dev/docs/join-slack/) or [open an issue on  genai-prices](https://github.com/pydantic/genai-prices/issues/new).
+We are actively working on supporting more providers and models. If there’s a specific provider or model you’d like to see supported, please let us know on [Slack](https://logfire.pydantic.dev/docs/join-slack/) or [open an issue on `genai-prices`](https://github.com/pydantic/genai-prices/issues/new).
 
 # Citations
 

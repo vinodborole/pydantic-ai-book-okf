@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent web research tools backed by the Exa searc
   API -- search with relevant excerpts and optional synthesized text summaries, full-page
   retrieval, opt-in deep search, and deferred Exa agent runs.
 resource: https://pydantic.dev/docs/ai/harness/exa-search
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Exa Search
@@ -39,10 +39,10 @@ print(result.output)
 
 | Tool | Purpose | 
 |---|---|
-| `web_search` | Search the web and return the top `num_results`pages, each with title, URL, and its most relevant excerpts. | 
-| `get_page` | Retrieve the full text of one specific URL — a promising `web_search`hit, or a URL the user provided. | 
-| `deep_search` | Run Exa’s multi-step deep search and return a synthesized, cited answer. Opt-in via `include_deep_search=True`. | 
-| `exa_agent` | Delegate a research task to an asynchronous Exa agent run. Provided by the separate `ExaAgent`capability. | 
+| `web_search` | Search the web and return the top `num_results` pages, each with title, URL, and its most relevant excerpts. | 
+| `get_page` | Retrieve the full text of one specific URL — a promising `web_search` hit, or a URL the user provided. | 
+| `deep_search` | Run Exa’s multi-step deep search and return a synthesized, cited answer. Opt-in via `include_deep_search=True` . | 
+| `exa_agent` | Delegate a research task to an asynchronous Exa agent run. Provided by the separate `ExaAgent` capability. | 
 
 `web_search` returns short excerpts (Exa highlights) rather than full page
 text, following [Exa’s own guidance for agents](https://exa.ai/docs/reference/search-api-guide-for-coding-agents),
@@ -59,7 +59,7 @@ re-applied to the response.
 
 A URL or question that returns no content, a rate limit, or a transient API or
 network failure surfaces to the model as a
-[ ModelRetry](/docs/ai/tools-toolsets/tools-advanced/#tool-retries) rather than a
+[`ModelRetry`](/docs/ai/tools-toolsets/tools-advanced/#tool-retries) rather than a
 hard error: the run continues and the model can correct the URL, rephrase, or
 try again. Authentication failures (401/403) are configuration errors and
 propagate.
@@ -95,14 +95,15 @@ is returned as before, and when Exa returns a summary it is prepended as a
 `Summary:` line.
 
 Every tool returns a
-[ ToolReturn](https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced/#advanced-tool-returns):
-
+[`ToolReturn`](https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced/#advanced-tool-returns):
 `return_value` carries the readable text the model sees (unchanged from
 previous releases, including the `Sources:` blocks), and `metadata` carries
 the sources as structured `ExaSource` records (`{'url': ..., 'title': ...}`)
 under the `'sources'` key. Metadata is never sent to the model; the
 application reads it from the `ToolReturnPart` in the message history, so
-rendering citations needs no text parsing:```
+rendering citations needs no text parsing:
+
+```
 from pydantic_ai.messages import ModelRequest, ToolReturnPart
 for message in result.all_messages():
     if isinstance(message, ModelRequest):
@@ -258,7 +259,7 @@ ExaSearch(client=AsyncExa(api_key='...'))
 The API may change between releases while the capability settles; breaking changes ship deprecation warnings where practical.
 
 Pydantic AI core ships a provider-adaptive
-[ WebSearch](/docs/ai/capabilities/overview#provider-adaptive-tools)
+[`WebSearch`](/docs/ai/capabilities/overview#provider-adaptive-tools)
 capability: on models with a native search tool it uses the provider’s own
 search, executed server-side; elsewhere it falls back to a local DuckDuckGo
 tool. Reach for it when you want search that follows the model.
@@ -358,11 +359,9 @@ desired summary format (it is sent as the schema’s `description`), or
 `True` for an unconstrained summary. The tool’s return shape is unchanged:
 the summary is prepended as a `Summary:` line when Exa returns one.
 
-**Type:** [ bool](https://docs.python.org/3/library/functions.html#bool) | 
+**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
 
-`str`**Default:**
-
-`False`Also expose the `deep_search` tool. Off by default.
+Also expose the `deep_search` tool. Off by default.
 
 Deep search (Exa search `type='deep'`) runs a multi-step agentic search
 and synthesizes a cited answer in one call. Each call invests more time
@@ -377,33 +376,23 @@ If non-empty, search results only come from these domains (allowlist).
 Applies to `web_search` and `deep_search`. Mutually exclusive with
 `exclude_domains`.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(list[str]))`Search results never come from these domains (denylist).
+Search results never come from these domains (denylist).
 
 Applies to `web_search` and `deep_search`. Mutually exclusive with
 `include_domains`.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(list[str]))`Custom research guidance for the system prompt.
+Custom research guidance for the system prompt.
 
 Leave as `None` for the default guidance (which adapts to
 `include_deep_search`), or set `''` to contribute no instructions at all.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Exa client to use; when `None`, an `exa_py.AsyncExa` is built from `EXA_API_KEY`.
+Exa client to use; when `None`, an `exa_py.AsyncExa` is built from `EXA_API_KEY`.
 
 Any object satisfying the `ExaClient` protocol works: use it to pass an API
 key explicitly, point at a different base URL, or substitute a fake in tests.
@@ -486,33 +475,19 @@ agent run. With `'external'`, calls bubble up as `DeferredToolRequests`
 output for the host application to resolve (see `agent_run_result`), which
 suits durable workers that outlive a single process.
 
-**Type:** [ Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[‘inline’, ‘external’] 
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘inline’, ‘external’] **Default:** `'inline'`
 
-**Default:**
-
-`'inline'`Structured output schema for the Exa agent’s result. `None` returns prose.
+Structured output schema for the Exa agent’s result. `None` returns prose.
 
 Accepts a Pydantic model class or a JSON-schema-style dict. A model class is forwarded to the API and a completed run’s structured output is validated against it (a mismatch surfaces as a retry). The dict form skips client-side validation and is the serializable shape used by agent specs.
 
-**Type:** [ type](https://docs.python.org/3/glossary.html#term-type)[
+**Type:** [`type`](https://docs.python.org/3/glossary.html#term-type)[`BaseModel`] | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
-`BaseModel`] | [[](https://docs.python.org/3/reference/expressions.html#dict)
+System prompt forwarded to the Exa agent run; `None` uses the API default.
 
-`dict`[,](https://docs.python.org/3/library/stdtypes.html#str)
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`str`[] |](https://docs.python.org/3/glossary.html#term-object)
-
-`object`
-
-`None`**Default:**
-
-`None`System prompt forwarded to the Exa agent run; `None` uses the API default.
-
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
-
-`None`**Default:**
-
-`None`Milliseconds between polls while resolving a run inline.
+Milliseconds between polls while resolving a run inline.
 
 **Type:** `int`**Default:** `1000`
 
@@ -525,11 +500,9 @@ Custom delegation guidance for the system prompt.
 Leave as `None` for the default guidance, or set `''` to contribute no
 instructions at all.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Exa Agent runs client; when `None`, `exa_py.AsyncExa().agent.runs` is built from `EXA_API_KEY`.
+Exa Agent runs client; when `None`, `exa_py.AsyncExa().agent.runs` is built from `EXA_API_KEY`.
 
 Any object satisfying the `ExaAgentRuns` protocol works: use it to pass an
 API key explicitly or substitute a fake in tests.

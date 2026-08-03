@@ -2,7 +2,7 @@
 type: Web Page
 title: Hugging Face | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/huggingface
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Hugging Face
@@ -13,13 +13,13 @@ To use `HuggingFaceModel`, you need to either install `pydantic-ai`, or install 
 
 To use [Hugging Face](https://huggingface.co/) inference, you’ll need to set up an account which will give you [free tier](https://huggingface.co/docs/inference-providers/pricing) allowance on [Inference Providers](https://huggingface.co/docs/inference-providers). To setup inference, follow these steps:
 
-- Go to [Hugging Face](https://huggingface.co/join)and sign up for an account.
-- Create a new access token in [Hugging Face](https://huggingface.co/settings/tokens).
-- Set the `HF_TOKEN`environment variable to the token you just created.
+1. Go to [Hugging Face](https://huggingface.co/join) and sign up for an account.
+2. Create a new access token in [Hugging Face](https://huggingface.co/settings/tokens) .
+3. Set the `HF_TOKEN` environment variable to the token you just created.
 
 Once you have a Hugging Face access token, you can set it as an environment variable:
 
-You can then use [ HuggingFaceModel](/docs/ai/api/models/huggingface/#pydantic_ai.models.huggingface.HuggingFaceModel) by name:
+You can then use [`HuggingFaceModel`](/docs/ai/api/models/huggingface/#pydantic_ai.models.huggingface.HuggingFaceModel) by name:
 
 ```
 from pydantic_ai import Agent
@@ -35,14 +35,13 @@ model = HuggingFaceModel('Qwen/Qwen3-235B-A22B')
 agent = Agent(model)
 ...
 ```
-By default, the [ HuggingFaceModel](/docs/ai/api/models/huggingface/#pydantic_ai.models.huggingface.HuggingFaceModel) uses the
-
-[that will select automatically the first of the inference providers (Cerebras, Together AI, Cohere..etc) available for the model, sorted by your preferred order in](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider)
-
-`HuggingFaceProvider`[https://hf.co/settings/inference-providers](https://hf.co/settings/inference-providers).
+By default, the [`HuggingFaceModel`](/docs/ai/api/models/huggingface/#pydantic_ai.models.huggingface.HuggingFaceModel) uses the
+[`HuggingFaceProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider) that will select automatically
+the first of the inference providers (Cerebras, Together AI, Cohere..etc) available for the model, sorted by your
+preferred order in [https://hf.co/settings/inference-providers](https://hf.co/settings/inference-providers).
 
 If you want to pass parameters in code to the provider, you can programmatically instantiate the
-[ HuggingFaceProvider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider) and pass it to the model:
+[`HuggingFaceProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider) and pass it to the model:
 
 ```
 from pydantic_ai import Agent
@@ -52,11 +51,8 @@ model = HuggingFaceModel('Qwen/Qwen3-235B-A22B', provider=HuggingFaceProvider(ap
 agent = Agent(model)
 ...
 ```
-[ HuggingFaceProvider](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider) also accepts a custom
-
-[client via the](https://huggingface.co/docs/huggingface_hub/v0.29.3/en/package_reference/inference_client#huggingface_hub.AsyncInferenceClient)
-
-`AsyncInferenceClient``hf_client` parameter, so you can customise
+[`HuggingFaceProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.huggingface.HuggingFaceProvider) also accepts a custom
+[`AsyncInferenceClient`](https://huggingface.co/docs/huggingface_hub/v0.29.3/en/package_reference/inference_client#huggingface_hub.AsyncInferenceClient) client via the `hf_client` parameter, so you can customise
 the `headers`, `bill_to` (billing to an HF organization you’re a member of), `base_url` etc. as defined in the
 [Hugging Face Hub python library docs](https://huggingface.co/docs/huggingface_hub/package_reference/inference_client).
 

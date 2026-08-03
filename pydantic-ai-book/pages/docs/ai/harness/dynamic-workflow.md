@@ -5,7 +5,7 @@ description: Let an orchestrator agent coordinate a catalog of sub-agents by wri
   one sandboxed Python script -- fan-out, chaining, voting, and retry loops in a single
   tool call.
 resource: https://pydantic.dev/docs/ai/harness/dynamic-workflow
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Dynamic Workflow
@@ -20,8 +20,8 @@ If you have met [Code Mode](/docs/ai/harness/code-mode), this will feel familiar
 
 The harness has two delegation capabilities. They trade in the same currency — named, isolated sub-agent runs — but at different altitudes:
 
-- `SubAgents`- `delegate_task(agent_name, task)`tool. Each delegation is its own tool call and its own model turn. It is the right fit when delegations are occasional, or when each result needs the parent’s judgment before the next one.
-- `DynamicWorkflow`moves the choreography into a script. Fan-out, chaining, voting, and retry loops all run inside one tool call, and intermediate results never enter the parent’s context.
+- [`SubAgents`](/docs/ai/harness/subagents) exposes one`delegate_task(agent_name, task)` tool. Each delegation is its own tool call and its own model turn. It is the right fit when delegations are occasional, or when each result needs the parent’s judgment before the next one.
+- `DynamicWorkflow` moves the choreography into a script. Fan-out, chaining, voting, and retry loops all run inside one tool call, and intermediate results never enter the parent’s context.
 
 Start with `SubAgents` if you are not sure. A `delegate_task` orchestrator converts to a workflow catalog without changing the sub-agents themselves.
 
@@ -53,10 +53,10 @@ await summarizer(task="Summarize these review findings:\n" + "\n\n".join(reports
 ```
 The parts that matter:
 
-- Each sub-agent is an `async`function. You call it with`await`.
-- You pass the work as a single keyword argument, `task`. Always by keyword —`reviewer(task="...")`, not`reviewer("...")`.
-- `asyncio.gather(...)`runs the two reviews concurrently instead of one after the other.
-- The last expression’s value becomes the result the model sees. The intermediate `reports`list never leaves the sandbox.
+- Each sub-agent is an `async` function. You call it with`await` .
+- You pass the work as a single keyword argument, `task` . Always by keyword —`reviewer(task="...")` , not`reviewer("...")` .
+- `asyncio.gather(...)` runs the two reviews concurrently instead of one after the other.
+- The last expression’s value becomes the result the model sees. The intermediate `reports` list never leaves the sandbox.
 
 Each call is a full `Agent.run`, with its own model loop, message history, tools, and typed output. Two things follow: calls are **isolated** (a sub-agent remembers nothing from an earlier call, so put everything it needs into `task`), and calls **cost tokens and take time** (which is why this capability gives you budgets, below).
 
@@ -81,7 +81,7 @@ The value of the script’s last expression becomes the tool result — the mode
 
 | The script… | The model receives | 
 |---|---|
-| ends in a value, no print | that value directly (or `{}`if it is`None`) | 
+| ends in a value, no print | that value directly (or `{}` if it is`None` ) | 
 | prints and ends in a value | `{"output": "<printed text>", "result": <value>}` | 
 | prints and ends in `None` | `{"output": "<printed text>"}` | 
 
@@ -100,8 +100,8 @@ A hard, host-enforced ceiling on the number of sub-agent runs in one parent run.
 
 | `forward_usage` | Counter | What the limit means | 
 |---|---|---|
-| `True`(default) | the parent’s `usage`is shared across the tree | a tree-wide cap. Under concurrent fan-out it is best-effort: several sub-agents can pass the check before any of them adds to the count. | 
-| `False` | each sub-agent run counts on its own | per-run limits. A per-run `total_tokens_limit`of`T`with`max_agent_calls`of`N`bounds the tree to roughly`N * T`tokens. | 
+| `True` (default) | the parent’s `usage` is shared across the tree | a tree-wide cap. Under concurrent fan-out it is best-effort: several sub-agents can pass the check before any of them adds to the count. | 
+| `False` | each sub-agent run counts on its own | per-run limits. A per-run `total_tokens_limit` of`T` with`max_agent_calls` of`N` bounds the tree to roughly`N * T` tokens. | 
 
 These limits guard the orchestration script’s own memory, not the sub-agents it calls. The default backstop is 256 MB with no time limit. Printed output is collected separately with Monty’s 10 MiB default cap.
 
@@ -152,9 +152,10 @@ DynamicWorkflow(
 The script runs in Monty, a subset of Python. Knowing the edges matters:
 
 - No third-party libraries.
-- Importable standard-library modules include `sys`,`typing`,`asyncio`,`math`,`json`,`re`,`unicodedata`,`datetime`,`os`, and`pathlib`. Import what you use. Filesystem, environment, and clock operations are not configured for workflow scripts.
-- No wall-clock or timing primitives — no `asyncio.sleep`, no`datetime.datetime.now()`, no`datetime.date.today()`, and no`time`module.
-- `asyncio.gather(...)`runs sub-agents concurrently with positional awaitables but no keyword arguments, including- `return_exceptions=True`. Other task creation and wait APIs are unavailable.
+- Importable standard-library modules include `sys` ,`typing` ,`asyncio` ,`math` ,`json` ,`re` ,`unicodedata` ,`datetime` ,`os` , and`pathlib` . Import what you use. Filesystem, environment, and clock operations are not configured for workflow scripts.
+- No wall-clock or timing primitives — no `asyncio.sleep` , no`datetime.datetime.now()` , no`datetime.date.today()` , and no`time` module.
+- `asyncio.gather(...)` runs sub-agents concurrently with positional awaitables but no keyword
+arguments, including`return_exceptions=True` . Other task creation and wait APIs are unavailable.
 
 Before a script runs it is statically type-checked against the sub-agent signatures. An ordinary, statically provable mistake such as a misspelled function, a positional `task`, or a wrong-typed argument costs one retry but no sub-agent budget or sandbox execution. Values typed as `Any` can reach runtime validation; they are still rejected before a sub-agent runs.
 
@@ -184,12 +185,12 @@ WorkflowAgent(
 ```
 `DynamicWorkflowToolset` and `WorkflowResourceLimits` are also exported from the module for advanced use.
 
-Source: [ pydantic_ai_harness/dynamic_workflow/](https://github.com/pydantic/pydantic-ai-harness/tree/main/pydantic_ai_harness/dynamic_workflow/).
+Source: [`pydantic_ai_harness/dynamic_workflow/`](https://github.com/pydantic/pydantic-ai-harness/tree/main/pydantic_ai_harness/dynamic_workflow/).
 
-- [Code Mode](/docs/ai/harness/code-mode)— the same sandbox, calling the agent’s own tools instead of sub-agents.
-- [Subagents](/docs/ai/harness/subagents)— one-delegation-per-tool-call sub-agents, without the scripted choreography.
-- [Rewriting Bun in Rust](https://bun.com/blog/bun-in-rust)(Bun) — the same pattern at scale, via Claude Code’s dynamic workflows.
-- [Capabilities](/docs/ai/capabilities/overview/)and- [on-demand capabilities](/docs/ai/capabilities/on-demand/).
+- [Code Mode](/docs/ai/harness/code-mode) — the same sandbox, calling the agent’s own tools instead of sub-agents.
+- [Subagents](/docs/ai/harness/subagents) — one-delegation-per-tool-call sub-agents, without the scripted choreography.
+- [Rewriting Bun in Rust](https://bun.com/blog/bun-in-rust) (Bun) — the same pattern at scale, via Claude Code’s dynamic workflows.
+- [Capabilities](/docs/ai/capabilities/overview/) and[on-demand capabilities](/docs/ai/capabilities/on-demand/) .
 
 # Citations
 

@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Shell
@@ -57,7 +57,8 @@ denylist active — `Shell()` alone is a working (if permissive) configuration.
 Output is labelled with `[stdout]` / `[stderr]` markers and an `[exit code: N]`
 line on non-zero exit. When it exceeds `max_output_chars` the **tail** is kept
 (the head is dropped), so errors, stack traces, and the `[stderr]` section —
-which all land at the end — survive truncation.
+which all land at the end — survive truncation. Background command status and
+exit metadata follow the captured output so they remain in the retained tail.
 
 Two mutually exclusive lists decide which executables may run, plus filters for shell operators and interactive commands:
 
@@ -65,18 +66,22 @@ Two mutually exclusive lists decide which executables may run, plus filters for 
 |---|---|
 | `allowed_commands` | If non-empty, only these executables may run (allowlist). | 
 | `denied_commands` | These executables are always rejected (denylist). | 
-| `denied_operators` | Shell operators (e.g. `>`,`>>`,`|`) that are rejected when present. | 
-| `allow_interactive` | If `False`(default), commands that expect a TTY (`vi`,`sudo`,`ssh`, …) are blocked. | 
+| `denied_operators` | Shell operators (e.g. `>` ,`>>` ,`\|` ) that are rejected when present. | 
+| `allow_interactive` | If `False` (default), commands that expect a TTY (`vi` ,`sudo` ,`ssh` , …) are blocked. | 
 
 `allowed_commands` and `denied_commands` are mutually exclusive — set one, not
-both. Setting both raises a `ValueError` at construction. `denied_commands`
-defaults to a list of destructive commands (`rm`, `rmdir`, `mkfs`, `dd`,
-`format`, `shutdown`, `reboot`, `halt`, `poweroff`, `init`); pass an empty list
-to disable it. The executable name is extracted with `shlex`, so arguments don’t
-bypass the check.
+both. Setting non-empty values for both raises a `ValueError` when the toolset
+is constructed. `denied_commands` defaults to a list of destructive commands
+(`rm`, `rmdir`, `mkfs`, `dd`, `format`, `shutdown`, `reboot`, `halt`,
+`poweroff`, `init`); pass an empty list to disable it. The executable name is
+extracted with `shlex`, so arguments don’t bypass the check.
+
+An empty `allowed_commands` collection does not select allowlist mode. The
+configured `denied_commands` remain active; when omitted, this is the built-in
+denylist. Pass `denied_commands=[]` to disable command-name filtering.
 
 A denied command surfaces to the model as a
-[ ModelRetry](/docs/ai/tools-toolsets/tools-advanced/#tool-retries), not a hard error:
+[`ModelRetry`](/docs/ai/tools-toolsets/tools-advanced/#tool-retries), not a hard error:
 the run continues and the model can pick an allowed command instead.
 
 By default a spawned command inherits the agent process’s full environment. In a sandbox that holds LLM API keys, tokens, or other secrets, a command the model writes can read them. Two fields control what the subprocess sees:
@@ -84,7 +89,7 @@ By default a spawned command inherits the agent process’s full environment. In
 | Field | Effect | 
 |---|---|
 | `env` | Explicit environment that replaces inheritance entirely. The subprocess sees exactly these variables and nothing else. | 
-| `denied_env_patterns` | Glob patterns ( `fnmatch`) for variable names stripped from the base environment. Mirrors`denied_commands`. | 
+| `denied_env_patterns` | Glob patterns ( `fnmatch` ) for variable names stripped from the base environment. Mirrors`denied_commands` . | 
 
 `env` is a hard boundary for inherited environment variables: set it and inherited secrets cannot reach the
 subprocess at all (you supply `PATH` and anything else the command needs).
@@ -212,41 +217,27 @@ or `denied_commands` to control what the agent can invoke.
 
 Working directory for command execution.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
-`Path` **Default:**
+If non-empty, only these command names may be executed (allowlist).
 
-`'.'`If non-empty, only these command names may be executed (allowlist).
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
-
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(list[str]))`These command names are always rejected (denylist).
+These command names are always rejected (denylist).
 
 Defaults to blocking destructive commands (rm, dd, shutdown, etc.). Set to an empty list to disable.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `_DEFAULT_DENIED_COMMANDS`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
+Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
 
-`str`**Default:**
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-`field(default_factory=(lambda: list(_DEFAULT_DENIED_COMMANDS)))`Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
-
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
-
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(list[str]))`Default timeout in seconds for command execution.
+Default timeout in seconds for command execution.
 
 **Type:** `float`**Default:** `30.0`
 
-Maximum characters of output returned to the model.
+Maximum characters of output returned to the model. Must be positive.
 
 **Type:** `int`**Default:** `50000`
 
@@ -265,17 +256,9 @@ this to a fixed mapping to start subprocesses with exactly these variables
 and nothing else — a hard boundary that keeps host secrets (LLM API keys,
 tokens) out of commands the agent runs.
 
-**Type:** [ Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
-[,](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`[] |](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`
-
-`None`**Default:**
-
-`None`Glob patterns for environment variable names to strip before spawning.
+Glob patterns for environment variable names to strip before spawning.
 
 Follows the `denied_*` naming convention but matches by glob (`fnmatch`,
 e.g. `OPENAI_*`), since env secrets cluster by prefix — unlike
@@ -284,13 +267,14 @@ any pattern are removed from the base environment; applied on top of `env`
 when both are set, so patterns filter an explicit `env` too. See
 `LLM_API_KEY_ENV_PATTERNS` for a ready-made provider-credential denylist.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
+```
+def __post_init__() -> None
+```
+Resolve the built-in denylist according to the selected policy.
 
-`str`**Default:**
-
-`field(default_factory=(list[str]))````
+```
 def get_toolset() -> ShellToolset[AgentDepsT]
 ```
 Build and return the shell toolset.

@@ -4,7 +4,7 @@ title: FileSystem | Pydantic Docs
 description: Give a Pydantic AI agent sandboxed, glob-filtered file access scoped
   to a single directory tree, with symlink-safe containment checks.
 resource: https://pydantic.dev/docs/ai/harness/filesystem
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # FileSystem
@@ -43,24 +43,29 @@ the root you give it.
 
 | Tool | Purpose | 
 |---|---|
-| `read_file` | Read a text file with line numbers and a content hash. Binary files are detected and not dumped. Supports `offset`/`limit`paging. | 
-| `write_file` | Create or overwrite a file. Optional `expected_hash`rejects stale writes (optimistic concurrency). | 
-| `edit_file` | Exact-string replacement; `old_text`must match exactly once. Optional`expected_hash`. | 
+| `read_file` | Read a text file with line numbers and a content hash. Binary files are detected and not dumped. Supports `offset` /`limit` paging. | 
+| `write_file` | Create or overwrite a file. Optional `expected_hash` rejects stale writes (optimistic concurrency). | 
+| `edit_file` | Exact-string replacement; `old_text` must match exactly once. Optional`expected_hash` . | 
 | `list_directory` | List a directory’s entries with type indicators and sizes. | 
-| `search_files` | Regex search over file contents, optionally narrowed by an `include_glob`. | 
-| `find_files` | Glob search over file names (e.g. `*.py`,`**/*.json`). | 
+| `search_files` | Regex search over file contents, optionally narrowed by an `include_glob` . | 
+| `find_files` | Glob search over file names (e.g. `*.py` ,`**/*.json` ). | 
 | `create_directory` | Create a directory and any missing parents. | 
 | `file_info` | Metadata for a file or directory (size, type, line count, hash, symlink target). | 
 
 Tool errors the model can correct — a missing file, a denied path, a stale
 edit — are surfaced as
-[ ModelRetry](/docs/ai/core-concepts/agent/#reflection-and-self-correction),
+[`ModelRetry`](/docs/ai/core-concepts/agent/#reflection-and-self-correction),
 so the agent gets the error message back and can adjust rather than aborting
 the run.
 
-- **Containment.**Paths resolve relative to- `root_dir`; anything resolving outside — via- `..`, an absolute path, or a symlink — is rejected. Symlinks are resolved with- `os.path.realpath`- *before*the containment check, closing the TOCTTOU window.
-- **Binary detection.**- `read_file`returns a placeholder instead of dumping binary bytes into the model context.
-- **Optimistic concurrency.**- `write_file`/- `edit_file`accept an- `expected_hash`so an agent operating on a stale read is told to re-read rather than silently overwriting newer content.
+- **Containment.** Paths resolve relative to`root_dir` ; anything resolving
+outside — via`..` , an absolute path, or a symlink — is rejected. Symlinks
+are resolved with`os.path.realpath`*before* the containment check, closing
+the TOCTTOU window.
+- **Binary detection.**`read_file` returns a placeholder instead of dumping
+binary bytes into the model context.
+- **Optimistic concurrency.**`write_file` /`edit_file` accept an`expected_hash` so an agent operating on a stale read is told to re-read
+rather than silently overwriting newer content.
 
 Three independent glob lists control access. Patterns are matched with
 `fnmatch`, whose `*` spans `/`, so `*.py` matches `src/main.py` and you rarely
@@ -91,8 +96,14 @@ agent = Agent(
 ```
 The three rules apply at two different granularities:
 
-- **Direct access**(- `read_file`,- `write_file`,- `edit_file`,- `file_info`,- `create_directory`) gates the operation’s target path. You must name a path that the patterns permit.
-- **Walkers**(- `list_directory`,- `search_files`,- `find_files`) gate their root by deny/protected patterns, but- **not**by- `allowed_patterns`— a directory root like- `.`never matches a file pattern such as- `src/*.py`, so requiring it to would make every listing fail. Instead, the root is always walked and each- **entry**is filtered against all three lists. A directory listing can never surface a path the agent couldn’t otherwise read or write.
+- **Direct access** (`read_file` ,`write_file` ,`edit_file` ,`file_info` ,`create_directory` ) gates the operation’s target path. You must name a path
+that the patterns permit.
+- **Walkers** (`list_directory` ,`search_files` ,`find_files` ) gate their root
+by deny/protected patterns, but**not** by`allowed_patterns` — a directory
+root like`.` never matches a file pattern such as`src/*.py` , so requiring
+it to would make every listing fail. Instead, the root is always walked and
+each**entry** is filtered against all three lists. A directory listing can
+never surface a path the agent couldn’t otherwise read or write.
 
 So with `allowed_patterns=['*.py']`, `list_directory('.')` succeeds and shows
 only the `.py` entries; `read_file('notes.md')` is rejected.
@@ -144,38 +155,24 @@ is rejected. Symlinks are resolved before authorization.
 
 Root directory for all file operations. Defaults to the current directory.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
-`Path` **Default:**
+If non-empty, only paths matching at least one glob pattern are accessible.
 
-`'.'`If non-empty, only paths matching at least one glob pattern are accessible.
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+Paths matching any of these glob patterns are rejected.
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-`str`**Default:**
-
-`field(default_factory=(list[str]))`Paths matching any of these glob patterns are rejected.
-
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
-
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(list[str]))`Paths matching these patterns are read-only (writes are rejected).
+Paths matching these patterns are read-only (writes are rejected).
 
 Defaults to protecting `.git/`, `.env`, key files, and secrets.
 Set to an empty list to disable protection.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(lambda: list(_DEFAULT_PROTECTED)))`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`field(default_factory=(lambda: list(_DEFAULT_PROTECTED)))`Maximum number of lines returned by a single `read_file` call.
+Maximum number of lines returned by a single `read_file` call.
 
 **Type:** `int`**Default:** `2000`
 

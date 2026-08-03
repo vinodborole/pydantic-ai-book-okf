@@ -4,7 +4,7 @@ title: Modal Sandbox | Pydantic Docs
 description: Give a Pydantic AI agent a per-run Modal sandbox with command and file
   tools.
 resource: https://pydantic.dev/docs/ai/harness/modal-sandbox
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Modal Sandbox
@@ -40,10 +40,10 @@ The capability contributes four tools:
 
 | Tool | Purpose | 
 |---|---|
-| `run_command` | Run a shell command through `sh -c`. | 
+| `run_command` | Run a shell command through `sh -c` . | 
 | `read_file` | Read a UTF-8 text file with bounded output and line paging. | 
 | `write_file` | Write a UTF-8 text file and create parent directories. | 
-| `list_directory` | List directory entries, marking directories with `/`. | 
+| `list_directory` | List directory entries, marking directories with `/` . | 
 
 Command output labels stdout and stderr and reports non-zero exit codes to the model. It keeps the tail when truncating, so later diagnostics remain visible. File reads keep the head and return the next line offset when more content is available.
 
@@ -168,10 +168,15 @@ Settings used only when creating a sandbox cannot be combined with
 `sandbox_id` or an injected `session`. These conflicts fail at construction
 instead of being ignored.
 
-- Streaming command output: `run_command`returns once the command finishes (or hits its deadline), not incrementally.
-- Custom-built images, mounts, or `modal.Secret`:`image`takes a registry tag, and`env`takes plain environment variables. For anything richer, create the sandbox yourself with the Modal SDK and pass it via`sandbox_id`or`session`.
+- Streaming command output: `run_command` returns once the command finishes (or
+hits its deadline), not incrementally.
+- Custom-built images, mounts, or `modal.Secret` :`image` takes a registry tag,
+and`env` takes plain environment variables. For anything richer, create the
+sandbox yourself with the Modal SDK and pass it via`sandbox_id` or`session` .
 - Spilling full output to a file: truncated file reads end with the next
-`offset`to page from and oversized files get a shell-slice hint; truncated command output gets a truncation marker. Nothing is written to a file in the sandbox for the model to open.
+`offset` to page from and oversized files get a shell-slice hint; truncated
+command output gets a truncation marker. Nothing is written to a file in the
+sandbox for the model to open.
 
 Register `ModalSandbox` as a custom capability type when loading an agent spec:
 
@@ -187,12 +192,6 @@ from pydantic_ai import Agent
 from pydantic_ai_harness.modal_sandbox import ModalSandbox
 agent = Agent.from_file('agent.yaml', custom_capability_types=[ModalSandbox])
 ```
-- [Pydantic AI capabilities](/docs/ai/capabilities/overview)
-- [Pydantic AI toolsets](/docs/ai/tools-toolsets/toolsets/)
-- [Modal sandboxes](https://modal.com/docs/guide/sandbox)
-- [Modal Sandbox source code](https://github.com/pydantic/pydantic-ai-harness/tree/main/pydantic_ai_harness/modal_sandbox/)
-- [Pydantic AI Harness version policy](/docs/ai/harness/#version-policy)
-
 The API may change between releases while Pydantic AI Harness is on 0.x versions.
 
 **Bases:** `AbstractCapability[AgentDepsT]`
@@ -230,11 +229,9 @@ Use this to reuse a sandbox created elsewhere (e.g. via the Modal CLI). The sett
 that only apply when creating a sandbox (`image`, `app_name`, `create_app_if_missing`,
 `sandbox_timeout`, `workdir`, `env`) cannot be combined with `sandbox_id`.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Use a sandbox session you own and keep open across runs, instead of a per-run one.
+Use a sandbox session you own and keep open across runs, instead of a per-run one.
 
 Pass an already-entered `ModalSandboxSession` to reuse one sandbox across runs while
 controlling its lifetime yourself: the capability uses it but never opens or terminates
@@ -260,26 +257,16 @@ This bounds the whole sandbox; `default_command_timeout` bounds a single command
 
 Working directory for commands inside an owned sandbox (Modal’s default when None).
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Environment variables to set in an owned sandbox.
+Environment variables to set in an owned sandbox.
 
 Owned sandboxes only. To inject secrets or env into an attached or injected sandbox,
 set them when you create that sandbox yourself (e.g. with `modal.Secret`).
 
-**Type:** [ Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
-[,](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`[] |](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`
-
-`None`**Default:**
-
-`None`Default timeout in seconds for one `run_command`, used when the model omits one.
+Default timeout in seconds for one `run_command`, used when the model omits one.
 
 This bounds a single command; `sandbox_timeout` bounds the whole sandbox’s lifetime.
 Modal enforces whole-second deadlines, so fractional values are rounded up (0.5
@@ -299,11 +286,9 @@ pinned to its default (300s) in those modes because the capability does not know
 real lifetime of a sandbox it did not create. So every command there is capped at 300s
 unless you set `max_command_timeout` to the value the sandbox actually allows.
 
-**Type:** [ int](https://docs.python.org/3/library/functions.html#int) | 
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Maximum payload retained per command stream or file read, measured in UTF-8 bytes.
+Maximum payload retained per command stream or file read, measured in UTF-8 bytes.
 
 For commands the cap applies to stdout and stderr separately, both client-side (each
 stream retains at most this many bytes after Modal delivers each transport chunk) and
@@ -333,11 +318,9 @@ reused one that can carry files from earlier runs) and states the command timeou
 and its ceiling. Set `''` to add no instructions, or pass your own text — e.g. when
 wrapping with `PrefixTools`, so the tool names in the text match the prefixed ones.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None````
+```
 def __post_init__() -> None
 ```
 Reject settings that the chosen mode would ignore, so a dead value can’t mislead.
@@ -357,9 +340,9 @@ def get_toolset() -> AgentToolset[AgentDepsT]
 ```
 Build and return the Modal sandbox toolset.
 
-[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`]
 
-`AgentDepsT`]Async context manager that owns or attaches to a Modal sandbox.
+Async context manager that owns or attaches to a Modal sandbox.
 
 In *owned* mode (the default) it creates a fresh sandbox from `image` on
 enter. On exit it requests termination and waits for a bounded period;
@@ -436,7 +419,7 @@ Return a file’s size in bytes via Modal’s filesystem API, without reading it
 Lets a caller check size before reading the whole file. A relative `path` is resolved
 against the sandbox working directory (see `_resolve`).
 
-- `ModalSandboxError`— if the file cannot be stat-ed (missing, a directory, …).
+- `ModalSandboxError` — if the file cannot be stat-ed (missing, a directory, …).
 
 `@async`
 
@@ -449,7 +432,7 @@ The session deals in bytes so each tool layer can decode (or not) as it needs;
 text handling lives above the session, not here. A relative `path` is resolved
 against the sandbox working directory (see `_resolve`).
 
-- `ModalSandboxError`— if the file cannot be read (missing, a directory, …).
+- `ModalSandboxError` — if the file cannot be read (missing, a directory, …).
 
 `@async`
 
@@ -463,7 +446,7 @@ A relative `path` is resolved against the sandbox working directory (see
 so the size is not bounded by the argument-length limit of a command, and it
 creates missing parent directories itself.
 
-- `ModalSandboxError`— if the file cannot be written (bad path, permissions, …).
+- `ModalSandboxError` — if the file cannot be written (bad path, permissions, …).
 
 `@async`
 
@@ -476,7 +459,7 @@ A relative `path` is resolved against the sandbox working directory (see
 `_resolve`). The Modal-native `FileInfo` entries are normalized to plain tuples
 here so the provider type does not leak past the session.
 
-- `ModalSandboxError`— if the directory cannot be listed.
+- `ModalSandboxError` — if the directory cannot be listed.
 
 The outcome of running a command in the sandbox.
 
@@ -512,11 +495,9 @@ The whole-second deadline Modal enforced for this command, or None if unbounded.
 
 This is the quantized value actually sent to Modal, not the (possibly fractional) timeout the caller requested, so the caller can report the exact deadline.
 
-**Type:** [ int](https://docs.python.org/3/library/functions.html#int) | 
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`**Bases:** `RuntimeError`
+**Bases:** `RuntimeError`
 
 Base class for failures reported by the Modal sandbox integration.
 

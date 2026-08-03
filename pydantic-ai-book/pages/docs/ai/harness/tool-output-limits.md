@@ -1,15 +1,15 @@
 ---
 type: Web Page
-title: Overflowing Tool Output | Pydantic Docs
+title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
-resource: https://pydantic.dev/docs/ai/harness/overflowing-tool-output
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
-# Overflowing Tool Output
+# Tool Output Limits
 
-`OverflowingToolOutput` reduces a tool return that is large enough to dominate the context
+`ToolOutputLimits` reduces a tool return that is large enough to dominate the context
 window. Tool returns persist in history as `ToolReturnPart`s, so an oversized one is re-sent
 on every later model request, paying its token cost for the rest of the run. This capability
 intercepts a return when it is produced, reduces it once, and lets the reduced form persist —
@@ -36,14 +36,14 @@ That tool is bounded: `offset >= 0`, `limit` clamped to a built-in line cap, the
 capped, and `pattern` is a literal substring (not a regex), so a model-supplied value cannot
 hang the host with catastrophic backtracking.
 
-Construct an `Agent` with `OverflowingToolOutput()` in its `capabilities`. With no arguments it
+Construct an `Agent` with `ToolOutputLimits()` in its `capabilities`. With no arguments it
 uses the default band: spill returns of 10,000 characters or more, with a bounded truncation
 fallback if the store cannot accept the write.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.overflowing_tool_output import OverflowingToolOutput
-agent = Agent('openai:gpt-4o', capabilities=[OverflowingToolOutput()])
+from pydantic_ai_harness.tool_output_limits import ToolOutputLimits
+agent = Agent('openai:gpt-4o', capabilities=[ToolOutputLimits()])
 ```
 The capability registers a single `read_tool_result` tool so the model can page back into any
 spilled payload. Its own returns are exempt from reduction.
@@ -54,9 +54,9 @@ that fits wins; anything below the smallest threshold passes through.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.overflowing_tool_output import (
+from pydantic_ai_harness.tool_output_limits import (
     Band,
-    OverflowingToolOutput,
+    ToolOutputLimits,
     Spill,
     Summarize,
     Truncate,
@@ -64,7 +64,7 @@ from pydantic_ai_harness.overflowing_tool_output import (
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
-        OverflowingToolOutput(
+        ToolOutputLimits(
             bands=[
                 Band(over=100_000, action=Spill()),      # huge: keep losslessly, read back on demand
                 Band(over=20_000, action=Summarize()),    # large: compress with the run's model
@@ -92,16 +92,16 @@ spill -> truncate.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.overflowing_tool_output import (
+from pydantic_ai_harness.tool_output_limits import (
     Band,
-    OverflowingToolOutput,
+    ToolOutputLimits,
     Truncate,
     TruncationStrategy,
 )
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
-        OverflowingToolOutput(
+        ToolOutputLimits(
             per_tool={
                 'read_file': [Band(over=8_000, action=Truncate(strategy=TruncationStrategy.head))],
                 'run_shell': [Band(over=8_000, action=Truncate(strategy=TruncationStrategy.tail))],
@@ -152,9 +152,9 @@ By default the store keeps spilled files forever — deleting on run end would b
 ```
 from datetime import timedelta
 from pydantic_ai import Agent
-from pydantic_ai_harness.overflowing_tool_output import LocalFileStore, OverflowingToolOutput
+from pydantic_ai_harness.tool_output_limits import LocalFileStore, ToolOutputLimits
 store = LocalFileStore(cleanup_after=timedelta(hours=6))  # default: None = keep forever
-agent = Agent('openai:gpt-4o', capabilities=[OverflowingToolOutput(store=store)])
+agent = Agent('openai:gpt-4o', capabilities=[ToolOutputLimits(store=store)])
 ```
 When set, a `write` schedules a background prune (a daemon thread, off the hot path) that
 deletes files whose modification time (`st_mtime`) is older than `cleanup_after`. Pruning is
@@ -182,16 +182,23 @@ instance to `Summarize(model=...)` to override, or a `summarize` callable to byp
 built-in prompt entirely. The `summary_prompt` template on the capability must contain both
 `{tool_name}` and `{output}` placeholders.
 
-- Binary returns spill verbatim and are never stringify-truncated; `Truncate`/`Summarize`on binary fall through to`then`.
+- Binary returns spill verbatim and are never stringify-truncated; `Truncate` /`Summarize` on binary fall through to`then` .
 - Structured / nested returns spill (or summarize) by preference — truncating JSON produces
-invalid JSON. `Spill`includes a one-line shape sketch of the top level.
-- `ModelRetry`and tool errors never reach this hook (they are raised, not returned), so the model always gets the full error it needs to recover.
-- A large `ToolReturn.content`is reduced with the same bands as`return_value`; non-text content that overflows is left unreduced with a warning.
-- Multiple oversized returns in one step get distinct handles (keyed per `tool_call_id`); retries get distinct handles too (keyed per`retry`), so a retried call never clobbers the earlier attempt’s spill.
+invalid JSON. `Spill` includes a one-line shape sketch of the top level.
+- `ModelRetry` and tool errors never reach this hook (they are raised, not returned), so the
+model always gets the full error it needs to recover.
+- A large `ToolReturn.content` is reduced with the same bands as`return_value` ; non-text
+content that overflows is left unreduced with a warning.
+- Multiple oversized returns in one step get distinct handles (keyed per `tool_call_id` );
+retries get distinct handles too (keyed per`retry` ), so a retried call never clobbers the
+earlier attempt’s spill.
 
-- Distinct from [compaction](/docs/ai/harness/compaction), which compresses or drops context already inside the window; this capability moves large tool outputs out of the window at production time.
-- Consumes core [#4352](https://github.com/pydantic/pydantic-ai/issues/4352)(the canonical queryable-file primitive) through the`OverflowStore`seam once it lands.
-- Distinct from `ClampOversizedMessages`, which clamps runaway model responses, not tool returns.
+- Distinct from [compaction](/docs/ai/harness/compaction) , which compresses or drops context already inside
+the window; this capability moves large tool outputs out of the window at production time.
+- Consumes core [#4352](https://github.com/pydantic/pydantic-ai/issues/4352) (the canonical
+queryable-file primitive) through the`OverflowStore` seam once it lands.
+- Distinct from `ClampOversizedMessages` , which clamps runaway model responses, not tool
+returns.
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -204,9 +211,10 @@ reduced form persist — it is not recomputed per request.
 
 Three reduction modes, freely combined through an ordered list of size `bands`:
 
-- `Truncate`: clamp to a character budget. Lossy, zero-cost.
-- `Spill`: persist the full payload, hand the model a- `read_tool_result`handle plus a preview. Lossless.
-- `Summarize`: size-gated LLM summary. Inherits the run’s model by default.
+- `Truncate` : clamp to a character budget. Lossy, zero-cost.
+- `Spill` : persist the full payload, hand the model a`read_tool_result` handle plus a
+preview. Lossless.
+- `Summarize` : size-gated LLM summary. Inherits the run’s model by default.
 
 The first band whose `over` threshold the measured size meets wins; smaller returns pass
 through. `per_tool` replaces the band list for named tools; `tool_filter` scopes which
@@ -218,21 +226,13 @@ error payloads the model needs to recover are never spilled or summarized.
 
 Ordered size bands. The first band whose `over` threshold is met wins.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`] **Default:** `field(default_factory=_default_bands)`
 
-`Band`] **Default:**
+Per-tool band lists that replace `bands` for the named tools.
 
-`field(default_factory=_default_bands)`Per-tool band lists that replace `bands` for the named tools.
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
 
-**Type:** [ Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[
-
-[,](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`[[](https://docs.python.org/3/library/typing.html#typing.Sequence)
-
-`Sequence``Band`]] **Default:**
-
-`field(default_factory=(dict[str, Sequence[Band]]))`Which tools this capability touches. Non-matching tools always pass through.
+Which tools this capability touches. Non-matching tools always pass through.
 
 **Type:** `ToolSelector`[`AgentDepsT`] **Default:** `'all'`
 
@@ -242,17 +242,9 @@ Measure band thresholds in estimated tokens instead of characters.
 
 Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
 
-**Type:** [ Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
 
-[],](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`[] |](https://docs.python.org/3/library/functions.html#int)
-
-`int`
-
-`None`**Default:**
-
-`None`Backend for spilled payloads. Defaults to a `LocalFileStore`.
+Backend for spilled payloads. Defaults to a `LocalFileStore`.
 
 **Type:** `OverflowStore` | `None`**Default:** `None`
 
@@ -269,11 +261,9 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Register the `read_tool_result` tool for reading spilled payloads on demand.
 
-[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
-`AgentDepsT`] | 
-
-`None``@async`
+`@async`
 
 ```
 def after_tool_execute(
@@ -289,4 +279,4 @@ Reduce the tool result — both `return_value` and model-visible `content`.
 
 # Citations
 
-1. Source page: https://pydantic.dev/docs/ai/harness/overflowing-tool-output
+1. Source page: https://pydantic.dev/docs/ai/harness/tool-output-limits

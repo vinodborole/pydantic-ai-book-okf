@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent the same local Macroscope code review its 
   plugins run -- streamed findings parsed into structured issues the agent validates
   and fixes with its own tools.
 resource: https://pydantic.dev/docs/ai/harness/macroscope
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Macroscope
@@ -27,8 +27,8 @@ print(result.output)
 ```
 The `macroscope` CLI must be installed and authenticated on the host first:
 
-- Install: `curl -sSL https://raw.githubusercontent.com/prassoai/macroscope-local/main/install.sh | bash`
-- Sign in and pick a workspace by running `macroscope`once.
+1. Install: `curl -sSL https://raw.githubusercontent.com/prassoai/macroscope-local/main/install.sh | bash`
+2. Sign in and pick a workspace by running `macroscope` once.
 
 The capability cannot install or authenticate on your behalf. If the binary is
 missing, the tool returns the install command; if a review never starts
@@ -41,7 +41,7 @@ CLI self-updates on use, so a fresh install satisfies this.
 
 | Tool | Purpose | 
 |---|---|
-| `run_macroscope_review` | Run `macroscope codereview`on the current branch and return the review id, terminal status, and findings. Accepts an optional`base`git ref. | 
+| `run_macroscope_review` | Run `macroscope codereview` on the current branch and return the review id, terminal status, and findings. Accepts an optional`base` git ref. | 
 
 Each finding is a `MacroscopeIssue` with `issue_id`, `sequence`, `path`,
 `line`, `severity`, `category`, and `body`. The capability’s default
@@ -112,21 +112,17 @@ never starts, the tool reports that the user needs to run `macroscope` once.
 Git ref to diff against. When `None`, `--base` is omitted and the CLI
 auto-detects the base branch itself (and creates its own review worktree).
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None`Name or path of the CLI binary. Override for a non-default install location.
+Name or path of the CLI binary. Override for a non-default install location.
 
 **Type:** `str`**Default:** `'macroscope'`
 
 Repository directory the review runs in.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
-`Path` **Default:**
-
-`'.'`Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
+Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
 
 **Type:** `float`**Default:** `600.0`
 
@@ -135,11 +131,9 @@ Custom review guidance for the system prompt.
 Leave as `None` for the default validate-then-fix guidance, or set `''` to
 contribute no instructions at all.
 
-**Type:** [ str](https://docs.python.org/3/library/stdtypes.html#str) | 
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-`None`**Default:**
-
-`None````
+```
 def get_toolset() -> MacroscopeToolset[AgentDepsT]
 ```
 Build the toolset that provides the `run_macroscope_review` tool.

@@ -4,12 +4,12 @@ title: Pydantic AI Harness
 description: The official capability library for Pydantic AI -- pick-and-choose batteries
   that turn your agent into a coding agent, research assistant, or anything else.
 resource: https://pydantic.dev/docs/ai/harness
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Overview
 
-**The batteries for your  Pydantic AI agent.**
+**The batteries for your [Pydantic AI](/docs/ai/) agent.**
 
 Pydantic AI’s [capabilities](/docs/ai/capabilities/overview/) and [hooks](/docs/ai/core-concepts/hooks/) API is how you give an agent its harness — bundles of tools, lifecycle hooks, instructions, and model settings that extend what the agent can do without any framework changes.
 
@@ -17,8 +17,8 @@ Pydantic AI’s [capabilities](/docs/ai/capabilities/overview/) and [hooks](/doc
 
 Pydantic AI core ships the agent loop, model providers, the capabilities/hooks abstraction, and two kinds of capabilities:
 
-- **Capabilities that require model or framework support**— anything backed by provider native tools (like- [image generation](/docs/ai/capabilities/image-generation/)), provider-specific APIs (like- [compaction](/docs/ai/capabilities/compaction/)via the OpenAI or Anthropic APIs), or deep agent graph integration (like- [tool search](/docs/ai/capabilities/tool-search/)and- [on-demand loading](/docs/ai/capabilities/on-demand/)). These go hand-in-hand with model class code and need to ship together.
-- **Capabilities that are fundamental to the agent experience**— things nearly every agent benefits from, like- [web search](/docs/ai/capabilities/web-search/),- [web fetch](/docs/ai/capabilities/web-fetch/),- [thinking](/docs/ai/capabilities/thinking/), and- [MCP](/docs/ai/capabilities/mcp/). These feel like qualities of the agent itself, not accessories. See- [built-in capabilities](/docs/ai/capabilities/overview/#built-in-capabilities)for the full list.
+- **Capabilities that require model or framework support** — anything backed by provider native tools (like[image generation](/docs/ai/capabilities/image-generation/) ), provider-specific APIs (like[compaction](/docs/ai/capabilities/compaction/) via the OpenAI or Anthropic APIs), or deep agent graph integration (like[tool search](/docs/ai/capabilities/tool-search/) and[on-demand loading](/docs/ai/capabilities/on-demand/) ). These go hand-in-hand with model class code and need to ship together.
+- **Capabilities that are fundamental to the agent experience** — things nearly every agent benefits from, like[web search](/docs/ai/capabilities/web-search/) ,[web fetch](/docs/ai/capabilities/web-fetch/) ,[thinking](/docs/ai/capabilities/thinking/) , and[MCP](/docs/ai/capabilities/mcp/) . These feel like qualities of the agent itself, not accessories. See[built-in capabilities](/docs/ai/capabilities/overview/#built-in-capabilities) for the full list.
 
 **Pydantic AI Harness** is where everything else lives: standalone capabilities that make specific categories of agents powerful, or that are still finding their final shape. Context management, memory, guardrails, file system access, code execution, multi-agent orchestration — these are the building blocks you pick and choose based on what your agent needs to do.
 
@@ -80,32 +80,35 @@ commenters debating whether LLMs created or merely *exposed* sloppy engineering
 practices and warning of a "normalization of deviance" as engineers stop reviewing diffs.
 """
 ```
-** See this run as a public Logfire trace ->** Each 
+**[See this run as a public Logfire trace ->](https://logfire-us.pydantic.dev/public-trace/84bcf123-2106-49da-9f6f-5c26395339bb?spanId=7650806a0785b946)** Each `run_code` span fans out into the tool calls the model issued from inside the sandbox — it’s the easiest way to understand what code mode actually did.
 
-`run_code` span fans out into the tool calls the model issued from inside the sandbox — it’s the easiest way to understand what code mode actually did.Each capability is a self-contained battery you drop into an agent’s `capabilities=[...]` list. They compose with each other and with Pydantic AI’s [built-in capabilities](/docs/ai/capabilities/overview/).
+Each capability is a self-contained battery you drop into an agent’s `capabilities=[...]` list. They compose with each other and with Pydantic AI’s [built-in capabilities](/docs/ai/capabilities/overview/).
 
 | Capability | What it does | Extra | 
 |---|---|---|
-| [Code Mode](/docs/ai/harness/code-mode) | Wraps the agent’s tools into a single `run_code`tool, sandboxed by[Monty](https://github.com/pydantic/monty). The model writes Python that calls the tools as functions — with loops, conditionals,`asyncio.gather`, and local filtering — collapsing N tool calls into one model round-trip. | `codemode` | 
+| [Code Mode](/docs/ai/harness/code-mode) | Wraps the agent’s tools into a single `run_code` tool, sandboxed by[Monty](https://github.com/pydantic/monty) . The model writes Python that calls the tools as functions — with loops, conditionals,`asyncio.gather` , and local filtering — collapsing N tool calls into one model round-trip. | `codemode` | 
 | [Skills](/docs/ai/harness/skills) | Loads Agent Skill instructions only when the model needs them. | `skills` | 
-| [FileSystem](/docs/ai/harness/filesystem) | Sandboxed file access scoped to a root directory: read, write, edit, search, and find files. Rejects path traversal above the root, resolves symlinks before authorizing, and keeps `.git/`,`.env`, key files, and secrets read-only by default. | — | 
+| [FileSystem](/docs/ai/harness/filesystem) | Sandboxed file access scoped to a root directory: read, write, edit, search, and find files. Rejects path traversal above the root, resolves symlinks before authorizing, and keeps `.git/` ,`.env` , key files, and secrets read-only by default. | — | 
 | [Shell](/docs/ai/harness/shell) | Command execution in a subprocess rooted at a working directory, gated by allowlists, denylists, timeouts, and optional environment-variable stripping (including a preset for common LLM provider credentials). | — | 
-| [Context](/docs/ai/harness/context) | Auto-loads repo context — `CLAUDE.md`/`AGENTS.md`and repository structure — so the agent starts a run already oriented in the project. | — | 
-| [Pydantic AI Docs](/docs/ai/harness/pydantic-ai-docs) | An on-demand `read_pyai_docs`tool that pulls Pydantic AI documentation into the run when the agent needs it, instead of preloading it. | — | 
-| [Exa Search](/docs/ai/harness/exa-search) | Web research backed by the [Exa](https://exa.ai)search API:`web_search`returns results with their most relevant excerpts,`get_page`reads a specific URL in full, and opt-in`deep_search`synthesizes a cited answer in one call. Output is budgeted per tool. | `exa` | 
+| [Repo Context](/docs/ai/harness/repo-context) | Auto-loads repo context — `CLAUDE.md` /`AGENTS.md` and repository structure — so the agent starts a run already oriented in the project. | — | 
+| [Pydantic AI Docs](/docs/ai/harness/pydantic-ai-docs) | An on-demand `read_pyai_docs` tool that pulls Pydantic AI documentation into the run when the agent needs it, instead of preloading it. | — | 
+| [Exa Search](/docs/ai/harness/exa-search) | Web research backed by the [Exa](https://exa.ai) search API:`web_search` returns results with their most relevant excerpts,`get_page` reads a specific URL in full, and opt-in`deep_search` synthesizes a cited answer in one call. Output is budgeted per tool. | `exa` | 
 | [Compaction](/docs/ai/harness/compaction) | Keeps a run within token limits: sliding-window trimming, LLM-powered summarization of older messages, and warnings before the context or iteration ceiling is hit. | — | 
-| [Overflowing Tool Output](/docs/ai/harness/overflowing-tool-output) | Reduces an oversized tool return when it is produced — truncate, spill to a queryable file, or summarize — so a large payload does not persist in history and get re-sent every request. | — | 
-| [Cache Stability Monitor](/docs/ai/harness/cache-stability) | Warns when a run’s prompt-cache hit collapses between model requests — a moved cacheable prefix or an expired provider cache — reading the provider’s own `cache_read_tokens`verdict. | — | 
-| [Step Persistence](/docs/ai/harness/step-persistence) | Saves and restores full conversation state; snapshot, resume ( `continue_run`), and fork (`fork_run`) a run. | — | 
-| [Media](/docs/ai/harness/media) | Offloads large `BinaryContent`to content-addressed stores (local or S3) so big media does not bloat message history. | — | 
+| [Tool Output Limits](/docs/ai/harness/tool-output-limits) | Reduces an oversized tool return when it is produced — truncate, spill to a queryable file, or summarize — so a large payload does not persist in history and get re-sent every request. | — | 
+| [Warn On Cache Busts](/docs/ai/harness/warn-on-cache-busts) | Warns when a run’s prompt-cache hit collapses between model requests — a moved cacheable prefix or an expired provider cache — reading the provider’s own `cache_read_tokens` verdict. | — | 
+| [Step Persistence](/docs/ai/harness/step-persistence) | Saves and restores full conversation state; snapshot, resume ( `continue_run` ), and fork (`fork_run` ) a run. In-memory, file, SQLite, and MongoDB backends. | `mongodb` (Mongo backend only) | 
+| [Conversation Search](/docs/ai/harness/conversation-search) | A dependency-free BM25 `search_conversation_history` tool over the history`StepPersistence` stores: recall turns that compaction dropped from the live context, and past runs in the same store. | — | 
+| [Media](/docs/ai/harness/media) | Offloads large `BinaryContent` and large text parts to content-addressed stores (disk, SQLite, S3, MongoDB) so big payloads do not bloat message history. | `mongodb` (Mongo store only) | 
 | [Subagents](/docs/ai/harness/subagents) | Delegates subtasks to specialized child agents through a delegate tool. | — | 
 | [Dynamic Workflow](/docs/ai/harness/dynamic-workflow) | Orchestrates sub-agents from a model-written Python script — fan-out, chaining, and voting in a single tool call. | `dynamic-workflow` | 
 | [Planning](/docs/ai/harness/planning) | Breaks a complex task into a structured plan before execution and tracks progress against it. | — | 
+| [System Reminders](/docs/ai/harness/system-reminders) | Re-injects behavioral guidance mid-run — on a cadence or reactively from a condition — to counter instruction fade in long sessions, without invalidating the prompt cache. | — | 
 | [Memory](/docs/ai/harness/memory) | Gives an agent a persistent, namespaced notebook with bounded prompt injection, on-demand search, and concurrency-safe stores. | — | 
-| [Runtime Authoring](/docs/ai/harness/runtime-authoring) | Lets an agent author, validate, and load real capabilities at runtime. | — | 
-| [Guardrails](/docs/ai/harness/guardrails) | Validates user input before a run starts and model output after it completes — block or redact, with structured results. | — | 
-| [Managed Prompt](/docs/ai/harness/managed-prompt) | Backs an agent’s instructions with a [Logfire-managed prompt](https://logfire.pydantic.dev/docs/reference/advanced/prompt-management/), so you can version, label, and roll out prompt changes from the Logfire UI without redeploying — with a code default that keeps the agent working when no remote value is available. | `logfire` | 
-| [ACP](/docs/ai/harness/acp)(experimental) | Serves an agent to editors (Zed, etc.) over the [Agent Client Protocol](https://agentclientprotocol.com)— streamed text, diff-rendered edits, and tool approval. | `acp` | 
+| [Runtime Capability Creation](/docs/ai/harness/capability-creation) | Lets an agent create, validate, and persist Pydantic AI capabilities during one run for the orchestrator to load on the next run. | — | 
+| [Guardrails](/docs/ai/harness/guardrails) | Validates user input, tool calls and their results, and model output — block or redact, with structured results. | — | 
+| [Managed Prompt](/docs/ai/harness/managed-prompt) | Backs an agent’s instructions with a [Logfire-managed prompt](https://logfire.pydantic.dev/docs/reference/advanced/prompt-management/) , so you can version, label, and roll out prompt changes from the Logfire UI without redeploying — with a code default that keeps the agent working when no remote value is available. | `logfire` | 
+| [StackOne](/docs/ai/harness/stackone) | Actions on the user’s SaaS accounts (HRIS, ATS, CRM, and more) via the [StackOne](https://www.stackone.com) integration platform: API-key auth, account scoping, action filtering, and a search/execute mode for large catalogs. | `stackone` | 
+| [ACP](/docs/ai/harness/acp)*(experimental)* | Serves an agent to editors (Zed, etc.) over the [Agent Client Protocol](https://agentclientprotocol.com) — streamed text, diff-rendered edits, and tool approval. | `acp` | 
 
 Most capabilities are stable within the [version policy](#version-policy) below. [ACP](/docs/ai/harness/acp) is the exception — it is still experimental, imported from `pydantic_ai_harness.experimental.acp`, and may change or be removed in a future release.
 
@@ -115,11 +118,11 @@ Publishing as a standalone package? Use the `pydantic-ai-<name>` naming conventi
 
 Pydantic AI Harness uses **0.x versioning** to signal that APIs are still stabilizing. During 0.x, minor releases (0.1 -> 0.2) may include breaking changes — renamed parameters, changed defaults, restructured APIs — while patch releases (0.1.0 -> 0.1.1) will not intentionally break existing behavior. All breaking changes are documented in release notes with migration guidance. This is why the harness is a separate package from [Pydantic AI](https://github.com/pydantic/pydantic-ai), which has a [stricter version policy](/docs/ai/project/version-policy/). As the core capabilities stabilize, the library will move toward 1.0 with matching stability guarantees.
 
-- [Capabilities](/docs/ai/capabilities/overview/)— what capabilities are, built-in capabilities, building your own
-- [Hooks](/docs/ai/core-concepts/hooks/)— lifecycle hooks reference, ordering, error handling
-- [Extensibility](/docs/ai/guides/extensibility/)— publishing packages, third-party ecosystem
-- [Toolsets](/docs/ai/tools-toolsets/toolsets/)— building tools for capabilities
-- [API reference](/docs/ai/api/pydantic-ai/capabilities/)— full API docs
+- [Capabilities](/docs/ai/capabilities/overview/) — what capabilities are, built-in capabilities, building your own
+- [Hooks](/docs/ai/core-concepts/hooks/) — lifecycle hooks reference, ordering, error handling
+- [Extensibility](/docs/ai/guides/extensibility/) — publishing packages, third-party ecosystem
+- [Toolsets](/docs/ai/tools-toolsets/toolsets/) — building tools for capabilities
+- [API reference](/docs/ai/api/pydantic-ai/capabilities/) — full API docs
 
 # Citations
 

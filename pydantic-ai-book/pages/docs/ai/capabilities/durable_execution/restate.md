@@ -2,7 +2,7 @@
 type: Web Page
 title: Restate | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/durable_execution/restate
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Restate
@@ -17,9 +17,9 @@ Your agent runs in a regular HTTP handler inside a Restate **service**. The Rest
 
 A durable agent has three building blocks:
 
-- The **handler**: your agent logic, exposed as an HTTP endpoint in a Restate service.
-- **LLM calls**: persisted so responses are not re-fetched on recovery — saving cost and time.
-- **Tool executions**: wrapped in durable steps so side effects are not duplicated.
+1. The **handler** : your agent logic, exposed as an HTTP endpoint in a Restate service.
+2. **LLM calls** : persisted so responses are not re-fetched on recovery — saving cost and time.
+3. **Tool executions** : wrapped in durable steps so side effects are not duplicated.
 
 ```
                   Clients

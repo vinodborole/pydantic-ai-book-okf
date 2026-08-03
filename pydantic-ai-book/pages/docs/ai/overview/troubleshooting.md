@@ -2,7 +2,7 @@
 type: Web Page
 title: Troubleshooting | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/troubleshooting
-timestamp: '2026-07-20T09:23:04.251034+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Troubleshooting
@@ -16,7 +16,7 @@ from pydantic_ai import Agent
 agent = Agent('openai:gpt-5.2')
 result = await agent.run('Who let the dogs out?')
 ```
-**Legacy environments or specific integrations**: If you encounter event loop conflicts, use [ nest-asyncio](https://pypi.org/project/nest-asyncio/):
+**Legacy environments or specific integrations**: If you encounter event loop conflicts, use [`nest-asyncio`](https://pypi.org/project/nest-asyncio/):
 
 ```
 import nest_asyncio
@@ -27,15 +27,16 @@ result = agent.run_sync('Who let the dogs out?')
 ```
 **Note**: This also applies to Google Colab and [Marimo](https://github.com/marimo-team/marimo) environments.
 
-`UserError``[PROVIDER]_API_KEY` environment variable or pass it via the provider’s `api_key=...` argument
+Synchronous methods like [`Agent.run_sync()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_sync) reuse the thread’s current event loop, and install a fresh one if other code closed it. If this error is raised from inside `httpx` or `httpcore` during a model request, the agent was already used before its event loop was closed: the provider’s HTTP connection pool still holds connections bound to the dead loop. Recreate the agent together with its model and provider (or pass a fresh `http_client` to the provider); reusing an existing `Model` instance keeps the dead connection pool. Avoid closing an event loop that other code is still using.
 
-`UserError`If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
+### [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError): Set the `[PROVIDER]_API_KEY` environment variable or pass it via the provider’s `api_key=...` argument
 
-To try Pydantic AI without an API key, use the built-in [ 'test' model](/docs/ai/guides/testing#unit-testing-with-testmodel): 
+`UserError`
+If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
 
-[.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent)
+To try Pydantic AI without an API key, use the built-in [`'test'` model](/docs/ai/guides/testing#unit-testing-with-testmodel): [`Agent('test')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent).
 
-`Agent('test')`You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
+You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
 
 It’s particularly helpful to use `logfire`’s [HTTPX integration](/docs/ai/integrations/logfire#monitoring-http-requests) to monitor the above.
 

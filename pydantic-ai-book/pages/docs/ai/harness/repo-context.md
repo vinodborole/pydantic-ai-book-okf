@@ -1,13 +1,13 @@
 ---
 type: Web Page
-title: Context | Pydantic Docs
+title: Repo Context | Pydantic Docs
 description: Discover and load a repo's accumulated coding-assistant context engineering
   -- instruction files, skills, sub-agents, and hooks.
-resource: https://pydantic.dev/docs/ai/harness/context
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+resource: https://pydantic.dev/docs/ai/harness/repo-context
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
-# Context
+# Repo Context
 
 `RepoContext` discovers and loads a repo’s accumulated coding-assistant context engineering (CE): the instruction files (`CLAUDE.md`/`AGENTS.md`) scattered across the tree and the assets under `.claude`/`.agents`/`.codex`/`.grok` (skills, sub-agents, hooks).
 
@@ -20,7 +20,7 @@ A repo accumulates CE for whatever coding assistant worked in it: instruction fi
 ```
 from pathlib import Path
 from pydantic_ai import Agent
-from pydantic_ai_harness.context import RepoContext
+from pydantic_ai_harness.repo_context import RepoContext
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[RepoContext(workspace_dir=Path('.'), home_dir=Path.home())],
@@ -42,7 +42,7 @@ When the model lists or reads a directory, surface that directory’s `CLAUDE.md
 from pathlib import Path
 from pydantic_ai import Agent
 from pydantic_ai_harness import FileSystem
-from pydantic_ai_harness.context import RepoContext
+from pydantic_ai_harness.repo_context import RepoContext
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[
@@ -87,19 +87,30 @@ Discover and load a repo’s accumulated coding-assistant context engineering.
 
 Three strategies, each independently toggleable:
 
-- 
-Walk-up instruction autoload ( `autoload_instructions`, on by default): load`CLAUDE.md`/`AGENTS.md`from`workspace_dir`and every ancestor up to`home_dir`, deduped, ancestor-first. These are read once at run start and injected as**static system instructions**via`get_instructions`, so they stay in the cached prefix and never re-read per turn.
-- 
-Asset inventory ( `expose_inventory_tool`, on by default): a tool that reports where the repo’s CE assets live (`.claude`/`.agents`/`.codex`/`.grok`and their`skills/`,`agents/`,`settings.json`). It locates assets; it does not parse them.
-- 
-Nested-on-traversal ( `nested_traversal`, off by default): when the model lists or reads a directory (via a tool named in`traversal_tool_names`), surface that directory’s`CLAUDE.md`/`AGENTS.md`. The note is appended to the**tool result**(message tail), not to system instructions, so it does not invalidate the cached prefix.`nested_inject='pointer'`(default) appends a one-line pointer;`'contents'`inlines the file body.
+1. 
+Walk-up instruction autoload ( `autoload_instructions` , on by default):
+load`CLAUDE.md` /`AGENTS.md` from`workspace_dir` and every ancestor up
+to`home_dir` , deduped, ancestor-first. These are read once at run start
+and injected as**static system instructions** via`get_instructions` , so
+they stay in the cached prefix and never re-read per turn.
+2. 
+Asset inventory ( `expose_inventory_tool` , on by default): a tool that
+reports where the repo’s CE assets live (`.claude` /`.agents` /`.codex` /`.grok` and their`skills/` ,`agents/` ,`settings.json` ). It locates
+assets; it does not parse them.
+3. 
+Nested-on-traversal ( `nested_traversal` , off by default): when the model
+lists or reads a directory (via a tool named in`traversal_tool_names` ),
+surface that directory’s`CLAUDE.md` /`AGENTS.md` . The note is appended to
+the**tool result** (message tail), not to system instructions, so it
+does not invalidate the cached prefix.`nested_inject='pointer'` (default)
+appends a one-line pointer;`'contents'` inlines the file body.
 
 Cache note: injecting file contents into the system prompt costs prompt-cache stability. Strategy 1 is safe because its files are static; the volatile Strategy 3 content rides in the message tail instead.
 
 ```
 from pathlib import Path
 from pydantic_ai import Agent
-from pydantic_ai_harness.context import RepoContext
+from pydantic_ai_harness.repo_context import RepoContext
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[RepoContext(workspace_dir=Path('.'), home_dir=Path.home())],
@@ -116,13 +127,9 @@ default) scans only `workspace_dir` — no walk-up.
 
 Instruction filenames to look for, in within-directory precedence order.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('CLAUDE.md', 'AGENTS.md')`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`('CLAUDE.md', 'AGENTS.md')`Strategy 1: load instruction files into the system prompt.
+Strategy 1: load instruction files into the system prompt.
 
 **Type:** `bool`**Default:** `True`
 
@@ -140,32 +147,22 @@ Strategy 3: surface a directory’s instruction file when the model lists or rea
 
 For Strategy 3: append a one-line `pointer`, or inline the file `contents`.
 
-**Type:** [ Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[‘pointer’, ‘contents’] 
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘pointer’, ‘contents’] **Default:** `'pointer'`
 
-**Default:**
-
-`'pointer'`Tool names that trigger Strategy 3. Override to match the host’s list/read
+Tool names that trigger Strategy 3. Override to match the host’s list/read
 tools (e.g. `frozenset({'list_dir', 'read_file'})`).
 
-**Type:** [ frozenset](https://docs.python.org/3/library/stdtypes.html#frozenset)[
+**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset({'list_directory', 'read_file'})`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`frozenset({'list_directory', 'read_file'})`The tool argument key holding the listed/read path.
+The tool argument key holding the listed/read path.
 
 **Type:** `str`**Default:** `'path'`
 
 Root directories the inventory tool scans, relative to `workspace_dir`.
 
-**Type:** [ Sequence](https://docs.python.org/3/library/typing.html#typing.Sequence)[
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('.claude', '.agents', '.codex', '.grok')`
 
-[]](https://docs.python.org/3/library/stdtypes.html#str)
-
-`str`**Default:**
-
-`('.claude', '.agents', '.codex', '.grok')``@async`
+`@async`
 
 ```
 def for_run(ctx: RunContext[AgentDepsT]) -> RepoContext[AgentDepsT]
@@ -186,11 +183,9 @@ def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 The asset-inventory toolset, or `None` when the tool is disabled.
 
-[ AgentToolset](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
-`AgentDepsT`] | 
-
-`None``@async`
+`@async`
 
 ```
 def after_tool_execute(
@@ -221,4 +216,4 @@ Where CE assets live under a single root directory (e.g. `.claude`).
 
 # Citations
 
-1. Source page: https://pydantic.dev/docs/ai/harness/context
+1. Source page: https://pydantic.dev/docs/ai/harness/repo-context

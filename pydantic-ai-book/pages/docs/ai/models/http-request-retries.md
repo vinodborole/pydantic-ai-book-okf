@@ -2,7 +2,7 @@
 type: Web Page
 title: HTTP Request Retries | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/http-request-retries
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # HTTP Request Retries
@@ -20,10 +20,10 @@ The `wait_retry_after` function is a smart wait strategy that automatically resp
 
 This wait strategy:
 
-- Automatically parses `Retry-After`headers from HTTP 429 responses
-- Supports both seconds format (`"30"`) and HTTP date format (`"Wed, 21 Oct 2015 07:28:00 GMT"`)
+- Automatically parses `Retry-After` headers from HTTP 429 responses
+- Supports both seconds format (`"30"` ) and HTTP date format (`"Wed, 21 Oct 2015 07:28:00 GMT"` )
 - Falls back to your chosen strategy when no header is present
-- Respects the `max_wait`limit to prevent excessive delays
+- Respects the `max_wait` limit to prevent excessive delays
 
 For asynchronous HTTP clients (recommended for most use cases):
 
@@ -33,18 +33,18 @@ The `wait_retry_after` function automatically detects `Retry-After` headers in 4
 
 The retry transports work with any provider that accepts a custom HTTP client:
 
-- 
-**Start Conservative**: Begin with a small number of retries (3-5) and reasonable wait times.
-- 
-**Use Exponential Backoff**: This helps avoid overwhelming servers during outages.
-- 
-**Set Maximum Wait Times**: Prevent indefinite delays with reasonable maximum wait times.
-- 
-**Handle Rate Limits Properly**: Respect`Retry-After`headers when possible.
-- 
-**Log Retry Attempts**: Add logging to monitor retry behavior in production. (This will be picked up by Logfire automatically if you instrument httpx.)
-- 
-**Consider Circuit Breakers**: For high-traffic applications, consider implementing circuit breaker patterns.
+1. 
+**Start Conservative** : Begin with a small number of retries (3-5) and reasonable wait times.
+2. 
+**Use Exponential Backoff** : This helps avoid overwhelming servers during outages.
+3. 
+**Set Maximum Wait Times** : Prevent indefinite delays with reasonable maximum wait times.
+4. 
+**Handle Rate Limits Properly** : Respect`Retry-After` headers when possible.
+5. 
+**Log Retry Attempts** : Add logging to monitor retry behavior in production. (This will be picked up by Logfire automatically if you instrument httpx.)
+6. 
+**Consider Circuit Breakers** : For high-traffic applications, consider implementing circuit breaker patterns.
 
 The retry transports will re-raise the last exception if all retry attempts fail. Make sure to handle these appropriately in your application:
 

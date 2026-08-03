@@ -2,7 +2,7 @@
 type: Web Page
 title: Third-Party Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/third-party-tools
-timestamp: '2026-07-27T09:59:11.298696+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Third-Party Tools
@@ -11,7 +11,7 @@ Pydantic AI supports integration with various third-party tool libraries, allowi
 
 See the [MCP Client](/docs/ai/mcp/client) documentation for how to use MCP servers with Pydantic AI as [toolsets](/docs/ai/tools-toolsets/toolsets).
 
-If you’d like to use a tool from LangChain’s [community tool library](https://python.langchain.com/docs/integrations/tools/) with Pydantic AI, you can use the [ tool_from_langchain](/docs/ai/api/pydantic-ai/ext/#pydantic_ai.ext.langchain.tool_from_langchain) convenience method. Note that Pydantic AI will not validate the arguments in this case — it’s up to the model to provide arguments matching the schema specified by the LangChain tool, and up to the LangChain tool to raise an error if the arguments are invalid.
+If you’d like to use a tool from LangChain’s [community tool library](https://python.langchain.com/docs/integrations/tools/) with Pydantic AI, you can use the [`tool_from_langchain`](/docs/ai/api/pydantic-ai/ext/#pydantic_ai.ext.langchain.tool_from_langchain) convenience method. Note that Pydantic AI will not validate the arguments in this case — it’s up to the model to provide arguments matching the schema specified by the LangChain tool, and up to the LangChain tool to raise an error if the arguments are invalid.
 
 You will need to install the `langchain-community` package and any others required by the tool in question.
 
@@ -30,10 +30,10 @@ toolset = LangChainToolset(toolkit.get_tools())
 agent = Agent('openai:gpt-5.2', toolsets=[toolset])
 # ...
 ```
-- [Function Tools](/docs/ai/tools-toolsets/tools)- Basic tool concepts and registration
-- [Toolsets](/docs/ai/tools-toolsets/toolsets)- Managing collections of tools
-- [MCP Client](/docs/ai/mcp/client)- Using MCP servers with Pydantic AI
-- [LangChain Toolsets](/docs/ai/tools-toolsets/toolsets#langchain-tools)- Using LangChain toolsets
+- [Function Tools](/docs/ai/tools-toolsets/tools) - Basic tool concepts and registration
+- [Toolsets](/docs/ai/tools-toolsets/toolsets) - Managing collections of tools
+- [MCP Client](/docs/ai/mcp/client) - Using MCP servers with Pydantic AI
+- [LangChain Toolsets](/docs/ai/tools-toolsets/toolsets#langchain-tools) - Using LangChain toolsets
 
 # Citations
 

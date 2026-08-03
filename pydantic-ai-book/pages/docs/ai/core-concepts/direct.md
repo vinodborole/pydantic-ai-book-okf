@@ -2,23 +2,21 @@
 type: Web Page
 title: Direct Model Requests | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/direct
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-03T09:54:19.663642+00:00'
 ---
 
 # Direct Model Requests
 
 The `direct` module provides low-level methods for making imperative requests to LLMs where the only abstraction is input and output schema translation, enabling you to use all models with the same API.
 
-These methods are thin wrappers around the [ Model](/docs/ai/api/models/base/#pydantic_ai.models.Model) implementations, offering a simpler interface when you don’t need the full functionality of an 
+These methods are thin wrappers around the [`Model`](/docs/ai/api/models/base/#pydantic_ai.models.Model) implementations, offering a simpler interface when you don’t need the full functionality of an [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent).
 
-[.](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent)
+The following functions are available:
 
-`Agent`The following functions are available:
-
-- `model_request`
-- `model_request_sync`
-- `model_request_stream`
-- `model_request_stream_sync`
+- [`model_request`](/docs/ai/api/pydantic-ai/direct/#pydantic_ai.direct.model_request) : Make a non-streamed async request to a model
+- [`model_request_sync`](/docs/ai/api/pydantic-ai/direct/#pydantic_ai.direct.model_request_sync) : Make a non-streamed synchronous request to a model
+- [`model_request_stream`](/docs/ai/api/pydantic-ai/direct/#pydantic_ai.direct.model_request_stream) : Make a streamed async request to a model
+- [`model_request_stream_sync`](/docs/ai/api/pydantic-ai/direct/#pydantic_ai.direct.model_request_stream_sync) : Make a streamed sync request to a model
 
 Here’s a simple example demonstrating how to use the direct API to make a basic request:
 
@@ -71,15 +69,15 @@ async def main():
     )
     """
 ```
-*(This example is complete, it can be run “as is” — you’ll need to add  asyncio.run(main()) to run main)*
+*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
 The direct API is ideal when:
 
-- You need more direct control over model interactions
-- You want to implement custom behavior around model requests
-- You’re building your own abstractions on top of model interactions
+1. You need more direct control over model interactions
+2. You want to implement custom behavior around model requests
+3. You’re building your own abstractions on top of model interactions
 
-For most application use cases, the higher-level [ Agent](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) API provides a more convenient interface with additional features such as native tool execution, retrying, structured output parsing, and more.
+For most application use cases, the higher-level [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) API provides a more convenient interface with additional features such as native tool execution, retrying, structured output parsing, and more.
 
 As with [agents](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent), you can enable OpenTelemetry/Logfire instrumentation with just a few extra lines
 
