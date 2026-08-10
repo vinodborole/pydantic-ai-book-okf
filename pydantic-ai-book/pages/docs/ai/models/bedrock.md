@@ -2,7 +2,7 @@
 type: Web Page
 title: Bedrock | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/bedrock
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Bedrock
@@ -48,6 +48,23 @@ agent = Agent(model)
 You can customize the Bedrock Runtime API calls by adding additional parameters, such as [guardrail
 configurations](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) and [performance settings](https://docs.aws.amazon.com/bedrock/latest/userguide/latency-optimized-inference.html). For a complete list of configurable parameters, refer to the
 documentation for [`BedrockModelSettings`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings).
+
+Use [`ModelSettings.extra_headers`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.extra_headers) to add HTTP headers to
+`Converse`, `ConverseStream`, and `CountTokens` requests. This is useful for routing requests through an API gateway
+or proxy that requires custom headers:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.models.bedrock import BedrockModelSettings
+agent = Agent(
+    'bedrock:us.amazon.nova-micro-v1:0',
+    model_settings=BedrockModelSettings(
+        extra_headers={'X-Tenant-ID': 'example-tenant'},
+    ),
+)
+```
+Do not use `extra_headers` to override headers managed by boto3, such as `Authorization`, `User-Agent`, `X-Amz-Date`,
+`Host`, or `Content-Length`. These values may be ignored or cause the request to fail.
 
 Bedrock supports controlling the [service tier](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles.html) to manage throughput and cost.
 You can use the unified [`service_tier`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.service_tier) field or the provider-specific [`bedrock_service_tier`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings.bedrock_service_tier) field. `bedrock_service_tier` takes precedence over the unified field when both are set.

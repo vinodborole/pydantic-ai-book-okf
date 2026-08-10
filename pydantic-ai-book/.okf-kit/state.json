@@ -2,7 +2,7 @@
   "generator": "okf-kit",
   "okf_version": "0.1",
   "root_url": "https://pydantic.dev/docs/ai/overview",
-  "updated_at": "2026-08-03T09:54:19.836543+00:00",
+  "updated_at": "2026-08-10T07:48:56.097748+00:00",
   "config": {
     "max_depth": 3,
     "max_pages": 90,
@@ -16,13 +16,13 @@
       "path": "pages/docs/ai/capabilities/compaction.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/compaction",
       "title": "Compaction | Pydantic Docs",
-      "hash": "ef7fab6a9c4b04cdc2f226ed584ce2610c65b621766a6c47e4b6e036aceff4ba"
+      "hash": "8f38a412a1bb8a8c432ca20fa9e8792a20520741c56353d02cc2d9648103494b"
     },
     {
       "path": "pages/docs/ai/capabilities/custom.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/custom",
       "title": "Building Custom Capabilities | Pydantic Docs",
-      "hash": "de8e4cf6557df8f63bdcf2b34c855451f82742497e67d30d59e4f6fa1d60c45a"
+      "hash": "041df146a8acac3d8220095282f3d8b642cb5b1e70511ac16c9cc2b5c75669a6"
     },
     {
       "path": "pages/docs/ai/capabilities/durable_execution/airflow.md",
@@ -34,7 +34,7 @@
       "path": "pages/docs/ai/capabilities/durable_execution/dbos.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/durable_execution/dbos",
       "title": "DBOS | Pydantic Docs",
-      "hash": "ba5a6d6718b340ee3cd16629aa7cfc5e6fdaac2b5728481b13c60570d2c128f0"
+      "hash": "4f8f84acb7351c1a7ef16c2f51e3ba7e57824ac9fde79dcf6c24e7af2283fe88"
     },
     {
       "path": "pages/docs/ai/capabilities/durable_execution/kitaru.md",
@@ -52,7 +52,7 @@
       "path": "pages/docs/ai/capabilities/durable_execution/prefect.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/durable_execution/prefect",
       "title": "Prefect | Pydantic Docs",
-      "hash": "d812ce2c6a89d1248611e5e05a252086339fb65aba9d00d03a4b71b2337334e6"
+      "hash": "824335a8dd1afc967a0b123755116a67e4b2f99e92437477701f55a51c49863c"
     },
     {
       "path": "pages/docs/ai/capabilities/durable_execution/restate.md",
@@ -64,7 +64,7 @@
       "path": "pages/docs/ai/capabilities/durable_execution/temporal.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/durable_execution/temporal",
       "title": "Temporal | Pydantic Docs",
-      "hash": "10fcfc903cb0faec1329bc9d0a146dc1840e8e1dba7d7b1cbb04224723e154c1"
+      "hash": "b4798fda17042f7bb3ba2fd2a66c0a5d35fcf541b3d126c52c3c9f24c9fc9339"
     },
     {
       "path": "pages/docs/ai/capabilities/handle-deferred-tool-calls.md",
@@ -100,7 +100,7 @@
       "path": "pages/docs/ai/capabilities/on-demand.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/on-demand",
       "title": "On-Demand Capabilities | Pydantic Docs",
-      "hash": "ab01a6fd4a82693bd40dfcfc58c8384b2fce9197eed32123b32643b43be92db4"
+      "hash": "31eab56c361673c2df355cbaea1a9cf830155800db197057a06323e132e249a1"
     },
     {
       "path": "pages/docs/ai/capabilities/overview.md",
@@ -166,7 +166,7 @@
       "path": "pages/docs/ai/capabilities/thinking.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/thinking",
       "title": "Thinking | Pydantic Docs",
-      "hash": "52c889c7e90c0ff301a07f86f7134014af5364f1d42bebfb8e3fdc7555db8020"
+      "hash": "3557d7e1ec9b930ec6b4a32e841631c73b24682cda5cdced9f2c3549663d07d6"
     },
     {
       "path": "pages/docs/ai/capabilities/third-party.md",
@@ -184,7 +184,7 @@
       "path": "pages/docs/ai/capabilities/tool-search.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/tool-search",
       "title": "Tool Search | Pydantic Docs",
-      "hash": "9f81e8368308d5031b12660a6cde384ab5fa3641fadef00d347e0f0fba7818f4"
+      "hash": "c00827e679dea2e784bb57fbc834ce6b0feca5b33be3174a8504e1be8f0d4d7e"
     },
     {
       "path": "pages/docs/ai/capabilities/web-fetch.md",
@@ -214,7 +214,7 @@
       "path": "pages/docs/ai/core-concepts/agent.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/agent",
       "title": "Agents | Pydantic Docs",
-      "hash": "f333aeca2ee93716b82ef9696c64ce832498e0208eb2d2d0d042e12a7eacb6a0"
+      "hash": "41e76f7a87e8ea13d80bb299e5e73e6aceac826f2b9274c9ef047acc2864364e"
     },
     {
       "path": "pages/docs/ai/core-concepts/dependencies.md",
@@ -232,7 +232,7 @@
       "path": "pages/docs/ai/core-concepts/hooks.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/hooks",
       "title": "Hooks | Pydantic Docs",
-      "hash": "8a856789408f87cd535bd0219c73faa624d0c0f35a121da2da41da895ca6b8ab"
+      "hash": "50083550361ae1faf83a1e32b220191506102a6d3022dc3d6d3c5aea9029efc3"
     },
     {
       "path": "pages/docs/ai/core-concepts/input.md",
@@ -244,25 +244,31 @@
       "path": "pages/docs/ai/core-concepts/message-history.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/message-history",
       "title": "Messages and chat history | Pydantic Docs",
-      "hash": "b98d42153e45d2975a59b2d493921ce4d92196d7d9e20d8c5bc30e90bc092a9d"
+      "hash": "67f2acde9500f873eba3870690f469fecd8343515677a3579585698793114010"
     },
     {
       "path": "pages/docs/ai/core-concepts/output.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/output",
       "title": "Output | Pydantic Docs",
-      "hash": "115c86e326f729033f25ea3f2d9880fe4b542063f4deb0d633b7376c73828082"
+      "hash": "a2c4fb9496e9322952fbe7fe3b4f162ce9c12cb79879a43125466a43c79fd488"
     },
     {
       "path": "pages/docs/ai/harness.md",
       "url": "https://pydantic.dev/docs/ai/harness",
       "title": "Pydantic AI Harness",
-      "hash": "97f9d7ff287954a92b7de51b5234c595f4c3cca57c6172d27689bd63e429e86e"
+      "hash": "a87ae048dca1fae777733a3ab1046b74b321756ed13e7f7117130f4c4b458406"
     },
     {
-      "path": "pages/docs/ai/harness/capability-creation.md",
-      "url": "https://pydantic.dev/docs/ai/harness/capability-creation",
-      "title": "Runtime Capability Creation | Pydantic Docs",
-      "hash": "7c5358a79b12741ea10519d3fe16230743a0e74d06ef85d0109bdf0eaad905b0"
+      "path": "pages/docs/ai/harness/advisor.md",
+      "url": "https://pydantic.dev/docs/ai/harness/advisor",
+      "title": "Advisor | Pydantic Docs",
+      "hash": "399f366d47556e8067975777dc9ffe6bf83e78df62e5e498421c09b1f379b0ab"
+    },
+    {
+      "path": "pages/docs/ai/harness/browser-use.md",
+      "url": "https://pydantic.dev/docs/ai/harness/browser-use",
+      "title": "Browser Use | Pydantic Docs",
+      "hash": "a26fbbb5b77d68e1cc7a57a19b48915c56854497b0ac9805934cf1e9d268dcad"
     },
     {
       "path": "pages/docs/ai/harness/code-mode.md",
@@ -299,12 +305,6 @@
       "url": "https://pydantic.dev/docs/ai/harness/filesystem",
       "title": "FileSystem | Pydantic Docs",
       "hash": "5b9b2bec5c751a6a71bf3e996afe94d3069121760226d26e0de14bfe2a230272"
-    },
-    {
-      "path": "pages/docs/ai/harness/guardrails.md",
-      "url": "https://pydantic.dev/docs/ai/harness/guardrails",
-      "title": "Input, Output & Tool Guardrails",
-      "hash": "c9ea311e284a13e13a4115502545bc05d73a5011973567c27db4e3b3b7ac7929"
     },
     {
       "path": "pages/docs/ai/harness/macroscope.md",
@@ -388,13 +388,13 @@
       "path": "pages/docs/ai/models/anthropic.md",
       "url": "https://pydantic.dev/docs/ai/models/anthropic",
       "title": "Anthropic | Pydantic Docs",
-      "hash": "4c9cc4ac5fc78e33f81be690ab42a2f02be8b8448a425de0915a0ceee474f479"
+      "hash": "7fa56cc6aa86356ff5c3af7f1bffe2ef986216c4d5638c5f3e29b78d9f34c487"
     },
     {
       "path": "pages/docs/ai/models/bedrock.md",
       "url": "https://pydantic.dev/docs/ai/models/bedrock",
       "title": "Bedrock | Pydantic Docs",
-      "hash": "b8c97faab1130b1cb79a6b62648588febe8dde06b81e468740e83d0a7e259097"
+      "hash": "fd1fb37d6710324ad9d91b9781d1a7f8dc7d604153a12fa852bb009f760a7a2c"
     },
     {
       "path": "pages/docs/ai/models/cerebras.md",
@@ -412,7 +412,7 @@
       "path": "pages/docs/ai/models/google.md",
       "url": "https://pydantic.dev/docs/ai/models/google",
       "title": "Google | Pydantic Docs",
-      "hash": "5c4778b86c73f694e522705a3d86ad1b72288be1e555e1abc9e30723493f9bed"
+      "hash": "f3a63c2336df907860f2e27581f8d9f8ba9e5d31ac6ef000d1d7f6d1c5d2ccac"
     },
     {
       "path": "pages/docs/ai/models/groq.md",
@@ -448,19 +448,19 @@
       "path": "pages/docs/ai/models/openai.md",
       "url": "https://pydantic.dev/docs/ai/models/openai",
       "title": "OpenAI | Pydantic Docs",
-      "hash": "59844813909d647b9140f161f5c64836293665005ae4ccec9621287294268e0d"
+      "hash": "6fae03b8fce542bc9bd7f37d0bee090ee66faa242d92cf20c86bc46872b80db0"
     },
     {
       "path": "pages/docs/ai/models/openrouter.md",
       "url": "https://pydantic.dev/docs/ai/models/openrouter",
       "title": "OpenRouter | Pydantic Docs",
-      "hash": "916e718d8ce46b9ce74fe077114a480104edf6624f081f80c055efd809dcee45"
+      "hash": "e2eefd6179567b2c9a1138c5894d225b958c363ecf61aa82ac08eef1a48d164b"
     },
     {
       "path": "pages/docs/ai/models/overview.md",
       "url": "https://pydantic.dev/docs/ai/models/overview",
       "title": "Overview | Pydantic Docs",
-      "hash": "234c857f2d2dcf56255e5ff892b3a6ce3154bda59f43015ad3a63f57f79e8e18"
+      "hash": "e49cee7d40b974c29fe073885552b03b4614bdda675b9315b6ed453036b883e5"
     },
     {
       "path": "pages/docs/ai/models/xai.md",
@@ -514,7 +514,7 @@
       "path": "pages/docs/ai/tools-toolsets/common-tools.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/common-tools",
       "title": "Common Tools | Pydantic Docs",
-      "hash": "10c24533deb4a22f7002513c56160ccdffc58aa649babb52df29656f69f61db1"
+      "hash": "9c8a1555623a4ec602d5f6c16b64204a0c1a3c1fc0ca11d98db80d5f30c4013c"
     },
     {
       "path": "pages/docs/ai/tools-toolsets/deferred-tools.md",
@@ -526,7 +526,7 @@
       "path": "pages/docs/ai/tools-toolsets/native-tools.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/native-tools",
       "title": "Native Tools | Pydantic Docs",
-      "hash": "fc500a32f140a85b2338b4835c4d5e8c7c86b122aa1b465168ec311b66565cdb"
+      "hash": "68e15600f208da9cfc3043bc948b502cddb5e84f3cdd044960075642f4ae9f30"
     },
     {
       "path": "pages/docs/ai/tools-toolsets/third-party-tools.md",
@@ -538,7 +538,7 @@
       "path": "pages/docs/ai/tools-toolsets/tools-advanced.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced",
       "title": "Advanced Tool Features | Pydantic Docs",
-      "hash": "d18daf10b832cef31a5130f0cf16e2a5db6fcd19e0a9ec4c79a3d7f38d87a34a"
+      "hash": "fb0e1b83032de6ee064d25bd64320bb22e184d94ab286748b0c97141973f89cd"
     },
     {
       "path": "pages/docs/ai/tools-toolsets/tools.md",
@@ -550,7 +550,7 @@
       "path": "pages/docs/ai/tools-toolsets/toolsets.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/toolsets",
       "title": "Toolsets | Pydantic Docs",
-      "hash": "61544f5a3fa28143a7cd9d8644443456a23ac412149e67492c54fe77c4c02801"
+      "hash": "9b9ca73674ef584d50abf8f22aa1dbc00f6819ac853433b4ccdf9944a02cb339"
     }
   ],
   "edges": [
@@ -1128,10 +1128,6 @@
     ],
     [
       "pages/docs/ai/capabilities/third-party.md",
-      "pages/docs/ai/harness/guardrails.md"
-    ],
-    [
-      "pages/docs/ai/capabilities/third-party.md",
       "pages/docs/ai/harness/planning.md"
     ],
     [
@@ -1245,6 +1241,10 @@
     [
       "pages/docs/ai/core-concepts/agent.md",
       "pages/docs/ai/capabilities/custom.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/agent.md",
+      "pages/docs/ai/capabilities/durable_execution/temporal.md"
     ],
     [
       "pages/docs/ai/core-concepts/agent.md",
@@ -1448,7 +1448,11 @@
     ],
     [
       "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/capability-creation.md"
+      "pages/docs/ai/harness/advisor.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/browser-use.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1473,10 +1477,6 @@
     [
       "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/filesystem.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/guardrails.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1527,12 +1527,36 @@
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
-      "pages/docs/ai/harness/capability-creation.md",
-      "pages/docs/ai/capabilities/custom.md"
+      "pages/docs/ai/harness/advisor.md",
+      "pages/docs/ai/capabilities/overview.md"
     ],
     [
-      "pages/docs/ai/harness/capability-creation.md",
+      "pages/docs/ai/harness/advisor.md",
+      "pages/docs/ai/tools-toolsets/native-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/advisor.md",
+      "pages/docs/ai/tools-toolsets/tools-advanced.md"
+    ],
+    [
+      "pages/docs/ai/harness/browser-use.md",
+      "pages/docs/ai/capabilities/overview.md"
+    ],
+    [
+      "pages/docs/ai/harness/browser-use.md",
       "pages/docs/ai/core-concepts/agent-spec.md"
+    ],
+    [
+      "pages/docs/ai/harness/browser-use.md",
+      "pages/docs/ai/harness/exa-search.md"
+    ],
+    [
+      "pages/docs/ai/harness/browser-use.md",
+      "pages/docs/ai/harness/subagents.md"
+    ],
+    [
+      "pages/docs/ai/harness/browser-use.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
       "pages/docs/ai/harness/code-mode.md",
@@ -1621,10 +1645,6 @@
     [
       "pages/docs/ai/harness/filesystem.md",
       "pages/docs/ai/tools-toolsets/toolsets.md"
-    ],
-    [
-      "pages/docs/ai/harness/guardrails.md",
-      "pages/docs/ai/harness/tool-output-limits.md"
     ],
     [
       "pages/docs/ai/harness/macroscope.md",
@@ -1801,6 +1821,10 @@
     [
       "pages/docs/ai/models/openai.md",
       "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/models/openai.md",
+      "pages/docs/ai/core-concepts/message-history.md"
     ],
     [
       "pages/docs/ai/models/openai.md",
@@ -2128,7 +2152,19 @@
     ],
     [
       "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/capabilities/compaction.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/capabilities/durable_execution/overview.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
       "pages/docs/ai/capabilities/on-demand.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/tools-advanced.md",
+      "pages/docs/ai/core-concepts/agent.md"
     ],
     [
       "pages/docs/ai/tools-toolsets/tools-advanced.md",
@@ -2240,10 +2276,10 @@
     ]
   ],
   "last_sync": {
-    "synced_at": "2026-08-03T09:54:19.801491+00:00",
-    "added": 6,
-    "changed": 79,
-    "removed": 6,
+    "synced_at": "2026-08-10T07:48:56.041836+00:00",
+    "added": 2,
+    "changed": 23,
+    "removed": 2,
     "pages": 90
   }
 }

@@ -2,7 +2,7 @@
 type: Web Page
 title: Anthropic | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/anthropic
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Anthropic
@@ -341,7 +341,7 @@ Adding an instruction to the agent’s `system_prompt` partway through a long se
 
 Any [`SystemPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.SystemPromptPart) outside the first [`ModelRequest`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest) is a mid-conversation instruction — whether it came from a stored `message_history` or from [`RunContext.enqueue`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) during a run. There’s nothing extra to turn on:
 
-Keeping the instruction in place leaves the prefix ahead of it reusable, but it doesn’t enable caching on its own — that still comes from [`anthropic_cache`](#automatic-caching-recommended), `anthropic_cache_messages`, or an explicit [`CachePoint`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint). A `CachePoint` at the end of an enqueued batch caches everything before it in that batch, the instruction included. One with more content after it caches up to where you put it and leaves the instruction outside: the instruction is sent after the content it accompanies, so it can’t be inside a boundary that content is outside of.
+Keeping the instruction in place leaves the prefix ahead of it reusable, but it doesn’t enable caching on its own — that still comes from [`anthropic_cache`](#automatic-caching), `anthropic_cache_messages`, or an explicit [`CachePoint`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint). A `CachePoint` at the end of an enqueued batch caches everything before it in that batch, the instruction included. One with more content after it caches up to where you put it and leaves the instruction outside: the instruction is sent after the content it accompanies, so it can’t be inside a boundary that content is outside of.
 
 Support varies by model and by transport — the [Microsoft Foundry](#microsoft-foundry) integration doesn’t serve the role, and some Claude models accept the entry without acting on it. Anthropic’s [mid-conversation system messages docs](https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages) have the current list. Pydantic AI picks the rendering that works for the model and transport you’re using, falling back to a `<system>`-tagged user message at the same position, so the instruction applies where you put it either way.
 
@@ -368,6 +368,8 @@ On a model that doesn’t support forcing:
 - A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output#tool-output) ) falls back softly to`'auto'` , with the available tools filtered to the requested set so the model can still only pick from them. Filtering the tool definitions invalidates Anthropic’s prompt cache, since the cached prefix includes the tool array.
 
 Anthropic supports [automatic context compaction](https://docs.anthropic.com/en/docs/build-with-claude/compaction) to manage long conversations. When input tokens exceed a configured threshold, the API automatically generates a summary that replaces older messages while preserving context.
+
+After compaction, subsequent requests send only the compacted window, from the latest compaction block onward, which reduces request size — the API ignores earlier content either way. The standing system prompt is unaffected: it’s sent as the separate `system` parameter, which compaction doesn’t replace.
 
 The easiest way to enable compaction is with the [`AnthropicCompaction`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicCompaction) capability:
 

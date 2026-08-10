@@ -2,7 +2,7 @@
 type: Web Page
 title: Building Custom Capabilities | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/custom
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Building Custom Capabilities
@@ -127,6 +127,8 @@ Capabilities can hook into five lifecycle points, each with up to four variants:
 
 [`wrap_node_run`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.wrap_node_run) fires for every node in the [agent graph](/docs/ai/core-concepts/agent#iterating-over-an-agents-graph) ([`UserPromptNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.UserPromptNode), [`ModelRequestNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.ModelRequestNode), [`CallToolsNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.CallToolsNode)). Override this to observe node transitions, add per-step logging, or modify graph progression:
 
+Node hooks fire however the run is driven: [`agent.run()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run), [`agent_run.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next), and `async for node in agent_run:` over [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) all take the same path.
+
 You can also use `wrap_node_run` to modify graph progression — for example, limiting the number of model requests per run:
 
 See [Iterating Over an Agent’s Graph](/docs/ai/core-concepts/agent#iterating-over-an-agents-graph) for more about the agent graph and its node types.
@@ -218,6 +220,12 @@ For runs with event streaming ([`run_stream_events`](/docs/ai/api/pydantic-ai/ag
 | Hook | Signature | Purpose | 
 |---|---|---|
 | [`wrap_run_event_stream`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.wrap_run_event_stream) | `(ctx:` [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)`, *, stream: AsyncIterable[`[`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)`]) -> AsyncIterable[`[`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)`]` | Observe, filter, or transform streamed events | 
+
+The hook wraps the stream where it’s produced, so it fires for every drive mode: [`agent.run()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run) (which enables streaming automatically when this hook is registered), [`agent.run_stream()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream), and [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) — whether you advance it with `async for node in agent_run:`, with [`agent_run.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next), or by [streaming a node yourself](/docs/ai/core-concepts/agent#streaming-all-events). Events a capability drops or adds are reflected in what a manual `node.stream()` consumer sees, the same as for any other consumer.
+
+When a consumer closes the event stream before exhausting it, Pydantic AI also closes each wrapper returned by `wrap_run_event_stream` if it provides an `aclose()` method. Custom wrappers should use `try`/`finally` for teardown and may safely await cleanup there, but must not yield events while handling `GeneratorExit` because the consumer has gone away.
+
+Because a wrapper that closes its own input and a composed capability that closes every wrapper it built can both reach the same stream, `aclose()` may be called more than once. Async generators are idempotent here, so a `try`/`finally` wrapper needs nothing extra; a wrapper implementing `aclose()` by hand should make repeat calls a no-op.
 
 Matching against [`ToolCallEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolCallEvent) and [`ToolResultEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolResultEvent) handles both function tool calls ([`FunctionToolCallEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FunctionToolCallEvent) / [`FunctionToolResultEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FunctionToolResultEvent)) and output tool calls ([`OutputToolCallEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.OutputToolCallEvent) / [`OutputToolResultEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.OutputToolResultEvent)). Match against the specific subclass when you need to treat them differently. [Deferred tool calls](/docs/ai/tools-toolsets/deferred-tools#observing-deferred-tool-calls-in-a-stream) additionally emit batch-level [`DeferredToolRequestsEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.DeferredToolRequestsEvent) / [`DeferredToolResultsEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.DeferredToolResultsEvent).
 

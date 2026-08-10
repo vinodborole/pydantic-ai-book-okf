@@ -2,7 +2,7 @@
 type: Web Page
 title: Temporal | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/durable_execution/temporal
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Temporal
@@ -143,6 +143,13 @@ As the streaming model request activity, workflow, and workflow execution call a
 - To get data from the event stream handler to the workflow, workflow call site, or a frontend, you need to use an external system that the event stream handler can write to and the event consumer can read from, like a message queue. You can use the dependency object to make sure the same connection string or other unique ID is available in all the places that need it.
 
 Because the model stream is consumed inside the activity, cancelling it from the workflow side (e.g. with [`AgentStream.cancel()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.AgentStream.cancel)) is not available across the durable boundary. To stop an in-flight model request, cancel the Temporal workflow: the cancellation is delivered to the activity (via its heartbeats), which cancels any server-side job before the activity completes.
+
+Whole-run cancellation (see [Cancelling a Run](/docs/ai/core-concepts/agent#cancelling-a-run)) follows the same split, with Temporal-specific consequences:
+
+- Calling [`AgentRun.cancel()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.cancel) from workflow code raises[`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) as an ordinary application outcome: a workflow that catches it completes normally rather than ending as*Cancelled* , and the run remains replay-deterministic. An uncaught`RunCancelled` fails the workflow as a typed application error, and the run state does not cross the failure boundary — catch it inside the workflow if you need[`all_messages()`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled.all_messages) .
+- [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) requires being in the same process as the run, so calling it from a tool running inside an activity raises a clear[`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) instead of hanging.
+- [`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) is also same-process state and cannot be passed to a Temporal durable run; cancel the Temporal workflow instead.
+- Cancelling the Temporal workflow itself remains an external cancellation: `CancelledError` keeps propagating and the workflow still ends as*Cancelled* .
 
 `Agent.run_stream_sync()` is not for workflow code: it requires no running event loop and wraps `run_stream()`. Under [`TemporalDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.temporal.TemporalDurability), use the buffered async streaming APIs above or `Agent.run()` with an event stream handler. Outside a workflow, an agent with `TemporalDurability` behaves like a normal agent, so `run_stream_sync()` works as usual. (Wrapper `TemporalAgent` forbids `run_stream` inside workflows — use `run` + event stream handler there.)
 

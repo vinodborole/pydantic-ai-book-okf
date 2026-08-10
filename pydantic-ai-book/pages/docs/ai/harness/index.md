@@ -1,13 +1,13 @@
 # /pages/docs/ai/harness — directory listing
 
-- [Runtime Capability Creation | Pydantic Docs](/pages/docs/ai/harness/capability-creation.md)
+- [Advisor | Pydantic Docs](/pages/docs/ai/harness/advisor.md)
+- [Browser Use | Pydantic Docs](/pages/docs/ai/harness/browser-use.md)
 - [Code Mode | Pydantic Docs](/pages/docs/ai/harness/code-mode.md)
 - [Compaction | Pydantic Docs](/pages/docs/ai/harness/compaction.md)
 - [Conversation Search | Pydantic Docs](/pages/docs/ai/harness/conversation-search.md)
 - [Dynamic Workflow | Pydantic Docs](/pages/docs/ai/harness/dynamic-workflow.md)
 - [Exa Search | Pydantic Docs](/pages/docs/ai/harness/exa-search.md)
 - [FileSystem | Pydantic Docs](/pages/docs/ai/harness/filesystem.md)
-- [Input, Output & Tool Guardrails](/pages/docs/ai/harness/guardrails.md)
 - [Macroscope | Pydantic Docs](/pages/docs/ai/harness/macroscope.md)
 - [Media Externalization](/pages/docs/ai/harness/media.md)
 - [Memory | Pydantic Docs](/pages/docs/ai/harness/memory.md)

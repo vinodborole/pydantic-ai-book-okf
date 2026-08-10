@@ -2,7 +2,7 @@
 type: Web Page
 title: Messages and chat history | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/message-history
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Messages and chat history
@@ -49,9 +49,11 @@ Phrase the instruction as what changed rather than as an override of the user. M
 
 Model providers reject a request whose message history has broken tool-call/tool-result pairing — a tool call with no result, or a result with no call. A run that is cancelled or crashes partway through can leave the history in exactly this state, and so can a hand-built, truncated, or context-evicted history. You don’t need to clean these up yourself: before each model request, Pydantic AI repairs the history it was given so the provider accepts it.
 
+Tool additions are stored as [`ToolAvailabilityDeltaPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolAvailabilityDeltaPart) request parts; tool removal is not represented. A tool returning [`ToolReturn(tools=[...])`][pydantic_ai.messages.ToolReturn] authors the part immediately after its [`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) in the same request, with the call’s `tool_call_id` as a causal link. The executor deduplicates names in first-occurrence order and omits names already revealed. Replaying history keeps each `added` name revealed; tool definitions continue to come from the current run, so unknown or already-visible names have no effect when rendering a request.
+
 The guiding rule is to massage the history into a shape the provider accepts without ever discarding something you meant to send. Repairs only **add** synthesized parts or **remove** parts that are fundamentally unsendable (no provider could accept them); nothing meaningful is silently dropped. Concretely, before each request Pydantic AI:
 
-- **Adds** a synthesized[`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) for a tool call that has no result, telling the model the call was interrupted before a result was produced. It has[`outcome='interrupted'`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BaseToolReturnPart.outcome) — a neutral outcome that (unlike`'failed'` ) is not surfaced as a provider error — and carries`{'pydantic_ai_synthesized_tool_return': True}` in its[`metadata`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BaseToolReturnPart.metadata) so your code can tell it apart from real tool results. This also covers a call whose arguments were cut off mid-stream: the call is kept as-is and closed out the same way.
+- **Adds** a synthesized[`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) for a tool call that has no result, telling the model the call was interrupted before a result was produced. It has[`outcome='interrupted'`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BaseToolReturnPart.outcome) — a neutral outcome that (unlike`'failed'` ) is not surfaced as a provider error — and carries`{'pydantic_ai_synthesized_tool_return': True}` in its[`metadata`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BaseToolReturnPart.metadata) so your code can tell it apart from real tool results. This also covers a call whose arguments were cut off mid-stream: the call is kept as-is and closed out the same way. Its arguments stay verbatim in the history, but the request serializers send them as`{"INVALID_JSON": "<raw args>"}` (see[`args_as_json_str`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BaseToolCallPart.args_as_json_str) ) so that a provider requiring an object still accepts the request.
 - **Removes** an orphaned tool result — a[`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) or[`RetryPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.RetryPromptPart) whose tool call is absent from the history (including a result placed before its call). If this empties an interior[`ModelRequest`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest) the request is removed; if it empties the last message, an empty request is kept so the history still ends on a`ModelRequest` .
 
 After the invalid parts are handled, consecutive compatible messages are **merged** into one (two adjacent [`ModelRequest`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest)s become a single turn, with tool results ordered ahead of user parts). This changes message boundaries but preserves all content, so processed history you inspect afterwards may have fewer messages than you passed in.
@@ -179,14 +181,12 @@ instead.
 Use [`AgentRun.enqueue`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.enqueue) when you’re driving a run
 from outside (e.g. forwarding events from a webhook, chat platform, or job queue):
 
-The example drives the run with [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.iter) +
-[`AgentRun.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next) because `'when_idle'` messages are only
-drained when the agent would otherwise reach an `End` — that drain happens in `after_node_run`,
-which doesn’t fire inside a bare `async for node in agent_run:` loop. `'asap'` messages are
-drained in `before_model_request` (which fires either way) and also at the same end-of-run point
-if anything arrived during the final step. Reaching the end of a bare `async for` loop with
-undrained pending messages raises [`UndrainedPendingMessagesError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UndrainedPendingMessagesError),
-since those messages would otherwise be silently lost.
+`'when_idle'` messages are only drained when the agent would otherwise reach an `End` — that
+drain happens in `after_node_run`. `'asap'` messages are drained in `before_model_request`, and
+also at the same end-of-run point if anything arrived during the final step. Both fire however
+you drive the run, so [`Agent.run`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run),
+[`AgentRun.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next), and a bare `async for node in agent_run:`
+loop all deliver enqueued messages.
 
 Sometimes you may want to modify the message history before it’s sent to the model. This could be for privacy reasons (filtering out sensitive information), to save costs on tokens, to give less context to the LLM, or custom processing logic.
 

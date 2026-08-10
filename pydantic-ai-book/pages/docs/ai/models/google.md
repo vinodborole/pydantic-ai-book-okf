@@ -2,7 +2,7 @@
 type: Web Page
 title: Google | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/google
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 The `GoogleModel` is a model that uses the [`google-genai`](https://pypi.org/project/google-genai/) package under the hood to
@@ -74,7 +74,7 @@ To use a service account JSON file, explicitly create the provider and model:
 
 To use Google Cloud with an API key, [create a key](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys?usertype=expressmode) and set it as an environment variable:
 
-You can then use `GoogleModel` via the `GoogleCloudProvider` by name:
+You can then use `GoogleModel` via [`GoogleCloudProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.google_cloud.GoogleCloudProvider) by name:
 
 ```
 from pydantic_ai import Agent
@@ -326,7 +326,7 @@ Templates must be created in advance in the [Google Cloud Console](https://conso
 
 When a prompt or response is blocked, a [`ContentFilterError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ContentFilterError) is raised.
 
-Note that response templates only screen non-streaming requests: with streaming, Google Cloud returns the response text unscreened, so apply your own output handling if you rely on response-side blocking.
+Note that Model Armor screening — both prompt and response templates — only works with non-streaming requests (`agent.run()`). With streaming (`agent.run_stream()`), Google Cloud does not apply Model Armor: the prompt is not screened and the response text is returned unscreened. If you require streaming and need Model Armor protection, pre-screen prompts using the [`google-cloud-modelarmor` SDK](https://pypi.org/project/google-cloud-modelarmor/) before calling the agent.
 
 When you’ve created a Gemini [cached content resource](https://ai.google.dev/gemini-api/docs/caching), pass its resource name through [`google_cached_content`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings.google_cached_content) to reuse it across requests:
 

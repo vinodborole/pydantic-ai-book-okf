@@ -2,7 +2,7 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Native Tools
@@ -310,6 +310,8 @@ With OpenAI, you need to first [upload files to a vector store](https://platform
 With Gemini, you need to first [create a file search store via the Files API](https://ai.google.dev/gemini-api/docs/files), then reference the file search store names.
 
 With xAI, `FileSearchTool` maps to the [collections search](https://docs.x.ai/developers/tools/collections-search) tool. Pass collection IDs as `file_store_ids`.
+
+xAI’s collections search also accepts options to control result count, ranking guidance, and retrieval strategy. These map to the `max_num_results`, `instructions`, and `retrieval_mode` fields on [`FileSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.FileSearchTool). When omitted, the server applies its own defaults (10 results, hybrid retrieval).
 
 For complete API documentation, see the [API Reference](/docs/ai/api/pydantic-ai/native_tools).
 

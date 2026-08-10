@@ -4,7 +4,7 @@ title: Pydantic AI Harness
 description: The official capability library for Pydantic AI -- pick-and-choose batteries
   that turn your agent into a coding agent, research assistant, or anything else.
 resource: https://pydantic.dev/docs/ai/harness
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Overview
@@ -86,6 +86,7 @@ Each capability is a self-contained battery you drop into an agent’s `capabili
 
 | Capability | What it does | Extra | 
 |---|---|---|
+| [Advisor](/docs/ai/harness/advisor) | Lets an executor consult another model through a provider-native tool or a local Pydantic AI fallback. |  | 
 | [Code Mode](/docs/ai/harness/code-mode) | Wraps the agent’s tools into a single `run_code` tool, sandboxed by[Monty](https://github.com/pydantic/monty) . The model writes Python that calls the tools as functions — with loops, conditionals,`asyncio.gather` , and local filtering — collapsing N tool calls into one model round-trip. | `codemode` | 
 | [Skills](/docs/ai/harness/skills) | Loads Agent Skill instructions only when the model needs them. | `skills` | 
 | [FileSystem](/docs/ai/harness/filesystem) | Sandboxed file access scoped to a root directory: read, write, edit, search, and find files. Rejects path traversal above the root, resolves symlinks before authorizing, and keeps `.git/` ,`.env` , key files, and secrets read-only by default. | — | 
@@ -93,6 +94,7 @@ Each capability is a self-contained battery you drop into an agent’s `capabili
 | [Repo Context](/docs/ai/harness/repo-context) | Auto-loads repo context — `CLAUDE.md` /`AGENTS.md` and repository structure — so the agent starts a run already oriented in the project. | — | 
 | [Pydantic AI Docs](/docs/ai/harness/pydantic-ai-docs) | An on-demand `read_pyai_docs` tool that pulls Pydantic AI documentation into the run when the agent needs it, instead of preloading it. | — | 
 | [Exa Search](/docs/ai/harness/exa-search) | Web research backed by the [Exa](https://exa.ai) search API:`web_search` returns results with their most relevant excerpts,`get_page` reads a specific URL in full, and opt-in`deep_search` synthesizes a cited answer in one call. Output is budgeted per tool. | `exa` | 
+| [Browser Use](/docs/ai/harness/browser-use) | Delegates open-ended web tasks to an autonomous [browser-use](https://github.com/browser-use/browser-use) agent: one`browse_web` tool hands over a natural-language goal, the sub-agent drives a real browser, and the result comes back as text. | `browser-use` | 
 | [Compaction](/docs/ai/harness/compaction) | Keeps a run within token limits: sliding-window trimming, LLM-powered summarization of older messages, and warnings before the context or iteration ceiling is hit. | — | 
 | [Tool Output Limits](/docs/ai/harness/tool-output-limits) | Reduces an oversized tool return when it is produced — truncate, spill to a queryable file, or summarize — so a large payload does not persist in history and get re-sent every request. | — | 
 | [Warn On Cache Busts](/docs/ai/harness/warn-on-cache-busts) | Warns when a run’s prompt-cache hit collapses between model requests — a moved cacheable prefix or an expired provider cache — reading the provider’s own `cache_read_tokens` verdict. | — | 

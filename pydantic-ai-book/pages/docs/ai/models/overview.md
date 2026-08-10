@@ -2,7 +2,7 @@
 type: Web Page
 title: Overview | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Overview
@@ -23,6 +23,21 @@ Pydantic AI is model-agnostic and has built-in support for multiple model provid
 - [Z.AI](/docs/ai/models/zai)
 
 In addition, many providers are compatible with the OpenAI API, and can be used with `OpenAIChatModel` in Pydantic AI:
+
+- [Alibaba Cloud Model Studio (DashScope)](/docs/ai/models/openai#alibaba-cloud-model-studio-dashscope)
+- [Azure AI Foundry](/docs/ai/models/openai#azure-ai-foundry)
+- [DeepSeek](/docs/ai/models/openai#deepseek)
+- [Fireworks AI](/docs/ai/models/openai#fireworks-ai)
+- [GitHub Models](/docs/ai/models/openai#github-models) (retired, deprecated)
+- [Heroku](/docs/ai/models/openai#heroku-ai)
+- [LiteLLM](/docs/ai/models/openai#litellm)
+- [Nebius AI Studio](/docs/ai/models/openai#nebius-ai-studio)
+- [Ollama](/docs/ai/models/openai#ollama)
+- [OVHcloud AI Endpoints](/docs/ai/models/openai#ovhcloud-ai-endpoints)
+- [Perplexity](/docs/ai/models/openai#perplexity)
+- [SambaNova](/docs/ai/models/openai#sambanova)
+- [Together AI](/docs/ai/models/openai#together-ai)
+- [Vercel AI Gateway](/docs/ai/models/openai#vercel-ai-gateway)
 
 Pydantic AI also comes with [`TestModel`](/docs/ai/api/models/test) and [`FunctionModel`](/docs/ai/api/models/function)
 for testing and development.

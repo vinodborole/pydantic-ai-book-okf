@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenRouter | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openrouter
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # OpenRouter
@@ -33,7 +33,7 @@ agent = Agent(model)
 ```
 OpenRouter has an [app attribution](https://openrouter.ai/docs/app-attribution) feature to track your application in their public ranking and analytics.
 
-You can pass in an `app_url` and `app_title` when initializing the provider to enable app attribution.
+You can pass in an `app_url` and `app_title` when initializing the provider to enable app attribution. Both fall back to the `OPENROUTER_APP_URL` and `OPENROUTER_APP_TITLE` environment variables when omitted.
 
 ```
 from pydantic_ai.providers.openrouter import OpenRouterProvider

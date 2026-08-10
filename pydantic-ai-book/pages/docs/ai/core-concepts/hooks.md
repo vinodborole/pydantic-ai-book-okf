@@ -2,7 +2,7 @@
 type: Web Page
 title: Hooks | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/hooks
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Hooks
@@ -54,6 +54,8 @@ Run hooks fire once per agent run. `wrap_run` (registered via `hooks.on.run`) wr
 | `node_run_error` | `node_run_error=` | `on_node_run_error` | 
 
 Node hooks fire for each graph step ([`UserPromptNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.UserPromptNode), [`ModelRequestNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.ModelRequestNode), [`CallToolsNode`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.CallToolsNode)).
+
+Node hooks fire no matter how the run is driven: [`agent.run()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run), [`agent_run.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next), and `async for node in agent_run:` over [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) all advance the run the same way.
 
 | `hooks.on.` | Constructor kwarg | `AbstractCapability` method | 
 |---|---|---|

@@ -2,19 +2,19 @@
 type: Web Page
 title: On-Demand Capabilities | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/on-demand
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # On-Demand Capabilities
 
-A multi-workflow agent normally sends every workflow’s instructions and tool schemas on every turn, and applies every workflow’s settings and hooks for the whole run — even though most requests need just one workflow. That cost grows with each workflow you add: more input tokens, and worse tool selection once the visible tool set passes the ~30–50-tool mark where models start picking the wrong one (the same pressure behind [tool search](/docs/ai/tools-toolsets/tools-advanced#tool-search)).
+A capability is a bundle of instructions and/or tools, optionally with settings and hooks. A multi-workflow agent normally sends every workflow’s instructions and tool schemas on every turn, and applies every workflow’s settings and hooks for the whole run — even though most requests need just one workflow. That cost grows with each workflow you add: more input tokens, and worse tool selection once the visible tool set passes the ~30–50-tool mark where models start picking the wrong one (the same pressure behind [tool search](/docs/ai/tools-toolsets/tools-advanced#tool-search)).
 
 Mark a [capability](/docs/ai/capabilities/overview) with `defer_loading=True` and give it a stable `id`, and it collapses to a one-line catalog entry — its `id` plus an optional `description` — that the model pulls in on demand. Here’s the minimal shape:
 
 On the first turn, the refund workflow is collapsed to a catalog entry. The model sees its base instructions, the framework-managed `load_capability` tool, and the catalog appended to the instructions:
 
 ```
-The following capabilities are deferred and can be loaded using the `load_capability` tool:
+The following capabilities are deferred and can be loaded using the `load_capability` tool. A capability may have tools; they stay hidden until it is loaded:
 - refunds: Use for refund eligibility, refund status, or processing a refund.
 ```
 The model does not receive the refund instructions or the `refund_status` tool definition yet, so it has no reason to call the tool. Depending on the active model, Pydantic AI may also send provider/tool-search plumbing to preserve the hidden state; that plumbing does not expose the refund tool definition until the capability is loaded. The exchange unfolds across model requests within a single `agent.run_sync` call:
@@ -24,6 +24,8 @@ The model does not receive the refund instructions or the `refund_status` tool d
 3. **Request 2.** The model now sees those instructions in history and`refund_status` in its tool list. It calls`refund_status(order_id='ABC-123')` and answers the user from the result.
 
 Already-loaded capabilities stay loaded for the rest of the run — the model never needs to re-open one.
+
+Searching cannot reveal a capability-owned tool: it stays hidden until its capability loads. In runs that also have searchable deferred tools, the catalog explicitly steers the model to load the capability rather than search for its tools; in capability-only runs — where no search surface exists — the catalog omits any mention of searching.
 
 Loading activates the whole bundle, not just instructions: the capability’s function tools, model settings, and lifecycle hooks come live together (see [What you can defer](#what-you-can-defer)). It’s a one-line change to a capability you already register, it works on [every provider](#cross-provider-behavior), and it [survives history replay](#resumable-across-runs).
 
@@ -54,7 +56,7 @@ If you’ve used [Anthropic’s Agent Skills](https://www.anthropic.com/engineer
 
 Until the model loads `analytics-mcp`, none of the MCP server’s tool definitions enter the prompt. The same flag works on [`WebSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WebSearch), [`WebFetch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WebFetch), [`Hooks`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks), and any custom [`AbstractCapability`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability) subclass — see [Building custom capabilities](/docs/ai/capabilities/custom) for adding `defer_loading` to your own subclass.
 
-Loaded-capability state lives in message history, not in the agent. When a conversation is persisted to a database and resumed later — possibly on a different process, machine, or model — Pydantic AI reconstructs the loaded set from the `load_capability` tool call/return pairs in history. Capabilities the model loaded earlier stay loaded; capabilities it never loaded stay collapsed in the catalog. No re-discovery round-trip on resume.
+Loaded-capability and tool-availability state live in message history, not in the agent. When a conversation is persisted to a database and resumed later — possibly on a different process, machine, or model — Pydantic AI reconstructs the loaded capability IDs from `load_capability` call/return pairs and the revealed tool names from [`ToolAvailabilityDeltaPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolAvailabilityDeltaPart). Capabilities the model loaded earlier stay loaded; capabilities it never loaded stay collapsed in the catalog. No re-discovery round-trip on resume.
 
 This is why deferred capabilities require a stable explicit `id`: history replay matches calls to capabilities by id, so a class-derived id would silently break the moment a class is renamed. The same property makes cross-provider replay work — a run that loaded `refunds` on Anthropic and continued on OpenAI Responses keeps `refunds` loaded after the switch.
 
@@ -65,25 +67,35 @@ Several [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunCont
 - `ctx.loaded_capability_ids` — deferred capability IDs explicitly loaded through the`load_capability` tool, reconstructed from message history and updated when a capability loads during the current step.
 - `ctx.available_capability_ids` — the currently-live capability IDs: always-available capabilities plus`ctx.loaded_capability_ids` .
 - `ctx.capability_loaded` — only meaningful while Pydantic AI is running a capability-owned hook or callback. It is scoped to that capability; deferred hooks and callbacks are skipped until this value would be true.
-- `ctx.discovered_tool_names` — deferred function tools revealed by tool search. This is tool-level discovery, separate from capability-level loading.
-- `ctx.available_tool_names` — function tool names currently known as available: always-visible tools from the current step’s assembled tool manager plus tool-search discoveries reconstructed from history. Early hooks such as`before_run` may see only the history-derived discovered names, or an empty set if none exist yet, before tool definitions have been prepared. See[Hook ordering](/docs/ai/core-concepts/hooks#hook-ordering) for how hook timing affects what is populated.
+- `ctx.discovered_tool_names` — deferred function tools revealed by durable history, whether through tool search,[`ToolReturn.tools`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn) , or a capability load.
+- `ctx.available_tool_names` — function tool names currently known as available: always-visible tools from the current step’s assembled tool manager plus names revealed in history. Early hooks such as`before_run` may see only the history-derived names, or an empty set if none exist yet, before tool definitions have been prepared. See[Hook ordering](/docs/ai/core-concepts/hooks#hook-ordering) for how hook timing affects what is populated.
 - `ctx.is_tool_available(tool)` — whether a function tool is currently visible. Wrapping toolsets should pass the[`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition) they hold; model-request hooks and tool execution can pass a name from the current`ctx.tools` snapshot.
 - `ctx.usage_limits` — the[`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) the run is enforcing (defaulting to`UsageLimits()` when none were passed, so it’s only`None` outside of a run), alongside`ctx.usage` for the usage so far. A capability can read the run’s limits to disclose or adapt to the remaining budget (e.g. budget disclosure) without being configured with a duplicate copy. Treat it as read-only: it’s the live object the run enforces against, so mutating a field would change what the run enforces on subsequent requests.
 
 Loading a capability updates the capability state immediately, but the loaded bundle’s function tools, native tools, and model settings take effect on the next model request.
 
-On-demand capabilities work on every model. Anthropic accepts deferred function tools without a tool-search tool, so a run whose deferred tools are all capability-owned advertises only `load_capability`; its application-driven reveal makes those tools callable. OpenAI Responses requires `tool_search` alongside every deferred tool, so Pydantic AI uses its client-executed surface for capability-owned tools. Standalone deferred tools still use the provider’s hosted search where supported. On other providers, a local `search_tools` function tool handles discovery: the initial context shrinks the same way, but cache stability across loads is not guaranteed.
+On-demand capabilities work on every model, and where the provider can express an availability change natively, loading one leaves the prompt prefix intact.
+
+A capability-owned tool is hidden until its capability loads, and it is never searchable — the model reaches it by loading the capability, not by asking for it. The unified rule is that an unrevealed deferred tool stays outside the model’s usable context; each provider’s reveal mechanism determines its wire representation.
+
+- **Anthropic `tool_addition_mode='by_reference'`** references the revealed name in a`tool_addition` block. A capability-only run pre-advertises the definition with`defer_loading=True` ; a mixed run with a search surface withholds it, then appends the deferred definition in the same request as the reveal.
+- **OpenAI Responses `tool_addition_mode='with_definitions'`** carries the full revealed definition in an appended`additional_tools` input item and leaves it out of`tools` .
+- **No provider-native reveal-item support (`tool_addition_mode=None`)** announces`The following tool(s) are now available: {names}` when the schema is visible. It synthesizes a`search_tools` exchange only when a result must reveal a schema that is still withheld.
+
+Add a standalone `defer_loading=True` tool to the same run and tool search comes back for it, since that one genuinely is searchable. Capability-owned tools stay off the wire entirely while a search surface is present, so search remains fully native — server-executed where the model supports it — and no query can surface a tool whose capability has not loaded.
 
 Calling the `load_capability` tool reveals capability behavior between requests. Whether that breaks the provider’s prompt-cache prefix depends on what’s revealed:
+
+`load_capability` returns the loaded capability’s function-tool names through [`ToolReturn.tools`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn), and the executor records the availability delta beside the tool result. Any user tool can use the same source. Histories that contain a complete capability-load exchange without its delta are translated before the next model request.
 
 | What loads | Cache prefix | 
 |---|---|
 | Instructions only | **Stable** — instructions land in the message history, not the request prefix. | 
-| Function tools on a model with native [tool search](/docs/ai/tools-toolsets/tools-advanced#tool-search) (OpenAI Responses, Anthropic) | **Stable** — the function tools visible to the provider don’t change across loads. | 
-| Function tools on other models (local `search_tools` fallback) | **May break between turns** — function-tool visibility changes as capabilities load. | 
+| Function tools with provider-native reveal-item support ( `tool_addition_mode='by_reference'` or`'with_definitions'` ) | **Stable on Anthropic and OpenAI Responses** — deferred Anthropic entries are outside its cache key, and OpenAI Responses appends`additional_tools` without changing`tools[]` . | 
+| Function tools without provider-native reveal-item support ( `tool_addition_mode=None` ) | **May break between turns** — function-tool visibility can change as capabilities load. | 
 | Native tools | **Always breaks the prefix on load** — native tool definitions are part of the request prefix on every provider. | 
 
-When preserving the cache prefix matters, prefer instruction-only or function-tool-only on-demand capabilities on a model with native tool search. The provider-specific mechanics that keep the prefix stable live in [Tool search and prompt caching](/docs/ai/tools-toolsets/tools-advanced#tool-search-caching).
+When preserving the cache prefix matters, prefer instruction-only or function-tool-only on-demand capabilities on a model that can express an availability change natively. The provider-specific mechanics that keep the prefix stable live in [Tool search and prompt caching](/docs/ai/tools-toolsets/tools-advanced#tool-search-caching).
 
 [`Capability`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Capability) bundles instructions, function tools, and toolsets without subclassing. Register tools with the decorator that mirrors [`@agent.tool`](/docs/ai/tools-toolsets/tools#registering-function-tools-via-decorator):
 

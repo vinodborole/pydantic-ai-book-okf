@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Output
@@ -263,7 +263,7 @@ Breaking out of the loop leaves the `async with` block, which cancels the backgr
 
 *(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
-`run_stream_events()` does not expose a `cancel()` method. If you need an explicit model-response cancellation handle, use [`run_stream()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) or [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter).
+The yielded [`AgentRunEvents`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentRunEvents) handle exposes `cancel()` to cancel the whole run (see [Cancelling a Run](/docs/ai/core-concepts/agent#cancelling-a-run)); continued iteration then raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled). It also provides `all_messages()`, `new_messages()`, `usage`, and the completed `result`. From inside a tool or `event_stream_handler`, use [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) instead. As a response-level alternative, [`StreamedRunResult.cancel()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.cancel) from `run_stream()` stops only the current model response.
 
 Call `cancel()` on the [`StreamedRunResult`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult) to cancel the stream:
 
@@ -285,13 +285,7 @@ When using [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Ag
 
 *(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
-When a stream is cancelled mid-generation, the response is recorded with `state='interrupted'` in the message history. The history includes any partial content that was received before cancellation:
-
-The message history includes the interrupted response with any partial content that was received before cancellation.
-
-The interrupted response state lets your application decide whether to keep, inspect, or discard the partial response before reusing the history.
-
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+To abort the run itself rather than just the current response — and for how cancellation is recorded in message history — see [Cancelling a Run](/docs/ai/core-concepts/agent#cancelling-a-run).
 
 The following examples demonstrate how to use streamed responses in Pydantic AI:
 

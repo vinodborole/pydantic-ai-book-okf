@@ -2,7 +2,7 @@
 type: Web Page
 title: Compaction | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/compaction
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Compaction
@@ -17,6 +17,8 @@ Some providers expose a built-in compaction API that runs on their side. Pydanti
 | Anthropic | [`AnthropicCompaction`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicCompaction) | [Anthropic compaction](/docs/ai/models/anthropic#message-compaction) | 
 
 Each uses the corresponding provider API, so it’s only available on that provider.
+
+Pydantic AI treats a compaction part as a visibility boundary: the model starts anew from that point for derived tool state. Tool discoveries and on-demand capability loads before the boundary reset, so their tools are hidden again until searched for or loaded after the boundary. Searchable tools remain in the corpus and all registered tools remain callable if the model emits a valid call, even when their earlier schema or reveal evidence is no longer visible to the model. Capability and toolset authors should apply the same rule to their own derived state: compute anything the model needs to have seen — announcements, disclosures, catalogs — from [`post_compaction_window`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.post_compaction_window) rather than remembering it in instance attributes, so it self-heals when compaction replaces the history that carried it.
 
 To compact on any model, edit the message history yourself with a [history processor](/docs/ai/core-concepts/message-history#processing-message-history) wrapped as a [`ProcessHistory`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ProcessHistory) capability — this works with every provider. Common patterns:
 

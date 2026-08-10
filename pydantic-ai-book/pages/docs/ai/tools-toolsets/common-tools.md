@@ -2,7 +2,7 @@
 type: Web Page
 title: Common Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/common-tools
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Common Tools
@@ -24,6 +24,9 @@ To use [`web_fetch_tool`](/docs/ai/api/pydantic-ai/common_tools/#pydantic_ai.com
 [`pydantic-ai-slim`](/docs/ai/overview/install#slim-install) with the `web-fetch` optional group:
 
 Here’s an example of how you can use the web fetch tool with an agent:
+
+By default the tool caps returned text at 50,000 characters (`max_content_length`) and caps the
+downloaded response body at 50 MiB (`max_download_bytes`). Pass `None` for either to disable that limit.
 
 The Tavily search tool allows you to search the web for information. It is built on top of the [Tavily API](https://tavily.com/).
 

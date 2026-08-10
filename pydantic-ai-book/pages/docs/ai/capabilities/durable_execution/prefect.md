@@ -2,7 +2,7 @@
 type: Web Page
 title: Prefect | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/durable_execution/prefect
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-10T07:48:56.025339+00:00'
 ---
 
 # Prefect
@@ -130,6 +130,8 @@ A durability `event_stream_handler=` and a separately registered `ProcessEventSt
 A per-run handler passed to `Agent.run(event_stream_handler=...)` also runs flow-side against replayed model events.
 
 Because the model stream is consumed inside the task, cancelling it from the flow side (e.g. with [`AgentStream.cancel()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.AgentStream.cancel)) is not available across the durable boundary.
+
+[`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) and [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) are same-process cancellation handles and cannot cross the Prefect durable boundary; cancel the Prefect flow instead.
 
 `Agent.run_stream_sync()` is not for flow code: it requires no running event loop and wraps `run_stream()`. Under [`PrefectDurability`](/docs/ai/api/pydantic-ai/durable_exec/#pydantic_ai.durable_exec.prefect.PrefectDurability), use the buffered async streaming APIs above or `Agent.run()` with an event stream handler. Outside a flow, an agent with `PrefectDurability` behaves like a normal agent, so `run_stream_sync()` works as usual. (Wrapper `PrefectAgent` forbids `run_stream` inside flows — use `run` + event stream handler there.)
 
