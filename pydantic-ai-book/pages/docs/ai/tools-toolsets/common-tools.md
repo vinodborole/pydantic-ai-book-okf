@@ -2,7 +2,7 @@
 type: Web Page
 title: Common Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/common-tools
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Common Tools
@@ -13,7 +13,7 @@ The DuckDuckGo search tool allows you to search the web for information. It is b
 [DuckDuckGo API](https://github.com/deedy5/ddgs).
 
 To use [`duckduckgo_search_tool`](/docs/ai/api/pydantic-ai/common_tools/#pydantic_ai.common_tools.duckduckgo.duckduckgo_search_tool), you need to install
-[`pydantic-ai-slim`](/docs/ai/overview/install#slim-install) with the `duckduckgo` optional group:
+[`pydantic-ai-slim`](/docs/ai/overview/install/#slim-install) with the `duckduckgo` optional group:
 
 Here’s an example of how you can use the DuckDuckGo search tool with an agent:
 
@@ -21,7 +21,7 @@ The web fetch tool allows your agent to fetch the content of web pages and conve
 It uses [SSRF protection](https://owasp.org/www-community/attacks/Server_Side_Request_Forgery) to prevent server-side request forgery attacks.
 
 To use [`web_fetch_tool`](/docs/ai/api/pydantic-ai/common_tools/#pydantic_ai.common_tools.web_fetch.web_fetch_tool), you need to install
-[`pydantic-ai-slim`](/docs/ai/overview/install#slim-install) with the `web-fetch` optional group:
+[`pydantic-ai-slim`](/docs/ai/overview/install/#slim-install) with the `web-fetch` optional group:
 
 Here’s an example of how you can use the web fetch tool with an agent:
 
@@ -31,7 +31,7 @@ downloaded response body at 50 MiB (`max_download_bytes`). Pass `None` for eithe
 The Tavily search tool allows you to search the web for information. It is built on top of the [Tavily API](https://tavily.com/).
 
 To use [`tavily_search_tool`](/docs/ai/api/pydantic-ai/common_tools/#pydantic_ai.common_tools.tavily.tavily_search_tool), you need to install
-[`pydantic-ai-slim`](/docs/ai/overview/install#slim-install) with the `tavily` optional group:
+[`pydantic-ai-slim`](/docs/ai/overview/install/#slim-install) with the `tavily` optional group:
 
 Here’s an example of how you can use the Tavily search tool with an agent:
 

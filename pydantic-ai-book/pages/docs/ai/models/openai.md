@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # OpenAI
@@ -121,7 +121,7 @@ With [`OpenAIChatModel`](#chat-completions-api), use [`OpenAIChatModelSettings`]
 
 The features below are specific to the Responses API and only available on [`OpenAIResponsesModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) (the default). For background on how the Responses API differs from Chat Completions, see the [OpenAI API docs](https://platform.openai.com/docs/guides/migrate-to-responses).
 
-Models that support it (currently the GPT-5.6 family) can use OpenAI’s [`standard` and `pro` reasoning modes](https://developers.openai.com/api/docs/guides/reasoning#reasoning-mode). `standard` is the default; `pro` performs more model work to improve reliability on difficult tasks, at the cost of higher latency and token usage. The mode is independent of the reasoning effort: any combination of mode and effort is valid, and the unified [`thinking`](/docs/ai/capabilities/thinking) setting only ever influences the effort, so `pro` is used only when you set it explicitly.
+Models that support it (currently the GPT-5.6 family) can use OpenAI’s [`standard` and `pro` reasoning modes](https://developers.openai.com/api/docs/guides/reasoning#reasoning-mode). `standard` is the default; `pro` performs more model work to improve reliability on difficult tasks, at the cost of higher latency and token usage. The mode is independent of the reasoning effort: any combination of mode and effort is valid, and the unified [`thinking`](/docs/ai/capabilities/thinking/) setting only ever influences the effort, so `pro` is used only when you set it explicitly.
 
 Configure the mode with [`openai_reasoning_mode`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_reasoning_mode); there is no separate `pro` model to select:
 
@@ -159,7 +159,7 @@ The Responses API has native tools that you can use instead of building your own
 - [File search](https://platform.openai.com/docs/guides/tools-file-search) : allow models to search your files for relevant information before generating a response.
 - [Computer use](https://platform.openai.com/docs/guides/tools-computer-use) : allow models to use a computer to perform tasks on your behalf.
 
-Web search, Code interpreter, Image generation, and File search are natively supported through the [Native tools](/docs/ai/tools-toolsets/native-tools) feature.
+Web search, Code interpreter, Image generation, and File search are natively supported through the [Native tools](/docs/ai/tools-toolsets/native-tools/) feature.
 
 Computer use can be enabled by passing an [`openai.types.responses.ComputerToolParam`](https://github.com/openai/openai-python/blob/main/src/openai/types/responses/computer_tool_param.py) in the `openai_native_tools` setting on [`OpenAIResponsesModelSettings`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings). It doesn’t currently generate [`NativeToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolCallPart) or [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) parts in the message history, or streamed events; please submit an issue if you need native support for this native tool.
 
@@ -250,7 +250,7 @@ For lower-level use cases, you can call [`compact_messages`](/docs/ai/api/models
 
 Models that support it label each assistant message with a `phase`: `commentary` for the preamble the model writes while it works, and `final_answer` for the answer itself. Pydantic AI surfaces it as `'phase'` in [`TextPart.provider_details`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.TextPart.provider_details), and on models known to accept the field it also sends it back on the next request so the model keeps the distinction across turns.
 
-When [streaming](/docs/ai/core-concepts/agent#streaming-all-events), the phase is set on the [`PartStartEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.PartStartEvent) that opens each text part (including its first content chunk), so you can route commentary and the final answer differently as they’re generated. Prefer [`run_stream_events`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) for this: [`run_stream`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) treats the first text part as the final output, which is often `commentary` on models that emit a preamble.
+When [streaming](/docs/ai/core-concepts/agent/#streaming-all-events), the phase is set on the [`PartStartEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.PartStartEvent) that opens each text part (including its first content chunk), so you can route commentary and the final answer differently as they’re generated. Prefer [`run_stream_events`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) for this: [`run_stream`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) treats the first text part as the final output, which is often `commentary` on models that emit a preamble.
 
 *(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
@@ -276,6 +276,8 @@ model = OpenAIChatModel('gpt-5.2')
 agent = Agent(model)
 ...
 ```
+Five [`ModelSettings`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) fields reach OpenAI only through this API — `seed`, `presence_penalty`, `frequency_penalty`, `logit_bias` and `stop_sequences`. The Responses API accepts none of them, so they are dropped on the default `openai:` path.
+
 `OpenAIChatModel` is also what backs every [OpenAI-compatible provider](#openai-compatible-models) below — they all speak the Chat Completions wire format, so the same model class applies.
 
 Many providers and models are compatible with the OpenAI API, and can be used with `OpenAIChatModel` in Pydantic AI.
@@ -381,11 +383,11 @@ agent = Agent(model)
 ```
 DeepSeek [documents](https://api-docs.deepseek.com/guides/responses_api) which parts of the Responses API it implements, and unsupported fields are silently ignored rather than rejected, so it’s worth knowing what does nothing:
 
-- The API is stateless, so [`openai_conversation_id`](#using-durable-conversations) ,[background mode](#background-mode) and[message compaction](#message-compaction) are unavailable. Pass[message history](/docs/ai/core-concepts/message-history) back on each run instead.
+- The API is stateless, so [`openai_conversation_id`](#using-durable-conversations) ,[background mode](#background-mode) and[message compaction](#message-compaction) are unavailable. Pass[message history](/docs/ai/core-concepts/message-history/) back on each run instead.
 - Leave [`openai_previous_response_id`](#referencing-earlier-responses) unset. Setting it makes Pydantic AI drop the earlier turns it assumes the server already holds, and DeepSeek stores nothing, so the model silently loses the conversation instead of erroring.
-- Of the [native tools](/docs/ai/tools-toolsets/native-tools) , DeepSeek runs only[`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool) ; it ignores the other built-in tool types instead of reporting an error.
+- Of the [native tools](/docs/ai/tools-toolsets/native-tools/) , DeepSeek runs only[`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool) ; it ignores the other built-in tool types instead of reporting an error.
 - Image and document inputs are replaced with placeholder text rather than rejected.
-- Reasoning is configured with `openai_reasoning_effort` (or the unified[`thinking`](/docs/ai/capabilities/thinking) setting);`openai_reasoning_summary` is accepted but produces no summary.
+- Reasoning is configured with `openai_reasoning_effort` (or the unified[`thinking`](/docs/ai/capabilities/thinking/) setting);`openai_reasoning_summary` is accepted but produces no summary.
 
 To use Qwen models via [Alibaba Cloud Model Studio (DashScope)](https://www.alibabacloud.com/en/product/modelstudio), you can set the `ALIBABA_API_KEY` (or `DASHSCOPE_API_KEY`) environment variable and use [`AlibabaProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.alibaba.AlibabaProvider) by name:
 
@@ -423,7 +425,7 @@ model = OpenAIChatModel(
 agent = Agent(model)
 ...
 ```
-See [Ollama](/docs/ai/models/ollama) for dedicated Ollama documentation, including structured output and Ollama Cloud limitations.
+See [Ollama](/docs/ai/models/ollama/) for dedicated Ollama documentation, including structured output and Ollama Cloud limitations.
 
 To use [Azure AI Foundry](https://ai.azure.com/) as your provider, set `AZURE_OPENAI_ENDPOINT` to a URL whose path ends in `/v1` (for example `https://<resource>.openai.azure.com/openai/v1/` or `https://<resource>.services.ai.azure.com/openai/v1/`), set `AZURE_OPENAI_API_KEY`, and use [`AzureProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.azure.AzureProvider) by name:
 

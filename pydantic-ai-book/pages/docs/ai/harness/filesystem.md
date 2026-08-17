@@ -4,7 +4,7 @@ title: FileSystem | Pydantic Docs
 description: Give a Pydantic AI agent sandboxed, glob-filtered file access scoped
   to a single directory tree, with symlink-safe containment checks.
 resource: https://pydantic.dev/docs/ai/harness/filesystem
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # FileSystem
@@ -13,6 +13,8 @@ timestamp: '2026-08-03T09:54:19.663642+00:00'
 search, find, create, and inspect — all scoped to a single `root_dir`. Every path is
 resolved and containment-checked (symlinks included) before any I/O, and access
 is filtered through allow / deny / protected glob patterns.
+
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Letting an agent touch the filesystem directly is risky: path traversal
 (`../../etc/passwd`), symlinks that escape the project, clobbering `.git`, or
@@ -48,7 +50,7 @@ the root you give it.
 | `edit_file` | Exact-string replacement; `old_text` must match exactly once. Optional`expected_hash` . | 
 | `list_directory` | List a directory’s entries with type indicators and sizes. | 
 | `search_files` | Regex search over file contents, optionally narrowed by an `include_glob` . | 
-| `find_files` | Glob search over file names (e.g. `*.py` ,`**/*.json` ). | 
+| `find_files` | Glob search over file names (e.g. `*.py` ,`**/*.json` ). The pattern must be relative to the searched directory. | 
 | `create_directory` | Create a directory and any missing parents. | 
 | `file_info` | Metadata for a file or directory (size, type, line count, hash, symlink target). | 
 
@@ -60,8 +62,12 @@ the run.
 
 - **Containment.** Paths resolve relative to`root_dir` ; anything resolving
 outside — via`..` , an absolute path, or a symlink — is rejected. Symlinks
-are resolved with`os.path.realpath`*before* the containment check, closing
-the TOCTTOU window.
+are resolved with`os.path.realpath`*before* the containment check, and I/O
+then uses the resolved path. Directory walks (`list_directory` ,`search_files` ,`find_files` ) resolve each entry the same way and match the
+patterns against that resolved target, so a symlink cannot name a file
+outside the tree or present a denied file under a permitted name. These
+checks are pathname-based: if another process mutates the tree between
+resolution and I/O, the path read can differ from the path checked.
 - **Binary detection.**`read_file` returns a placeholder instead of dumping
 binary bytes into the model context.
 - **Optimistic concurrency.**`write_file` /`edit_file` accept an`expected_hash` so an agent operating on a stale read is told to re-read
@@ -99,19 +105,18 @@ The three rules apply at two different granularities:
 - **Direct access** (`read_file` ,`write_file` ,`edit_file` ,`file_info` ,`create_directory` ) gates the operation’s target path. You must name a path
 that the patterns permit.
 - **Walkers** (`list_directory` ,`search_files` ,`find_files` ) gate their root
-by deny/protected patterns, but**not** by`allowed_patterns` — a directory
-root like`.` never matches a file pattern such as`src/*.py` , so requiring
-it to would make every listing fail. Instead, the root is always walked and
-each**entry** is filtered against all three lists. A directory listing can
-never surface a path the agent couldn’t otherwise read or write.
+by denied patterns, but**not** by`allowed_patterns` — a directory root
+like`.` never matches a file pattern such as`src/*.py` , so requiring it to
+would make every listing fail. Instead, the root is walked and each**entry** is filtered with read-level access against`allowed_patterns` and`denied_patterns` . A directory listing cannot surface a path the agent
+couldn’t otherwise read.
 
 So with `allowed_patterns=['*.py']`, `list_directory('.')` succeeds and shows
 only the `.py` entries; `read_file('notes.md')` is rejected.
 
-Note that the walkers filter entries with write-level access, so
-`protected_patterns` matches are omitted from `list_directory`, `search_files`,
-and `find_files` output even though those exact paths remain directly readable
-via `read_file`/`file_info`.
+Matching `protected_patterns` alone does not hide an entry. Protected paths
+that pass the allowed, denied, and dotfile filters remain visible to all three
+walkers and directly readable via `read_file`/`file_info`; write operations
+reject them.
 
 ```
 from pydantic_ai_harness import FileSystem
@@ -121,12 +126,15 @@ FileSystem(
     denied_patterns=[],            # denylist globs
     protected_patterns=[...],      # read-only globs (defaults to secrets/.git)
     max_read_lines=2000,           # cap for a single read_file
+    max_list_results=1000,         # cap for list_directory
     max_search_results=1000,       # cap for search_files
     max_find_results=1000,         # cap for find_files
 )
 ```
-The three integer limits must be positive; they are validated at construction
-and raise `ValueError` otherwise.
+The integer limits must be positive; they are validated at construction and
+raise `ValueError` otherwise. A walker that hits its cap ends its output with a
+`[... truncated at N ...]` marker, and only when a further entry was actually
+dropped.
 
 `FileSystem` works with Pydantic AI’s
 [agent spec](/docs/ai/core-concepts/agent-spec/):
@@ -153,10 +161,6 @@ File system access scoped to a root directory.
 All paths are resolved relative to `root_dir`. Traversal above the root
 is rejected. Symlinks are resolved before authorization.
 
-Root directory for all file operations. Defaults to the current directory.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
-
 If non-empty, only paths matching at least one glob pattern are accessible.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
@@ -165,12 +169,13 @@ Paths matching any of these glob patterns are rejected.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-Paths matching these patterns are read-only (writes are rejected).
+Maximum number of matches returned by `find_files`.
 
-Defaults to protecting `.git/`, `.env`, key files, and secrets.
-Set to an empty list to disable protection.
+**Type:** `int`**Default:** `1000`
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(lambda: list(_DEFAULT_PROTECTED)))`
+Maximum number of entries returned by `list_directory`.
+
+**Type:** `int`**Default:** `1000`
 
 Maximum number of lines returned by a single `read_file` call.
 
@@ -180,16 +185,27 @@ Maximum number of matches returned by `search_files`.
 
 **Type:** `int`**Default:** `1000`
 
-Maximum number of matches returned by `find_files`.
+Paths matching these patterns are read-only (writes are rejected).
 
-**Type:** `int`**Default:** `1000`
+Defaults to protecting `.git/`, `.env`, key files, and secrets.
+Set to an empty list to disable protection.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(lambda: list(_DEFAULT_PROTECTED)))`
+
+Whether to expose only the tools in `READ_ONLY_TOOL_NAMES`.
+
+**Type:** `bool`**Default:** `False`
+
+Root directory for all file operations. Defaults to the current directory.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
 ```
-def get_toolset() -> FileSystemToolset[AgentDepsT]
+def get_toolset() -> FileSystemToolset[AgentDepsT] | FilteredToolset[AgentDepsT]
 ```
 Build and return the filesystem toolset.
 
-`FileSystemToolset`[`AgentDepsT`]
+`FileSystemToolset`[`AgentDepsT`] | [`FilteredToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FilteredToolset)[`AgentDepsT`]
 
 # Citations
 

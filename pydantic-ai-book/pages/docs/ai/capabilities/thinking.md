@@ -2,14 +2,14 @@
 type: Web Page
 title: Thinking | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/thinking
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Thinking
 
 Thinking (or reasoning) is the process by which a model works through a problem step-by-step before providing its final answer.
 
-The simplest way to enable thinking across supported providers is the `Thinking`[capability](/docs/ai/capabilities/overview).
+The simplest way to enable thinking across supported providers is the `Thinking`[capability](/docs/ai/capabilities/overview/).
 Provider-specific settings are available for advanced usage when you need direct access to a provider’s native thinking controls.
 
 Use the [`Thinking`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Thinking) capability to enable thinking:
@@ -38,29 +38,34 @@ The `Thinking` capability maps each effort value to the selected provider’s na
 | Mistral | `reasoning_effort='high'` | `reasoning_effort='high'` | Only on adjustable-reasoning models (e.g. `mistral-small-latest` ,`mistral-medium-3-5` );`magistral` reasons always-on and gets no`reasoning_effort` . Mistral exposes only`'high'` /`'none'` , so every enabled level (incl.`'minimal'` ) →`'high'` and only`thinking=False` →`'none'` | 
 | OpenRouter | `reasoning={'effort': 'medium', 'enabled': True}` | `reasoning={'effort': 'high', 'enabled': True}` | `thinking=False` →`effort='none'` ; always-on routes silently ignore; via`extra_body` | 
 | Cerebras | `reasoning_effort` omitted (reasons by default) | `reasoning_effort` omitted | `thinking=False` →`reasoning_effort='none'` ; gpt-oss reasons always-on, so`thinking=False` is silently ignored | 
+| Snowflake Cortex | `reasoning={'effort': 'medium'}` | `reasoning={'effort': 'high'}` | Claude models only (via `extra_body` ); sets`temperature=1` automatically; other families ignore`thinking` | 
+| Crusoe | `reasoning_effort='medium'` | `reasoning_effort='high'` | Inherited from `OpenAIChatModel` ; follows the vendor-prefixed model profile (`zai/` ,`deepseek-ai/` , …).`thinking=False` →`'none'` only where that profile accepts it | 
+| Ollama | `reasoning_effort='medium'` | `reasoning_effort='high'` | Inherited from `OpenAIChatModel` , so it follows the resolved model profile:`deepseek-r1` reasons,`gpt-oss` on Ollama sends nothing.`thinking=False` →`'none'` only on profiles that accept it | 
+| Z.AI | `thinking={'type': 'enabled'}` | `thinking={'type': 'enabled'}` , plus`reasoning_effort='high'` on GLM-5.2 | Via `extra_body` ;`thinking=False` →`type='disabled'` . Only GLM-5.2 takes a per-request effort, so on other models every enabled level behaves the same | 
 | xAI | `reasoning_effort` omitted on Grok 4.3 (uses its default) | `reasoning_effort='high'` | Grok 4.3 supports `'none'` ,`'low'` ,`'medium'` , and`'high'` , and`thinking=True` omits the parameter so the model applies its own default; Grok 3 Mini only supports`'low'` and`'high'` (so`thinking=True` →`'high'` ) and silently ignores`thinking=False` ; Grok 4.5 supports`'low'` ,`'medium'` , and`'high'` but not`'none'` , so it reasons always-on (`thinking=True` →`'medium'` ) and silently ignores`thinking=False` | 
 | Bedrock (Claude 4.6+) | `thinking.type='adaptive'` | `{type: 'adaptive'}` +`output_config.effort='high'` | Effort lives in the sibling `output_config` field per AWS docs;`xhigh` maps to`max` | 
 | Bedrock (Claude older) | `thinking.type='enabled'` | `budget_tokens=16384` | Budget-based | 
 | Bedrock (OpenAI) | `reasoning_effort='medium'` | `reasoning_effort='high'` | Converse rejects `'none'` ;`thinking=False` silently ignored | 
 | Bedrock (Qwen) | `reasoning_config='high'` | `reasoning_config='high'` | Only `'low'` and`'high'` ;`thinking=False` silently ignored | 
+| Bedrock Mantle | `reasoning={'effort': 'medium'}` | `reasoning={'effort': 'high'}` | Served on the Responses API, so effort rides the `reasoning` object;`thinking=False` →`effort='none'` | 
 
 When using the [`OpenAIChatModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel), text output inside `<think>` tags are converted to [`ThinkingPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ThinkingPart) objects.
-You can customize the tags using the [`thinking_tags`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.thinking_tags) field on the [model profile](/docs/ai/models/openai#model-profile).
+You can customize the tags using the [`thinking_tags`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.thinking_tags) field on the [model profile](/docs/ai/models/openai/#model-profile).
 
-Some [OpenAI-compatible model providers](/docs/ai/models/openai#openai-compatible-models) might also support native thinking parts that are not delimited by tags. Instead, they are sent and received as separate, custom fields in the API. Typically, if you are calling the model via the `<provider>:<model>` shorthand, Pydantic AI handles it for you. Nonetheless, you can still configure the fields with [`openai_chat_thinking_field`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.openai.OpenAIModelProfile.openai_chat_thinking_field).
+Some [OpenAI-compatible model providers](/docs/ai/models/openai/#openai-compatible-models) might also support native thinking parts that are not delimited by tags. Instead, they are sent and received as separate, custom fields in the API. Typically, if you are calling the model via the `<provider>:<model>` shorthand, Pydantic AI handles it for you. Nonetheless, you can still configure the fields with [`openai_chat_thinking_field`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.openai.OpenAIModelProfile.openai_chat_thinking_field).
 
 If your provider recommends to send back these custom fields not changed, for caching or interleaved thinking benefits, you can also achieve this with [`openai_chat_send_back_thinking_parts`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.openai.OpenAIModelProfile.openai_chat_send_back_thinking_parts).
 
 The [`OpenAIResponsesModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) can generate native thinking parts.
 To enable this functionality, you need to set the
-`OpenAIResponsesModelSettings.openai_reasoning_effort` and `OpenAIResponsesModelSettings.openai_reasoning_summary`[model settings](/docs/ai/core-concepts/agent#model-run-settings).
-Models that support it can additionally use a `pro` [reasoning mode](/docs/ai/models/openai#reasoning-mode), which is independent of the effort and never set by the unified `thinking` setting.
+`OpenAIResponsesModelSettings.openai_reasoning_effort` and `OpenAIResponsesModelSettings.openai_reasoning_summary`[model settings](/docs/ai/core-concepts/agent/#model-run-settings).
+Models that support it can additionally use a `pro` [reasoning mode](/docs/ai/models/openai/#reasoning-mode), which is independent of the effort and never set by the unified `thinking` setting.
 
 By default, the unique IDs of reasoning, text, and function call parts from the message history are sent to the model, which can result in errors like `"Item 'rs_123' of type 'reasoning' was provided without its required following item."`
-if the message history you’re sending does not match exactly what was received from the Responses API in a previous response, for example if you’re using a [history processor](/docs/ai/core-concepts/message-history#processing-message-history).
-To disable this, you can disable the `OpenAIResponsesModelSettings.openai_send_reasoning_ids`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
+if the message history you’re sending does not match exactly what was received from the Responses API in a previous response, for example if you’re using a [history processor](/docs/ai/core-concepts/message-history/#processing-message-history).
+To disable this, you can disable the `OpenAIResponsesModelSettings.openai_send_reasoning_ids`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
 
-To enable thinking, use the `AnthropicModelSettings.anthropic_thinking`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
+To enable thinking, use the `AnthropicModelSettings.anthropic_thinking`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
 
 Anthropic reports how many thinking tokens it used in [`RunUsage.details`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage.details) under the `thinking_tokens` key. They are billed within `output_tokens`, so they are a readable subset of the output total rather than an addition to it, and the key is omitted entirely when a response used no thinking tokens.
 
@@ -70,17 +75,17 @@ Starting with `claude-opus-4-6`, Anthropic supports [adaptive thinking](https://
 
 The [`anthropic_effort`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_effort) setting controls how much effort the model puts into its response (independent of thinking). See the [Anthropic effort docs](https://docs.anthropic.com/en/docs/build-with-claude/effort) for details.
 
-Thinking tokens count against Anthropic’s loop-wide [task budgets](/docs/ai/models/anthropic#task-budgets-beta), so adaptive thinking naturally scales down as the budget depletes.
+Thinking tokens count against Anthropic’s loop-wide [task budgets](/docs/ai/models/anthropic/#task-budgets-beta), so adaptive thinking naturally scales down as the budget depletes.
 
-For advanced usage, use the `GoogleModelSettings.google_thinking_config`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
+For advanced usage, use the `GoogleModelSettings.google_thinking_config`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
 
-See the [Google model docs](/docs/ai/models/google#configure-thinking) for more details.
+See the [Google model docs](/docs/ai/models/google/#configure-thinking) for more details.
 
 xAI reasoning models (Grok) support native thinking. To preserve the thinking content for multi-turn conversations, enable [`XaiModelSettings.xai_include_encrypted_content`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_include_encrypted_content).
 
 For Claude Sonnet 4.6+ and Opus 4.6+, Pydantic AI’s unified `thinking` setting translates to AWS’s required [adaptive thinking](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-adaptive-thinking.html) shape automatically — set [`ModelSettings.thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) and you’re done.
 
-For older Claude models or to pin a specific `budget_tokens`, you can still use `BedrockModelSettings.bedrock_additional_model_requests_fields`[model setting](/docs/ai/core-concepts/agent#model-run-settings) to pass provider-specific configuration directly:
+For older Claude models or to pin a specific `budget_tokens`, you can still use `BedrockModelSettings.bedrock_additional_model_requests_fields`[model setting](/docs/ai/core-concepts/agent/#model-run-settings) to pass provider-specific configuration directly:
 
 Reasoning is [always enabled](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-reasoning.html) for Deepseek model
 
@@ -92,11 +97,17 @@ Groq supports different formats to receive thinking parts:
 
 The unified [`ModelSettings.thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting works across providers: it selects `reasoning_format='parsed'` so thinking parts are returned, and for the gpt-oss family its effort level also drives Groq’s `reasoning_effort` (`minimal`/`low` → `'low'`, `medium` → `'medium'`, `high`/`xhigh` → `'high'`, `True` → `'medium'`).
 
-Two composable [model settings](/docs/ai/core-concepts/agent#model-run-settings) give finer control: [`GroqModelSettings.groq_reasoning_format`](/docs/ai/api/models/groq/#pydantic_ai.models.groq.GroqModelSettings.groq_reasoning_format) selects how thinking parts are returned (the formats above), and [`GroqModelSettings.groq_reasoning_effort`](/docs/ai/api/models/groq/#pydantic_ai.models.groq.GroqModelSettings.groq_reasoning_effort) (sent to Groq as `reasoning_effort`) controls how much the model reasons, taking precedence over the unified `thinking` mapping:
+Two composable [model settings](/docs/ai/core-concepts/agent/#model-run-settings) give finer control: [`GroqModelSettings.groq_reasoning_format`](/docs/ai/api/models/groq/#pydantic_ai.models.groq.GroqModelSettings.groq_reasoning_format) selects how thinking parts are returned (the formats above), and [`GroqModelSettings.groq_reasoning_effort`](/docs/ai/api/models/groq/#pydantic_ai.models.groq.GroqModelSettings.groq_reasoning_effort) (sent to Groq as `reasoning_effort`) controls how much the model reasons, taking precedence over the unified `thinking` mapping:
 
-To enable thinking, use the `OpenRouterModelSettings.openrouter_reasoning`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
+To enable thinking, use the `OpenRouterModelSettings.openrouter_reasoning`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
 
-To enable thinking, use the unified `thinking`[model setting](/docs/ai/core-concepts/agent#model-run-settings). To preserve thinking content across multi-turn conversations, also set `ZaiModelSettings.zai_clear_thinking` to `False`.
+To enable thinking, use the unified `thinking`[model setting](/docs/ai/core-concepts/agent/#model-run-settings). To preserve thinking content across multi-turn conversations, also set [`ZaiModelSettings.zai_clear_thinking`](/docs/ai/api/models/zai/#pydantic_ai.models.zai.ZaiModelSettings.zai_clear_thinking) to `False`.
+
+To enable thinking on Claude models, use the unified `thinking`[model setting](/docs/ai/core-concepts/agent/#model-run-settings), or set [`SnowflakeModelSettings.snowflake_reasoning`](/docs/ai/api/models/snowflake/#pydantic_ai.models.snowflake.SnowflakeModelSettings.snowflake_reasoning) directly to control the reasoning token budget:
+
+On OpenAI models, use the unified `thinking` setting or [`openai_reasoning_effort`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModelSettings.openai_reasoning_effort).
+
+Claude requires `temperature` to be exactly 1 when thinking is enabled, but Cortex applies a different default when the request doesn’t specify one, so `SnowflakeModel` sets `temperature` to 1 automatically when reasoning is enabled and you haven’t set it explicitly.
 
 The `magistral` family always reasons and does not need to be specifically enabled; `thinking=False` is silently ignored. Mistral has [deprecated](https://docs.mistral.ai/resources/deprecated/native-reasoning) the `magistral` family in favor of the adjustable-reasoning models below.
 
@@ -105,7 +116,7 @@ Models with adjustable reasoning (the Mistral Small 4 and Medium 3.5 families: `
 Thinking is supported by the `command-a-reasoning-08-2025` model. It does not need to be specifically enabled.
 
 Text output inside `<think>` tags is automatically converted to [`ThinkingPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ThinkingPart) objects.
-You can customize the tags using the [`thinking_tags`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.thinking_tags) field on the [model profile](/docs/ai/models/openai#model-profile).
+You can customize the tags using the [`thinking_tags`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.thinking_tags) field on the [model profile](/docs/ai/models/openai/#model-profile).
 
 # Citations
 

@@ -2,7 +2,7 @@
 type: Web Page
 title: Google | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/google
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 The `GoogleModel` is a model that uses the [`google-genai`](https://pypi.org/project/google-genai/) package under the hood to
@@ -215,7 +215,7 @@ YouTube video URLs can be passed directly to Google models:
 
 Files can be uploaded via the [Files API](https://ai.google.dev/gemini-api/docs/files) and passed as URLs:
 
-See the [input documentation](/docs/ai/core-concepts/input) for more details and examples.
+See the [input documentation](/docs/ai/core-concepts/input/) for more details and examples.
 
 You can customize model behavior using [`GoogleModelSettings`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings):
 
@@ -256,7 +256,7 @@ model_settings = GoogleModelSettings(google_thinking_config={'include_thoughts':
 agent = Agent(model, model_settings=model_settings)
 ...
 ```
-See [Thinking](/docs/ai/capabilities/thinking) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
+See [Thinking](/docs/ai/capabilities/thinking/) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
 
 You can customize the safety settings by setting the `google_safety_settings` field.
 

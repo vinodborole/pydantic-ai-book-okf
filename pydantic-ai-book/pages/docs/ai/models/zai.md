@@ -2,12 +2,12 @@
 type: Web Page
 title: Z.AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/zai
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Z.AI
 
-To use `ZaiModel`, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `zai` optional group:
+To use [`ZaiModel`](/docs/ai/api/models/zai/#pydantic_ai.models.zai.ZaiModel), you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `zai` optional group:
 
 To use [Z.AI](https://z.ai/) (Zhipu AI) through their API, go to [z.ai](https://z.ai/manage-apikey/apikey-list) and generate an API key.
 
@@ -15,7 +15,7 @@ For a list of available models, see the [Z.AI documentation](https://docs.z.ai/)
 
 Once you have the API key, you can set it as an environment variable:
 
-You can then use `ZaiModel` by name:
+You can then use [`ZaiModel`](/docs/ai/api/models/zai/#pydantic_ai.models.zai.ZaiModel) by name:
 
 ```
 from pydantic_ai import Agent
@@ -46,7 +46,7 @@ agent = Agent(
 
 On thinking-capable models, reasoning content from prior assistant responses is **preserved by default** — no configuration required — for better multi-turn coherence and consistency with other providers. The complete, unmodified `reasoning_content` from prior turns is automatically sent back to the API by Pydantic AI.
 
-If you instead want each turn to start fresh, **disable** it with `zai_clear_thinking=True` via the Z.AI-specific `ZaiModelSettings`:
+If you instead want each turn to start fresh, **disable** it with `zai_clear_thinking=True` via the Z.AI-specific [`ZaiModelSettings`](/docs/ai/api/models/zai/#pydantic_ai.models.zai.ZaiModelSettings):
 
 ```
 from pydantic_ai import Agent

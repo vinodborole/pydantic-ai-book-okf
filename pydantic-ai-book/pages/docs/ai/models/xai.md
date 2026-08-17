@@ -2,7 +2,7 @@
 type: Web Page
 title: xAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/xai
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # xAI
@@ -59,7 +59,23 @@ model = XaiModel('grok-4.3', provider=provider)
 agent = Agent(model)
 ...
 ```
-`api_host` is the hostname of the xAI API server (the SDK connects over gRPC), and `timeout` is the default timeout in seconds applied to every request the client makes. The provider-level `timeout` is distinct from [`ModelSettings.timeout`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.timeout), which overrides the timeout for an individual request. Both options are omitted when left unset, so the SDK’s own defaults apply.
+`api_host` is the hostname of the xAI API server (the SDK connects over gRPC), and `timeout` is the default timeout in seconds applied to every request the client makes. Unlike other providers, the xAI SDK does not support per-request timeouts, so [`ModelSettings.timeout`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.timeout) is not supported and has no effect. Both options are omitted when left unset, so the SDK’s own defaults apply.
+
+You can also attach gRPC `metadata` to every request the client makes. The canonical use is xAI prompt-cache sticky routing, which pins a conversation to a cache node via an `x-grok-conv-id` so repeated prefixes are served from cache instead of reprocessed:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.models.xai import XaiModel
+from pydantic_ai.providers.xai import XaiProvider
+provider = XaiProvider(
+    api_key='your-api-key',
+    metadata=(('x-grok-conv-id', 'my-conversation-id'),),
+)
+model = XaiModel('grok-4.3', provider=provider)
+agent = Agent(model)
+...
+```
+`metadata` is a sequence of `(key, value)` string tuples forwarded verbatim to the underlying `xai_sdk.AsyncClient`, so the xAI SDK’s own documentation on [maximizing cache hits](https://docs.x.ai/developers/advanced-api-usage/prompt-caching/maximizing-cache-hits) applies. Because it is client-scoped, it applies to *every* request made through the provider — a provider configured with a fixed `x-grok-conv-id` must not be shared between unrelated conversations, or those conversations will collide on the same cache node. Use a separate provider per conversation when the metadata is conversation-specific. Like `api_host` and `timeout`, it is omitted when left unset and ignored when a custom `xai_sdk.AsyncClient` is passed.
 
 Or with a custom `xai_sdk.AsyncClient`:
 
@@ -74,7 +90,7 @@ model = XaiModel('grok-4.3', provider=provider)
 agent = Agent(model)
 ...
 ```
-xAI models support searching X (formerly Twitter) for real-time posts and content. The recommended way to enable it is with the [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability — see the [capability documentation](/docs/ai/capabilities/overview#provider-adaptive-tools) for more details, including cross-provider usage. For the full list of supported options, see the [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search).
+xAI models support searching X (formerly Twitter) for real-time posts and content. The recommended way to enable it is with the [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability — see the [capability documentation](/docs/ai/capabilities/overview/#provider-adaptive-tools) for more details, including cross-provider usage. For the full list of supported options, see the [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search).
 
 *(This example is complete, it can be run “as is”)*
 
@@ -86,7 +102,7 @@ The `XSearch` capability accepts:
 - **`enable_video_understanding`** (default:`False` ): analyze video content attached to posts.
 - **`include_output`** (default:`False` ): include the raw X search results on the[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) . Without this, the model uses the search results internally but only returns its text summary; enabling it gives programmatic access to the searched posts, sources, and metadata.
 
-As an alternative to the capability, you can pass the lower-level [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) directly via `capabilities=[NativeTool(XSearchTool(...))]` — see the [X Search Tool documentation](/docs/ai/tools-toolsets/native-tools#x-search-tool) — or enable raw output globally via the `XaiModelSettings.xai_include_x_search_output`[model setting](/docs/ai/core-concepts/agent#model-run-settings).
+As an alternative to the capability, you can pass the lower-level [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) directly via `capabilities=[NativeTool(XSearchTool(...))]` — see the [X Search Tool documentation](/docs/ai/tools-toolsets/native-tools/#x-search-tool) — or enable raw output globally via the `XaiModelSettings.xai_include_x_search_output`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
 
 Grok 4.3 supports `reasoning_effort` values of `'none'`, `'low'`, `'medium'`, and `'high'`. You can configure it directly with [`XaiModelSettings.xai_reasoning_effort`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_reasoning_effort), or use the cross-provider [`ModelSettings.thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
 
@@ -94,11 +110,15 @@ Set `xai_reasoning_effort='none'` or `thinking=False` to disable reasoning on Gr
 
 Grok 4.5 supports `'low'`, `'medium'`, and `'high'` but not `'none'`, so it always reasons: `thinking=False` is silently ignored and `thinking=True` maps to `'medium'`.
 
-When a request uses xAI’s server-side [native tools](/docs/ai/tools-toolsets/native-tools) (e.g. web search, code execution, X search), xAI runs its own loop — calling those tools and processing their results — before returning a final response. You can cap how many turns that server-side loop may take with [`XaiModelSettings.xai_max_turns`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_max_turns):
+When a request uses xAI’s server-side [native tools](/docs/ai/tools-toolsets/native-tools/) (e.g. web search, code execution, X search), xAI runs its own loop — calling those tools and processing their results — before returning a final response. You can cap how many turns that server-side loop may take with [`XaiModelSettings.xai_max_turns`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_max_turns):
 
 `xai_max_turns` only governs xAI’s server-side native-tool loop. It has no effect on ordinary client-side tools or on Pydantic AI’s own agent loop — to bound those, use [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits).
 
 Note that when parallel tool calls are enabled, multiple tool calls can occur within a single turn, so `xai_max_turns` does not necessarily equal the total number of tool calls made.
+
+xAI’s [multi-agent models](https://docs.x.ai/developers/model-capabilities/text/multi-agent) (e.g. `grok-4.20-multi-agent`) research a question with several agents in parallel before answering. You can choose how many agents they use with [`XaiModelSettings.xai_agent_count`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_agent_count), which accepts `4` or `16`:
+
+More agents means deeper research, at the cost of more tokens and higher latency. Other xAI models ignore the setting.
 
 # Citations
 

@@ -4,31 +4,31 @@ title: Planning | Pydantic Docs
 description: Give an agent a structured, self-updating task list -- with a cache-safe
   live reminder, optional persistence, subtasks, dependencies, and events.
 resource: https://pydantic.dev/docs/ai/harness/planning
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Planning
 
 `Planning` gives the model a structured, self-updating task list through a small toolset — and surfaces the current plan back to the model every turn without ever invalidating the prompt cache. It can stay in memory for a single run or persist to SQLite/Postgres, break steps into subtasks with dependencies, and emit events from granular changes.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
-
 This capability incorporates the task-list features of the standalone [`pydantic-ai-todo`](https://github.com/vstorm-co/pydantic-ai-todo) library — persistent stores, subtasks, dependencies, and events — which it supersedes. If you are migrating from `pydantic-ai-todo`, the tools are renamed:
 
 `pydantic-ai-todo``Planning``write_todos``write_plan``read_todos``read_plan``add_todo``add_task``update_todo_status` / `update_todo_statuses``update_task_status` / `update_task_statuses``remove_todo``remove_task``add_subtask`, `set_dependency`, `get_available_tasks`unchanged Two differences to plan for: there is no connection-string convenience (`create_storage(backend=...)` and friends are gone — you construct your own asyncpg pool or Redis client, which is what keeps the harness driver-free), and `PlanEvent` carries no `timestamp`, so a consumer that ordered or logged by it supplies its own clock.
 
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
+
 Long agentic runs drift: the model loses track of what it set out to do and what’s left. The usual fix — keep a running plan and re-inject it into the system prompt each turn — invalidates the prompt cache. The system prompt sits at the front of the request, so every plan edit changes the cached prefix and forces the whole conversation to be re-processed at full token price.
 
-The model owns the plan through the `planning` toolset. The current plan is surfaced back as an ephemeral reminder appended to the tail of each request, behind a cache breakpoint:
+The model owns the plan through the `planning` toolset. The current plan is surfaced back as an ephemeral reminder appended to the tail of each request, with a cache breakpoint after its stable opening tag:
 
 - The reminder is added after the durable history is persisted, so it reaches the model but is never written to `message_history` . No reminders accumulate across turns.
-- A `CachePoint` is placed immediately before the reminder, so the cached prefix (tools + system + real conversation) stays byte-identical turn over turn. Only the reminder falls outside the cache.
+- A `CachePoint` follows the stable`<plan-reminder>` opening tag, so the cached prefix (tools + system + real conversation + that tag) stays byte-identical turn over turn. Only the mutable reminder content falls outside the cache.
 
 Construct an `Agent` with `Planning()` in its `capabilities`. The tools are registered automatically and static usage guidance is added to the system prompt:
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.planning import Planning
+from pydantic_ai_harness import Planning
 agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[Planning()])
 result = agent.run_sync('Refactor the auth module and add tests.')
 print(result.output)
@@ -47,7 +47,7 @@ Each step is a `content` string, an optional present-continuous `active_form` la
 All six are registered by default. `tools=` narrows that to an allowlist, and the built-in guidance follows it:
 
 ```
-from pydantic_ai_harness.planning import Planning
+from pydantic_ai_harness import Planning
 planning = Planning(tools=['write_plan'])  # whole-plan replacement only -- one tool, no step ids to track
 ```
 Naming a tool the current mode does not register raises `ValueError`, as does an unknown key in `descriptions`.
@@ -65,7 +65,8 @@ Pass `enable_subtasks=True` to add three more tools, the `blocked` status, and a
 By default the plan is a fresh, isolated in-memory plan per run. Pass a `store` to persist it:
 
 ```
-from pydantic_ai_harness.planning import Planning, SqlitePlanStore
+from pydantic_ai_harness import Planning
+from pydantic_ai_harness.planning import SqlitePlanStore
 planning = Planning(store=SqlitePlanStore('plan.db', session='user-123'))
 ```
 Built-in stores are `InMemoryPlanStore`, `SqlitePlanStore`, `PostgresPlanStore` (over a caller-owned asyncpg pool), and `RedisPlanStore` (over a caller-owned `redis.asyncio` client) — so the harness needs no database driver. Any `PlanStore` implementation works, and `store_resolver` selects one per run. `SqlitePlanStore` requires a file-backed database; use `InMemoryPlanStore` for ephemeral plans rather than `':memory:'`.
@@ -112,13 +113,13 @@ Events come from granular tools (`add_task`, `update_task_status`, `add_subtask`
 
 Addressing steps by mutable integer index (insert/remove/reorder) is error-prone for both the code and the model. `write_plan` restates the whole plan each call, so there are no indices to track. Granular edits (`add_task`, `update_task_status`, `remove_task`) instead reference the stable `id` shown by `read_plan`.
 
-The plan is never injected into the system prompt or instructions. Static usage guidance goes there (cache-stable); only the mutable plan rides the ephemeral tail reminder, which lives solely in the per-request copy and is never persisted. Set `inject=False` to disable it. `CachePoint` is supported on Anthropic and Amazon Bedrock; on providers without prompt caching it is simply ignored.
+The plan is never injected into the system prompt or instructions. Static usage guidance goes there (cache-stable); only the mutable plan rides the ephemeral tail reminder, which lives solely in the per-request copy and is never persisted. Set `inject=False` to disable it. Pydantic AI maps `CachePoint` for models whose profiles support prompt caching; on other models it is ignored.
 
 ```
-from pydantic_ai_harness.planning import Planning
+from pydantic_ai_harness import Planning
 Planning(
     guidance=None,           # static system-prompt guidance; None = default, '' = omit
-    cache_ttl='5m',          # TTL for the cache breakpoint before the reminder ('5m' | '1h')
+    cache_ttl='5m',          # TTL for the cache breakpoint after the stable opening tag ('5m' | '1h')
     store=None,              # None = fresh in-memory plan per run; or a PlanStore to persist
     enable_subtasks=False,   # add subtask/dependency tools and the 'blocked' status
     inject=True,             # surface the current plan as a cache-safe tail reminder
@@ -136,14 +137,14 @@ capabilities:
 ```
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.planning import Planning
+from pydantic_ai_harness import Planning
 agent = Agent.from_file('agent.yaml', custom_capability_types=[Planning])
 result = agent.run_sync('...')
 print(result.output)
 ```
 - [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
 - [Anthropic prompt caching](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
-- [Code Mode](/docs/ai/harness/code-mode) — another prompt-cache-aware harness capability
+- [Code Mode](/docs/ai/harness/code-mode/) — another prompt-cache-aware harness capability
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -153,10 +154,10 @@ The model owns the plan through a small toolset (`write_plan`, `read_plan`,
 `add_task`, `update_task_status`, `update_task_statuses`, `remove_task`, and
 — when `enable_subtasks` is set — `add_subtask`, `set_dependency`,
 `get_available_tasks`); `tools` narrows that surface to an allowlist. The
-current plan is surfaced back as an *ephemeral*
-reminder appended to the tail of each request behind a `CachePoint`, so the
-cached prefix stays byte-identical across turns; only the reminder is
-re-read each turn.
+current plan is surfaced back as an *ephemeral* reminder appended to the
+tail of each request. Its cache-stable opening tag precedes a `CachePoint`,
+so the cached prefix stays byte-identical across turns; only the mutable
+plan content is re-read each turn.
 
 By default the plan lives in memory for the duration of a single run (a
 fresh, isolated plan per run). Pass a `store` (or `store_resolver`) to
@@ -167,6 +168,18 @@ from pydantic_ai import Agent
 from pydantic_ai_harness.planning import Planning
 agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[Planning()])
 ```
+TTL for the cache breakpoint placed after the stable plan-reminder opening tag.
+
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
+
+Optional per-tool description overrides, keyed by tool name. Unknown names raise `ValueError`.
+
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
+Add the subtask/dependency tools and the `blocked` status when true.
+
+**Type:** `bool`**Default:** `False`
+
 Static planning guidance for the system prompt. Cache-stable.
 
 Three states, so opting out is something you do on purpose rather than by accident:
@@ -182,9 +195,9 @@ ask for the default explicitly, and would turn a config that resolves to
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-TTL for the cache breakpoint placed before the plan reminder.
+Surface the current plan as a cache-safe tail reminder each turn.
 
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
+**Type:** `bool`**Default:** `True`
 
 Storage backend. `None` keeps a fresh in-memory plan per run (the original
 ephemeral behaviour). Pass a store to persist the plan across runs.
@@ -194,14 +207,6 @@ ephemeral behaviour). Pass a store to persist the plan across runs.
 Optional per-run store resolver, e.g. `lambda ctx: ctx.deps.plan_store`.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], `PlanStore`] | `None`**Default:** `None`
-
-Add the subtask/dependency tools and the `blocked` status when true.
-
-**Type:** `bool`**Default:** `False`
-
-Surface the current plan as a cache-safe tail reminder each turn.
-
-**Type:** `bool`**Default:** `True`
 
 Optional allowlist of tool names to register; `None` registers all of them.
 
@@ -215,10 +220,6 @@ trimming within a group is better paired with a `guidance` string of your own.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
-Optional per-tool description overrides, keyed by tool name. Unknown names raise `ValueError`.
-
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
 `@async`
 
 ```
@@ -227,44 +228,6 @@ def for_run(ctx: RunContext[AgentDepsT]) -> Planning[AgentDepsT]
 Return a clone with this run’s store resolved and cached (per-run isolation).
 
 `Planning`[`AgentDepsT`]
-
-```
-def resolve_store(ctx: RunContext[AgentDepsT]) -> PlanStore
-```
-Return the cached run store, or resolve one for direct toolset use.
-
-`PlanStore`
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Provide the `planning` toolset over this run’s resolved store.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
-
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Provide static, cache-stable guidance on using the planning tools.
-
-A custom `guidance` string is used verbatim. The default is assembled from
-the tools actually registered — the granular sentence is dropped when
-`tools` excludes them all, and the subtask/dependency workflow is added
-under `enable_subtasks` — so the model is not told about tools it lacks.
-
-`AgentInstructions`[`AgentDepsT`] | `None`
-
-`@async`
-
-```
-def wrap_model_request(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    handler: WrapModelRequestHandler,
-) -> ModelResponse
-```
-Append the current plan as an ephemeral tail reminder behind a cache breakpoint.
 
 `@classmethod`
 
@@ -286,12 +249,50 @@ Construct a `Planning` capability from serializable options.
 
 `Planning`[`AgentDepsT`]
 
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Provide static, cache-stable guidance on using the planning tools.
+
+A custom `guidance` string is used verbatim. The default is assembled from
+the tools actually registered — the granular sentence is dropped when
+`tools` excludes them all, and the subtask/dependency workflow is added
+under `enable_subtasks` — so the model is not told about tools it lacks.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
+
 `@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None
 ```
 Serialization name for agent-spec support.
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Provide the `planning` toolset over this run’s resolved store.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+```
+def resolve_store(ctx: RunContext[AgentDepsT]) -> PlanStore
+```
+Return the cached run store, or resolve one for direct toolset use.
+
+`PlanStore`
+
+`@async`
+
+```
+def wrap_model_request(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    handler: WrapModelRequestHandler,
+) -> ModelResponse
+```
+Append the current plan as an ephemeral tail reminder with a cache breakpoint.
 
 # Citations
 

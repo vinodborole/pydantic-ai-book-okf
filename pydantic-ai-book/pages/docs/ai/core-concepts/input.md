@@ -2,7 +2,7 @@
 type: Web Page
 title: Multimodal Input | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/input
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Multimodal Input
@@ -38,11 +38,11 @@ Support for file URLs varies depending on type and provider:
 
 | Model | Send URL directly | Download and send bytes | Unsupported | 
 |---|---|---|---|
-| [`OpenAIChatModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel) | `ImageUrl` | `AudioUrl` ,`DocumentUrl` | `VideoUrl` .`DocumentUrl`[not supported with `AzureProvider`](/docs/ai/models/openai#using-azure-with-the-responses-api) or[`AlibabaProvider`](/docs/ai/models/openai#alibaba-cloud-model-studio-dashscope) | 
+| [`OpenAIChatModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIChatModel) | `ImageUrl` | `AudioUrl` ,`DocumentUrl` | `VideoUrl` .`DocumentUrl`[not supported with `AzureProvider`](/docs/ai/models/openai/#using-azure-with-the-responses-api) or[`AlibabaProvider`](/docs/ai/models/openai/#alibaba-cloud-model-studio-dashscope) | 
 | [`OpenAIResponsesModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) | `ImageUrl` ,`AudioUrl` ,`DocumentUrl` | — | `VideoUrl` | 
 | [`AnthropicModel`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModel) | `ImageUrl` ,`DocumentUrl` (PDF) | `DocumentUrl` (`text/plain` ) | `AudioUrl` ,`VideoUrl` | 
 | [`GoogleModel`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModel) (Google Cloud) | All URL types | — | — | 
-| [`GoogleModel`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModel) (Gemini API) | [YouTube](/docs/ai/models/google#document-image-audio-and-video-input) ,[Files API](/docs/ai/models/google#document-image-audio-and-video-input) | All other URLs | — | 
+| [`GoogleModel`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModel) (Gemini API) | [YouTube](/docs/ai/models/google/#document-image-audio-and-video-input) ,[Files API](/docs/ai/models/google/#document-image-audio-and-video-input) | All other URLs | — | 
 | [`XaiModel`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModel) | `ImageUrl` | `DocumentUrl` | `AudioUrl` ,`VideoUrl` | 
 | [`MistralModel`](/docs/ai/api/models/mistral/#pydantic_ai.models.mistral.MistralModel) | `ImageUrl` ,`DocumentUrl` (PDF) | `DocumentUrl` (`text/plain` ) | `AudioUrl` ,`VideoUrl` ,`DocumentUrl` (non-PDF, non-text) | 
 | [`BedrockConverseModel`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) | S3 URLs ( `s3://` ) | `ImageUrl` ,`DocumentUrl` ,`VideoUrl` | `AudioUrl` | 
@@ -68,7 +68,7 @@ Use [`UploadedFile`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.Upl
 
 When using [`UploadedFile`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UploadedFile) you must set the `provider_name`. Uploaded files are specific to the system they are uploaded to and are not transferable across providers. Trying to use a message that contains an `UploadedFile` with a different provider will result in an error.
 
-If you want to introduce portability into your agent logic to allow the same prompt history to work with different provider backends, you can use a [history processor](/docs/ai/core-concepts/message-history#processing-message-history) to remove or rewrite `UploadedFile` parts from messages before sending them to a provider that does not support them. Be aware that stripping out `UploadedFile` instances might confuse the model, especially if references to those files remain in the text.
+If you want to introduce portability into your agent logic to allow the same prompt history to work with different provider backends, you can use a [history processor](/docs/ai/core-concepts/message-history/#processing-message-history) to remove or rewrite `UploadedFile` parts from messages before sending them to a provider that does not support them. Be aware that stripping out `UploadedFile` instances might confuse the model, especially if references to those files remain in the text.
 
 The `media_type` parameter is optional for [`UploadedFile`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UploadedFile). If not specified, Pydantic AI will attempt to infer it from the `file_id`:
 

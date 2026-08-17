@@ -4,21 +4,14 @@ title: Warn On Cache Busts | Pydantic Docs
 description: Warn when a run's prompt-cache hit collapses between model requests,
   so a moved prefix or an expired cache surfaces instead of silently re-charging tokens.
 resource: https://pydantic.dev/docs/ai/harness/warn-on-cache-busts
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Warn On Cache Busts
 
 Warn when a run’s prompt cache hit collapses between model requests, so a moved cacheable prefix or an expired provider cache surfaces instead of quietly re-charging tokens it could have served from cache.
 
-[!NOTE]
-Import this capability from its submodule. It is not re-exported from `pydantic_ai_harness`:
-
-```
-from pydantic_ai_harness.warn_on_cache_busts import WarnOnCacheBusts
-```
-
-Warn On Cache Busts is a released, non-experimental capability. Pydantic AI Harness is still on 0.x releases, so the API may change between minor releases. See the [version policy](/docs/ai/harness/#version-policy).
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Prompt caching pays off only while the cacheable prefix (tools, then system instructions, then message history) stays byte-stable across a run’s consecutive requests. When something moves that prefix — reordered tools, a timestamp injected into instructions, a serialization-level block hop — the provider re-charges tokens it could have served from cache.
 
@@ -28,7 +21,7 @@ When a request reads back less than `collapse_ratio` of the established prefix, 
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.warn_on_cache_busts import WarnOnCacheBusts
+from pydantic_ai_harness import WarnOnCacheBusts
 agent = Agent('anthropic:claude-sonnet-4-5', capabilities=[WarnOnCacheBusts()])
 await agent.run('...')  # a CacheBustWarning fires if a cached prefix collapses mid-run
 ```
@@ -106,6 +99,12 @@ The monitor is silent when caching is off or unreported (`cache_read_tokens` sta
 it never fires spuriously in tests that don’t exercise caching. Silencing and dev/CI
 escalation both go through the stdlib `warnings` filters — see `CacheBustWarning`.
 
+Assumed provider cache TTL, in seconds (Anthropic’s default is 300, refreshed on each hit).
+
+Message-only: when the gap since the previous request for the same model exceeds this, the warning notes that the collapse may be a provider-side cache expiry rather than a moved prefix. It does not change whether a warning fires. Lower it for providers with a shorter cache lifetime.
+
+**Type:** `float`**Default:** `300.0`
+
 Warn when a request reads back less than this fraction of the established prefix.
 
 Conservative by default (0.5): only a drop below half the previously-cached prefix counts as a collapse, so ordinary provider rounding or a partial cache miss does not fire. Raise it toward 1.0 to warn on smaller regressions. Must be greater than 0.0 (a ratio of 0.0 could never warn, so it is rejected rather than treated as a silent disable switch).
@@ -119,21 +118,6 @@ noisy or zero, so small prefixes are ignored to avoid false positives.
 
 **Type:** `int`**Default:** `1024`
 
-Assumed provider cache TTL, in seconds (Anthropic’s default is 300, refreshed on each hit).
-
-Message-only: when the gap since the previous request for the same model exceeds this, the warning notes that the collapse may be a provider-side cache expiry rather than a moved prefix. It does not change whether a warning fires. Lower it for providers with a shorter cache lifetime.
-
-**Type:** `float`**Default:** `300.0`
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
-```
-Give this run a fresh per-key state (marks, timing, step) so each run is judged alone.
-
-`AbstractCapability`[`AgentDepsT`]
-
 `@async`
 
 ```
@@ -145,6 +129,15 @@ def after_model_request(
 ) -> ModelResponse
 ```
 Compare this response’s cache read against the established prefix for its model, then update it.
+
+`@async`
+
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
+```
+Give this run a fresh per-key state (marks, timing, step) so each run is judged alone.
+
+`AbstractCapability`[`AgentDepsT`]
 
 **Bases:** `UserWarning`
 

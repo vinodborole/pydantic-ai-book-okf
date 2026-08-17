@@ -5,22 +5,24 @@ description: Let an orchestrator agent coordinate a catalog of sub-agents by wri
   one sandboxed Python script -- fan-out, chaining, voting, and retry loops in a single
   tool call.
 resource: https://pydantic.dev/docs/ai/harness/dynamic-workflow
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Dynamic Workflow
 
 `DynamicWorkflow` is for the case where the coordination *between* sub-agents is the actual work. Say you have a few specialists — one reviews code, one summarizes findings, one writes the final note. Each is easy to call on its own; the hard part is the choreography: review three files at once, keep only the reports that found something, summarize those, and hand the summary to the writer. Reach for this capability when that orchestration involves fan-out, chaining, voting, or retry loops that you do not want to run one model turn at a time, with every intermediate result flowing back through the orchestrator’s context.
 
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
+
 The usual way to coordinate sub-agents is one tool call per step. The agent calls the reviewer and waits, reads the result, calls the reviewer again, waits again, and so on. Every intermediate result travels back into the agent’s context, and every step that depends on the previous one is a separate model turn.
 
 `DynamicWorkflow` takes a different route. You hand it a catalog of named sub-agents, and it gives the model a single tool, `run_workflow`. Inside that tool the model writes ordinary Python: each of your sub-agents is an `async` function it can call, loop over, and combine. The script runs to completion in one tool call, and only its final value comes back to the model. The choreography moves out of the conversation and into code.
 
-If you have met [Code Mode](/docs/ai/harness/code-mode), this will feel familiar — the same [Monty](https://github.com/pydantic/monty) sandbox and the same idea: write a script instead of many tool calls. The difference is what the script gets to call. In Code Mode it calls the agent’s own tools; here it calls whole sub-agents.
+If you have met [Code Mode](/docs/ai/harness/code-mode/), this will feel familiar — the same [Monty](https://github.com/pydantic/monty) sandbox and the same idea: write a script instead of many tool calls. The difference is what the script gets to call. In Code Mode it calls the agent’s own tools; here it calls whole sub-agents.
 
 The harness has two delegation capabilities. They trade in the same currency — named, isolated sub-agent runs — but at different altitudes:
 
-- [`SubAgents`](/docs/ai/harness/subagents) exposes one`delegate_task(agent_name, task)` tool. Each delegation is its own tool call and its own model turn. It is the right fit when delegations are occasional, or when each result needs the parent’s judgment before the next one.
+- [`SubAgents`](/docs/ai/harness/subagents/) exposes one`delegate_task(agent_name, task)` tool. Each delegation is its own tool call and its own model turn. It is the right fit when delegations are occasional, or when each result needs the parent’s judgment before the next one.
 - `DynamicWorkflow` moves the choreography into a script. Fan-out, chaining, voting, and retry loops all run inside one tool call, and intermediate results never enter the parent’s context.
 
 Start with `SubAgents` if you are not sure. A `delegate_task` orchestrator converts to a workflow catalog without changing the sub-agents themselves.
@@ -31,7 +33,7 @@ Two sub-agents, one orchestrator:
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.dynamic_workflow import DynamicWorkflow
+from pydantic_ai_harness import DynamicWorkflow
 reviewer = Agent('openai:gpt-5', name='reviewer', description='Reviews code for bugs.')
 summarizer = Agent('openai:gpt-5', name='summarizer', description='Summarizes findings.')
 orchestrator = Agent(
@@ -187,8 +189,8 @@ WorkflowAgent(
 
 Source: [`pydantic_ai_harness/dynamic_workflow/`](https://github.com/pydantic/pydantic-ai-harness/tree/main/pydantic_ai_harness/dynamic_workflow/).
 
-- [Code Mode](/docs/ai/harness/code-mode) — the same sandbox, calling the agent’s own tools instead of sub-agents.
-- [Subagents](/docs/ai/harness/subagents) — one-delegation-per-tool-call sub-agents, without the scripted choreography.
+- [Code Mode](/docs/ai/harness/code-mode/) — the same sandbox, calling the agent’s own tools instead of sub-agents.
+- [Subagents](/docs/ai/harness/subagents/) — one-delegation-per-tool-call sub-agents, without the scripted choreography.
 - [Rewriting Bun in Rust](https://bun.com/blog/bun-in-rust) (Bun) — the same pattern at scale, via Claude Code’s dynamic workflows.
 - [Capabilities](/docs/ai/capabilities/overview/) and[on-demand capabilities](/docs/ai/capabilities/on-demand/) .
 

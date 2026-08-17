@@ -2,7 +2,7 @@
 type: Web Page
 title: Direct Model Requests | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/direct
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Direct Model Requests
@@ -85,7 +85,7 @@ As with [agents](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent), you c
 
 You can also enable OpenTelemetry on a per call basis:
 
-See [Debugging and Monitoring](/docs/ai/integrations/logfire) for more details, including how to instrument with plain OpenTelemetry without Logfire.
+See [Debugging and Monitoring](/docs/ai/integrations/logfire/) for more details, including how to instrument with plain OpenTelemetry without Logfire.
 
 # Citations
 

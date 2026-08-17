@@ -2,12 +2,12 @@
 type: Web Page
 title: Dependencies | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/dependencies
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Dependencies
 
-Pydantic AI uses a dependency injection system to provide data and services to your agent’s [system prompts](/docs/ai/core-concepts/agent#system-prompts), [tools](/docs/ai/tools-toolsets/tools) and [output validators](/docs/ai/core-concepts/output#output-validator-functions).
+Pydantic AI uses a dependency injection system to provide data and services to your agent’s [system prompts](/docs/ai/core-concepts/agent/#system-prompts), [tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions).
 
 Matching Pydantic AI’s design philosophy, our dependency system tries to use existing best practice in Python development rather than inventing esoteric “magic”, this should make dependencies type-safe, understandable, easier to test, and ultimately easier to deploy in production.
 
@@ -37,11 +37,11 @@ Access dependencies through the [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydant
 
 *(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
-In addition to [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps), [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) provides access to the running agent via [`.agent`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.agent), which is useful when [tools](/docs/ai/tools-toolsets/tools), [hooks](/docs/ai/core-concepts/hooks), or [capabilities](/docs/ai/capabilities/overview) need to read agent properties like [`name`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.name) or [`output_type`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.output_type).
+In addition to [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps), [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) provides access to the running agent via [`.agent`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.agent), which is useful when [tools](/docs/ai/tools-toolsets/tools/), [hooks](/docs/ai/core-concepts/hooks/), or [capabilities](/docs/ai/capabilities/overview/) need to read agent properties like [`name`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.name) or [`output_type`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.output_type). The [`.realtime`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.realtime) property identifies realtime sessions without requiring a model type check, and [`.realtime_session`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.realtime_session) exposes the live [`RealtimeSession`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeSession) to tools and hooks once it is connected.
 
-Dependency fields can also be referenced in instructions and descriptions via [template strings](/docs/ai/core-concepts/agent-spec#template-strings) — for example, [`TemplateStr('Hello {{name}}')`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr) renders `name` from the deps object at runtime. This is especially useful in [agent specs](/docs/ai/core-concepts/agent-spec) where callables aren’t available.
+Dependency fields can also be referenced in instructions and descriptions via [template strings](/docs/ai/core-concepts/agent-spec/#template-strings) — for example, [`TemplateStr('Hello {{name}}')`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr) renders `name` from the deps object at runtime. This is especially useful in [agent specs](/docs/ai/core-concepts/agent-spec/) where callables aren’t available.
 
-[System prompt functions](/docs/ai/core-concepts/agent#system-prompts), [function tools](/docs/ai/tools-toolsets/tools) and [output validators](/docs/ai/core-concepts/output#output-validator-functions) are all run in the async context of an agent run.
+[System prompt functions](/docs/ai/core-concepts/agent/#system-prompts), [function tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions) are all run in the async context of an agent run.
 
 If these functions are not coroutines (e.g. `async def`) they are called with
 [`run_in_executor`](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.run_in_executor) in a thread pool. It’s therefore marginally preferable
@@ -55,7 +55,7 @@ To match the synchronous dependency, the system prompt function is now a plain f
 
 *(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
 
-As well as system prompts, dependencies can be used in [tools](/docs/ai/tools-toolsets/tools) and [output validators](/docs/ai/core-concepts/output#output-validator-functions).
+As well as system prompts, dependencies can be used in [tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions).
 
 To pass `RunContext` to a tool, use the [`tool`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool) decorator.
 

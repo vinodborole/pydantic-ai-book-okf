@@ -8,3 +8,5 @@
 - [Multimodal Input | Pydantic Docs](/pages/docs/ai/core-concepts/input.md)
 - [Messages and chat history | Pydantic Docs](/pages/docs/ai/core-concepts/message-history.md)
 - [Output | Pydantic Docs](/pages/docs/ai/core-concepts/output.md)
+- [Retries | Pydantic Docs](/pages/docs/ai/core-concepts/retries.md)
+- [Timeouts | Pydantic Docs](/pages/docs/ai/core-concepts/timeouts.md)

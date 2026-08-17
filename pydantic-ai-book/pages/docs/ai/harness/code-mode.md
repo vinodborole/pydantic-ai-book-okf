@@ -4,12 +4,14 @@ title: Code Mode | Pydantic Docs
 description: Wrap an agent's tools into a single sandboxed run_code tool so the model
   orchestrates many calls in one Python program instead of many round-trips.
 resource: https://pydantic.dev/docs/ai/harness/code-mode
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Code Mode
 
 `CodeMode` replaces individual tool calls with a single sandboxed Python execution environment. Instead of the model issuing one tool call per action, it writes a Python program that calls your tools as functions — with loops, conditionals, variables, and `asyncio.gather` — all inside a sandboxed [Monty](https://github.com/pydantic/monty) runtime.
+
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Standard tool calling often needs another model turn for each dependent batch of tool calls. An agent that needs to fetch 10 items and then process their results can require many model turns, increasing latency, cost, and context use. Intermediate results also grow the conversation history.
 
@@ -310,27 +312,6 @@ OS handlers can expose other host resources.
 from pydantic_monty import MountDir
 agent = Agent('openai:gpt-5', capabilities=[CodeMode(mount=MountDir(virtual_path='/work', host_path='/tmp/agent-work'))])
 ```
-Which wrapped tools should be sandboxed inside `run_code`.
-
-- `'all'` (default): every eligible regular tool the agent has is sandboxed.
-- `Sequence[str]` : only tools whose names are listed are sandboxed.
-- Callable `(ctx, tool_def) -> bool | Awaitable[bool]` : tools where the
-callable returns`True` are sandboxed; the rest stay as native tool calls.
-
-**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `field(default='all')`
-
-Maximum number of retries for the `run_code` tool (syntax errors count as retries).
-
-**Type:** `int`**Default:** `3`
-
-Give sandboxed code environment variables, the clock, and file I/O through a handler you provide; unset, they are unavailable.
-
-**Type:** `CodeModeOS` | `None`**Default:** `None`
-
-Host directories to expose to sandboxed `pathlib` code; each mount’s `mode` controls whether writes reach the host.
-
-**Type:** `CodeModeMount` | `None`**Default:** `None`
-
 Keep the `run_code` tool definition cache-stable as the sandboxed toolset grows.
 
 By default the signatures of all sandboxed tools are rendered into `run_code`’s
@@ -360,30 +341,40 @@ keeps the system prompt shorter and is the better choice.
 
 **Type:** `bool`**Default:** `False`
 
-```
-def get_ordering() -> CapabilityOrdering
-```
-CodeMode wraps around ToolSearch so that search_tools stays native.
+Maximum number of retries for the `run_code` tool (syntax errors count as retries).
 
-`CapabilityOrdering`
+**Type:** `int`**Default:** `3`
+
+Host directories to expose to sandboxed `pathlib` code; each mount’s `mode` controls whether writes reach the host.
+
+**Type:** `CodeModeMount` | `None`**Default:** `None`
+
+Give sandboxed code environment variables, the clock, and file I/O through a handler you provide; unset, they are unavailable.
+
+**Type:** `CodeModeOS` | `None`**Default:** `None`
+
+Which wrapped tools should be sandboxed inside `run_code`.
+
+- `'all'` (default): every eligible regular tool the agent has is sandboxed.
+- `Sequence[str]` : only tools whose names are listed are sandboxed.
+- Callable `(ctx, tool_def) -> bool | Awaitable[bool]` : tools where the
+callable returns`True` are sandboxed; the rest stay as native tool calls.
+
+**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `field(default='all')`
 
 `@async`
 
 ```
-def for_run(ctx: RunContext[AgentDepsT]) -> CodeMode[AgentDepsT]
+def after_model_request(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    response: ModelResponse,
+) -> ModelResponse
 ```
-Return a fresh instance so concurrent runs don’t share `_announced_tools`.
+Announce newly-discovered tools from a native (server-side) tool-search return.
 
-`CodeMode`[`AgentDepsT`]
-
-```
-def get_wrapper_toolset(
-    toolset: AbstractToolset[AgentDepsT],
-) -> AbstractToolset[AgentDepsT] | None
-```
-Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
-
-[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
+Only active with `dynamic_catalog=True`.
 
 `@async`
 
@@ -407,16 +398,27 @@ execute result).
 `@async`
 
 ```
-def after_model_request(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    response: ModelResponse,
-) -> ModelResponse
+def for_run(ctx: RunContext[AgentDepsT]) -> CodeMode[AgentDepsT]
 ```
-Announce newly-discovered tools from a native (server-side) tool-search return.
+Return a fresh instance so concurrent runs don’t share `_announced_tools`.
 
-Only active with `dynamic_catalog=True`.
+`CodeMode`[`AgentDepsT`]
+
+```
+def get_ordering() -> CapabilityOrdering
+```
+CodeMode wraps around ToolSearch so that search_tools stays native.
+
+`CapabilityOrdering`
+
+```
+def get_wrapper_toolset(
+    toolset: AbstractToolset[AgentDepsT],
+) -> AbstractToolset[AgentDepsT] | None
+```
+Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
+
+[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
 
 # Citations
 

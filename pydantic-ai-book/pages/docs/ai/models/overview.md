@@ -1,45 +1,47 @@
 ---
 type: Web Page
-title: Overview | Pydantic Docs
+title: Model Providers | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
-# Overview
+# Model Providers
 
 Pydantic AI is model-agnostic and has built-in support for multiple model providers:
 
-- [OpenAI](/docs/ai/models/openai)
-- [Anthropic](/docs/ai/models/anthropic)
-- [Gemini](/docs/ai/models/google) (via two different APIs: Gemini API and Google Cloud, formerly known as Vertex AI)
-- [xAI](/docs/ai/models/xai)
-- [Bedrock](/docs/ai/models/bedrock)
-- [Cerebras](/docs/ai/models/cerebras)
-- [Cohere](/docs/ai/models/cohere)
-- [Groq](/docs/ai/models/groq)
-- [Hugging Face](/docs/ai/models/huggingface)
-- [Mistral](/docs/ai/models/mistral)
-- [OpenRouter](/docs/ai/models/openrouter)
-- [Z.AI](/docs/ai/models/zai)
+- [OpenAI](/docs/ai/models/openai/)
+- [Anthropic](/docs/ai/models/anthropic/)
+- [Gemini](/docs/ai/models/google/) (via two different APIs: Gemini API and Google Cloud, formerly known as Vertex AI)
+- [xAI](/docs/ai/models/xai/)
+- [Bedrock](/docs/ai/models/bedrock/)
+- [Cerebras](/docs/ai/models/cerebras/)
+- [Cohere](/docs/ai/models/cohere/)
+- [Crusoe](/docs/ai/models/crusoe/)
+- [Groq](/docs/ai/models/groq/)
+- [Hugging Face](/docs/ai/models/huggingface/)
+- [Mistral](/docs/ai/models/mistral/)
+- [OpenRouter](/docs/ai/models/openrouter/)
+- [Snowflake Cortex](/docs/ai/models/snowflake/)
+- [Z.AI](/docs/ai/models/zai/)
 
 In addition, many providers are compatible with the OpenAI API, and can be used with `OpenAIChatModel` in Pydantic AI:
 
-- [Alibaba Cloud Model Studio (DashScope)](/docs/ai/models/openai#alibaba-cloud-model-studio-dashscope)
-- [Azure AI Foundry](/docs/ai/models/openai#azure-ai-foundry)
-- [DeepSeek](/docs/ai/models/openai#deepseek)
-- [Fireworks AI](/docs/ai/models/openai#fireworks-ai)
-- [GitHub Models](/docs/ai/models/openai#github-models) (retired, deprecated)
-- [Heroku](/docs/ai/models/openai#heroku-ai)
-- [LiteLLM](/docs/ai/models/openai#litellm)
-- [Nebius AI Studio](/docs/ai/models/openai#nebius-ai-studio)
-- [Ollama](/docs/ai/models/openai#ollama)
-- [OVHcloud AI Endpoints](/docs/ai/models/openai#ovhcloud-ai-endpoints)
-- [Perplexity](/docs/ai/models/openai#perplexity)
-- [SambaNova](/docs/ai/models/openai#sambanova)
-- [Together AI](/docs/ai/models/openai#together-ai)
-- [Vercel AI Gateway](/docs/ai/models/openai#vercel-ai-gateway)
+- [Alibaba Cloud Model Studio (DashScope)](/docs/ai/models/openai/#alibaba-cloud-model-studio-dashscope)
+- [Azure AI Foundry](/docs/ai/models/openai/#azure-ai-foundry)
+- [DeepSeek](/docs/ai/models/openai/#deepseek)
+- [Fireworks AI](/docs/ai/models/openai/#fireworks-ai)
+- [GitHub Models](/docs/ai/models/openai/#github-models) (retired, deprecated)
+- [Heroku](/docs/ai/models/openai/#heroku-ai)
+- [LiteLLM](/docs/ai/models/openai/#litellm)
+- [Nebius AI Studio](/docs/ai/models/openai/#nebius-ai-studio)
+- [Ollama](/docs/ai/models/openai/#ollama)
+- [OVHcloud AI Endpoints](/docs/ai/models/openai/#ovhcloud-ai-endpoints)
+- [Perplexity](/docs/ai/models/openai/#perplexity)
+- [SambaNova](/docs/ai/models/openai/#sambanova)
+- [Together AI](/docs/ai/models/openai/#together-ai)
+- [Vercel AI Gateway](/docs/ai/models/openai/#vercel-ai-gateway)
 
-Pydantic AI also comes with [`TestModel`](/docs/ai/api/models/test) and [`FunctionModel`](/docs/ai/api/models/function)
+Pydantic AI also comes with [`TestModel`](/docs/ai/api/models/test/) and [`FunctionModel`](/docs/ai/api/models/function/)
 for testing and development.
 
 To use each model provider, you need to configure your local environment and make sure you have the right packages installed. If you try to use the model without having done so, you’ll be told what to install.
@@ -82,7 +84,7 @@ print(WebSearchTool in profile['supported_native_tools'])
 #> True
 ```
 `model.profile` is usually the fully *resolved* profile: keys from [`DEFAULT_PROFILE`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.DEFAULT_PROFILE) are merged with the provider’s defaults, so direct key access like `profile['supports_tools']` works. If you supply `profile=` as a callable (or otherwise have a partial profile dict), use `profile.get('supports_tools', DEFAULT_PROFILE['supports_tools'])` (after importing `DEFAULT_PROFILE`) to tolerate missing keys.
-Any [`Model`](/docs/ai/api/models/base/#pydantic_ai.models.Model) instance exposes its resolved profile the same way, so the same check works whether the model was selected automatically from a `<provider>:<model>` name or instantiated directly. Don’t confuse this with [Capabilities](/docs/ai/capabilities/overview), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
+Any [`Model`](/docs/ai/api/models/base/#pydantic_ai.models.Model) instance exposes its resolved profile the same way, so the same check works whether the model was selected automatically from a `<provider>:<model>` name or instantiated directly. Don’t confuse this with [Capabilities](/docs/ai/capabilities/overview/), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
 
 When a [`Provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) creates its own HTTP client (i.e. you don’t pass a custom `http_client`), it owns that client’s lifecycle. Using the [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) as an async context manager ensures the HTTP client is closed cleanly on exit:
 
@@ -104,7 +106,7 @@ For streaming, you’ll also need to implement the [`StreamedResponse`](/docs/ai
 
 The best place to start is to review the source code for existing implementations, e.g. [`OpenAIChatModel`](https://github.com/pydantic/pydantic-ai/blob/main/pydantic_ai_slim/pydantic_ai/models/openai.py).
 
-For details on when we’ll accept contributions adding new models to Pydantic AI, see the [contributing guidelines](/docs/ai/project/contributing#new-model-rules).
+For details on when we’ll accept contributions adding new models to Pydantic AI, see the [contributing guidelines](/docs/ai/project/contributing/#new-model-rules).
 
 You can limit the number of concurrent HTTP requests to a model using the
 [`ConcurrencyLimitedModel`](/docs/ai/api/pydantic-ai/concurrency/#pydantic_ai.ConcurrencyLimitedModel) wrapper.

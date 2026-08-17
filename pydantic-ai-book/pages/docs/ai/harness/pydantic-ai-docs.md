@@ -4,14 +4,14 @@ title: Pydantic AI Docs | Pydantic Docs
 description: Give an agent a tool that locates and returns Pydantic AI documentation
   on demand instead of preloading it into the system prompt.
 resource: https://pydantic.dev/docs/ai/harness/pydantic-ai-docs
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Pydantic AI Docs
 
 `PydanticAIDocs` gives an agent a single tool, `read_pyai_docs(topic)`, that locates a Pydantic AI documentation page and returns it verbatim. Nothing is bundled into context up front. Each call resolves the topic from a configured local checkout first, then falls back to fetching the page from `pydantic/pydantic-ai:main`, so it works whether or not you have a local checkout (the remote fallback needs network access).
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 An agent that authors Pydantic AI capabilities, hooks, tools, or toolsets needs the current docs for those APIs. Preloading the docs into the system prompt spends context the agent rarely needs in full, and pins a snapshot that drifts from `main`.
 
@@ -24,7 +24,7 @@ Construct an `Agent` with `PydanticAIDocs()` in its `capabilities`. Point `local
 ```
 from pathlib import Path
 from pydantic_ai import Agent
-from pydantic_ai_harness.pydantic_ai_docs import PydanticAIDocs
+from pydantic_ai_harness import PydanticAIDocs
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[PydanticAIDocs(local_docs_path=Path('~/pydantic/ai/base/docs').expanduser())],
@@ -61,7 +61,7 @@ capabilities:
 ```
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.pydantic_ai_docs import PydanticAIDocs
+from pydantic_ai_harness import PydanticAIDocs
 agent = Agent.from_file('agent.yaml', custom_capability_types=[PydanticAIDocs])
 result = agent.run_sync('...')
 print(result.output)
@@ -97,15 +97,15 @@ agent = Agent(
     capabilities=[PydanticAIDocs(local_docs_path=Path('~/pydantic/ai/base/docs').expanduser())],
 )
 ```
-Local pyai docs checkout to read first. When `None`, falls back to the
-`PYDANTIC_AI_HARNESS_DOCS_PATH` env var, then to the remote source.
-
-**Type:** `Path` | `None`**Default:** `None`
-
 If `True`, each returned doc is memoized in-process for the capability’s
 lifetime, so a topic is read or fetched at most once.
 
 **Type:** `bool`**Default:** `True`
+
+Local pyai docs checkout to read first. When `None`, falls back to the
+`PYDANTIC_AI_HARNESS_DOCS_PATH` env var, then to the remote source.
+
+**Type:** `Path` | `None`**Default:** `None`
 
 ```
 def get_instructions() -> AgentInstructions[AgentDepsT] | None
@@ -114,19 +114,19 @@ Static, cache-stable guidance on using the docs tool.
 
 `AgentInstructions`[`AgentDepsT`] | `None`
 
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Toolset providing `read_pyai_docs` over the resolved local path and shared cache.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
-
 `@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None
 ```
 Serialization name for agent-spec support.
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Toolset providing `read_pyai_docs` over the resolved local path and shared cache.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 # Citations
 

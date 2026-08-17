@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenRouter | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openrouter
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # OpenRouter
@@ -73,10 +73,10 @@ settings = AnthropicModelSettings(anthropic_eager_input_streaming=True)
 agent = Agent(model, model_settings=settings)
 ...
 ```
-Anthropic models don’t support a forced [`tool_choice`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) while [thinking](/docs/ai/capabilities/thinking) is enabled. Where the Anthropic API rejects that combination outright, OpenRouter silently drops the `reasoning` field from the request instead, so the response comes back with no thinking at all. With thinking enabled on an `anthropic/` model:
+Pydantic AI treats a forced [`tool_choice`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) as incompatible with [thinking](/docs/ai/capabilities/thinking/) on every `anthropic/` model routed through OpenRouter. This is deliberately more conservative than [the direct Anthropic API](/docs/ai/models/anthropic/#forced-tool-choice), where adaptive thinking accepts forcing — the OpenRouter route hasn’t been verified, and it fails quietly rather than loudly: where Anthropic rejects an incompatible combination outright, OpenRouter silently drops the `reasoning` field from the request instead, so the response comes back with no thinking at all. See [#7283](https://github.com/pydantic/pydantic-ai/issues/7283). With thinking enabled on an `anthropic/` model:
 
 - An explicit `tool_choice='required'` (or a list of tool names) raises a[`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) ; disable thinking or use`tool_choice='auto'` .
-- A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output#tool-output) ) falls back softly to`'auto'` , so thinking is preserved. If the resolved choice named a single tool, the available tool list is filtered to that tool while`tool_choice` remains`'auto'` . The model may therefore answer with text instead of calling it; when an output tool is required, Pydantic AI retries with a prompt to call a tool.
+- A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output/#tool-output) ) falls back softly to`'auto'` , so thinking is preserved. If the resolved choice named a single tool, the available tool list is filtered to that tool while`tool_choice` remains`'auto'` . The model may therefore answer with text instead of calling it; when an output tool is required, Pydantic AI retries with a prompt to call a tool.
 
 OpenRouter supports [prompt caching](https://openrouter.ai/docs/guides/best-practices/prompt-caching) for downstream providers that implement it. Pydantic AI’s OpenRouter cache settings control explicit `cache_control` breakpoints for Anthropic and Gemini models:
 
@@ -151,23 +151,11 @@ prompt = [
 ```
 Pass the prompt list to `agent.run_sync(prompt)`. Everything before the `CachePoint()` marker is cached. You can place multiple markers for fine-grained control over cache boundaries.
 
-OpenRouter supports web search via its [plugins](https://openrouter.ai/docs/guides/features/plugins/web-search). You can enable it using the [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool).
+OpenRouter supports web search through its [Beta server tool](https://openrouter.ai/docs/guides/features/server-tools/web-search). Enable it with [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool). The model decides whether to search and may make zero or multiple searches for a request.
 
-You can customize the web search behavior using the `search_context_size` parameter on [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool):
+You can configure search context, approximate user location, domain filters, and a limit on searches with [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool):
 
-```
-from pydantic_ai import Agent
-from pydantic_ai.capabilities import NativeTool
-from pydantic_ai.models.openrouter import OpenRouterModel
-from pydantic_ai.native_tools import WebSearchTool
-tool = WebSearchTool(search_context_size='high')
-model = OpenRouterModel('openai/gpt-4.1')
-agent = Agent(
-    model,
-    capabilities=[NativeTool(tool)],
-)
-result = agent.run_sync('What is the latest news in AI?')
-```
+Pydantic AI surfaces the per-request web-search count under `ModelResponse.provider_details``'server_tool_use'`.
 
 # Citations
 

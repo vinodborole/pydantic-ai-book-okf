@@ -2,12 +2,12 @@
 type: Web Page
 title: Agent Specs | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent-spec
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Agent Specs
 
-Agent specs let you define agents declaratively in YAML or JSON — [model](/docs/ai/models/overview), [instructions](/docs/ai/core-concepts/agent#instructions), [capabilities](/docs/ai/capabilities/overview), and all. One line to load, no Python agent construction code required.
+Agent specs let you define agents declaratively in YAML or JSON — [model](/docs/ai/models/overview/), [instructions](/docs/ai/core-concepts/agent/#instructions), [capabilities](/docs/ai/capabilities/overview/), and all. One line to load, no Python agent construction code required.
 
 This is useful for:
 
@@ -34,7 +34,7 @@ When `deps_type` is passed, [template strings](#template-strings) in the spec’
 
 For more control over spec loading, use [`AgentSpec.from_file`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentSpec.from_file) to load the spec separately before passing it to `Agent.from_spec`.
 
-[`TemplateStr`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr) provides Handlebars-style templates (`{{variable}}`) that are rendered against the agent’s [dependencies](/docs/ai/core-concepts/dependencies) at runtime. In spec files, strings containing `{{` are automatically converted to template strings:
+[`TemplateStr`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr) provides Handlebars-style templates (`{{variable}}`) that are rendered against the agent’s [dependencies](/docs/ai/core-concepts/dependencies/) at runtime. In spec files, strings containing `{{` are automatically converted to template strings:
 
 ```
 instructions: "You are assisting {{name}}, who is a {{role}}."
@@ -49,25 +49,27 @@ Capabilities in specs support three forms:
 - `{'MyCapability': value}` — single positional argument, calls`MyCapability.from_spec(value)`
 - `{'MyCapability': {key: value, ...}}` — keyword arguments, calls`MyCapability.from_spec(**kwargs)`
 
-See [Publishing capabilities](/docs/ai/capabilities/custom#publishing-capabilities) for how to make custom capabilities work with agent specs.
+These built-in capabilities can be declared in specs: [`Thinking`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Thinking), [`Instrumentation`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Instrumentation), [`WebSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WebSearch), [`WebFetch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.WebFetch), [`ImageGeneration`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ImageGeneration), [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch), [`MCP`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.MCP), [`ToolSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ToolSearch), [`PrefixTools`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.PrefixTools), [`NativeTool`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool), [`IncludeToolReturnSchemas`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.IncludeToolReturnSchemas), [`SetToolMetadata`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.SetToolMetadata), [`RaiseContentFilterError`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.RaiseContentFilterError), and [`ReinjectSystemPrompt`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ReinjectSystemPrompt). The other [built-in capabilities](/docs/ai/capabilities/overview/#available-capabilities) take non-serializable arguments (callables, toolset objects) and can only be used in Python code.
+
+See [Publishing capabilities](/docs/ai/capabilities/custom/#publishing-capabilities) for how to make custom capabilities work with agent specs.
 
 The [`AgentSpec`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentSpec) model represents the full spec structure:
 
 | Field | Type | Description | 
 |---|---|---|
-| `model` | `str` | [Model](/docs/ai/models/overview) name (required) | 
+| `model` | `str` | [Model](/docs/ai/models/overview/) name (required) | 
 | `name` | `str \| None` | Agent name | 
 | `description` | `str \| None` | Agent description (supports [templates](#template-strings) ) | 
-| `instructions` | `str \| list[str] \| None` | [Instructions](/docs/ai/core-concepts/agent#instructions) (supports[templates](#template-strings) ) | 
-| `model_settings` | `dict \| None` | [Model settings](/docs/ai/core-concepts/agent#model-run-settings) | 
-| `capabilities` | `list` | [Capabilities](/docs/ai/capabilities/overview) (see[spec syntax](#capability-spec-syntax) ) | 
+| `instructions` | `str \| list[str] \| None` | [Instructions](/docs/ai/core-concepts/agent/#instructions) (supports[templates](#template-strings) ) | 
+| `model_settings` | `dict \| None` | [Model settings](/docs/ai/core-concepts/agent/#model-run-settings) | 
+| `capabilities` | `list` | [Capabilities](/docs/ai/capabilities/overview/) (see[spec syntax](#capability-spec-syntax) ) | 
 | `deps_schema` | `dict \| None` | JSON Schema for [template string](#template-strings) validation (see below) | 
-| `output_schema` | `dict \| None` | JSON Schema for [structured output](/docs/ai/core-concepts/output) (see below) | 
-| `retries` | `int \| AgentRetries \| None` | Retry budgets for [tools](/docs/ai/tools-toolsets/tools-advanced#tool-retries) and[output validation](/docs/ai/core-concepts/output#output-validator-functions) . Pass an integer to use the same budget for both, or[`AgentRetries`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentRetries) to configure them separately. | 
+| `output_schema` | `dict \| None` | JSON Schema for [structured output](/docs/ai/core-concepts/output/) (see below) | 
+| `retries` | `int \| AgentRetries \| None` | Retry budgets for [tools](/docs/ai/tools-toolsets/tools-advanced/#tool-retries) and[output validation](/docs/ai/core-concepts/output/#output-validator-functions) . Pass an integer to use the same budget for both, or[`AgentRetries`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentRetries) to configure them separately. | 
 | `end_strategy` | `EndStrategy` | When to stop ( `'early'` ,`'graceful'` , or`'exhaustive'` ) | 
-| `tool_timeout` | `float \| None` | Default [tool](/docs/ai/tools-toolsets/tools) timeout in seconds | 
-| `instrument` | `bool \| None` | Enable [Logfire](/docs/ai/integrations/logfire) instrumentation | 
-| `metadata` | `dict \| None` | Agent [metadata](/docs/ai/core-concepts/agent#run-metadata) | 
+| `tool_timeout` | `float \| None` | Default [tool](/docs/ai/tools-toolsets/tools/) timeout in seconds | 
+| `instrument` | `bool \| None` | Enable [Logfire](/docs/ai/integrations/logfire/) instrumentation | 
+| `metadata` | `dict \| None` | Agent [metadata](/docs/ai/core-concepts/agent/#run-metadata) | 
 
 When loading a spec file without a Python `deps_type`, `deps_schema` provides a JSON Schema that validates [template string](#template-strings) variable names at construction time. It does **not** validate the actual deps object at runtime — it only ensures that template variables like `{{user_name}}` correspond to properties defined in the schema.
 

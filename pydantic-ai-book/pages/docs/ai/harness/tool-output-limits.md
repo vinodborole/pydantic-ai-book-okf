@@ -4,7 +4,7 @@ title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Tool Output Limits
@@ -15,11 +15,11 @@ on every later model request, paying its token cost for the rest of the run. Thi
 intercepts a return when it is produced, reduces it once, and lets the reduced form persist —
 the reduction is not recomputed per request.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 A tool can return a payload large enough to dominate the context window: a big file read, a verbose log, a large JSON document. Because tool returns persist in history, an oversized one is re-sent on every later model request, paying its token cost for the rest of the run.
 
-This is the overflow-to-file follow-up the [compaction](/docs/ai/harness/compaction) capability names as out
+This is the overflow-to-file follow-up the [compaction](/docs/ai/harness/compaction/) capability names as out
 of scope: it moves large tool outputs *out* of the window at production time, rather than
 compressing or dropping context already inside it.
 
@@ -42,7 +42,7 @@ fallback if the store cannot accept the write.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.tool_output_limits import ToolOutputLimits
+from pydantic_ai_harness import ToolOutputLimits
 agent = Agent('openai:gpt-4o', capabilities=[ToolOutputLimits()])
 ```
 The capability registers a single `read_tool_result` tool so the model can page back into any
@@ -54,13 +54,8 @@ that fits wins; anything below the smallest threshold passes through.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.tool_output_limits import (
-    Band,
-    ToolOutputLimits,
-    Spill,
-    Summarize,
-    Truncate,
-)
+from pydantic_ai_harness import ToolOutputLimits
+from pydantic_ai_harness.tool_output_limits import Band, Spill, Summarize, Truncate
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
@@ -92,12 +87,8 @@ spill -> truncate.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.tool_output_limits import (
-    Band,
-    ToolOutputLimits,
-    Truncate,
-    TruncationStrategy,
-)
+from pydantic_ai_harness import ToolOutputLimits
+from pydantic_ai_harness.tool_output_limits import Band, Truncate, TruncationStrategy
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
@@ -122,7 +113,7 @@ reduced in place; non-text `content` (multimodal parts) that overflows is left u
 a `warnings.warn`, since it cannot be safely truncated.
 
 Thresholds are measured in characters by default. Set `over_tokens=True` to measure in
-estimated tokens (the same ~4-chars-per-token heuristic as [compaction](/docs/ai/harness/compaction)); pass a
+estimated tokens (the same ~4-chars-per-token heuristic as [compaction](/docs/ai/harness/compaction/)); pass a
 `tokenizer` callable for accuracy. `Truncate.max_chars` is always characters — truncation is a
 character operation regardless of the threshold unit. Set `strip_ansi=True` to strip ANSI
 escape sequences from text returns before measuring and reducing.
@@ -152,7 +143,8 @@ By default the store keeps spilled files forever — deleting on run end would b
 ```
 from datetime import timedelta
 from pydantic_ai import Agent
-from pydantic_ai_harness.tool_output_limits import LocalFileStore, ToolOutputLimits
+from pydantic_ai_harness import ToolOutputLimits
+from pydantic_ai_harness.tool_output_limits import LocalFileStore
 store = LocalFileStore(cleanup_after=timedelta(hours=6))  # default: None = keep forever
 agent = Agent('openai:gpt-4o', capabilities=[ToolOutputLimits(store=store)])
 ```
@@ -193,7 +185,7 @@ content that overflows is left unreduced with a warning.
 retries get distinct handles too (keyed per`retry` ), so a retried call never clobbers the
 earlier attempt’s spill.
 
-- Distinct from [compaction](/docs/ai/harness/compaction) , which compresses or drops context already inside
+- Distinct from [compaction](/docs/ai/harness/compaction/) , which compresses or drops context already inside
 the window; this capability moves large tool outputs out of the window at production time.
 - Consumes core [#4352](https://github.com/pydantic/pydantic-ai/issues/4352) (the canonical
 queryable-file primitive) through the`OverflowStore` seam once it lands.
@@ -228,21 +220,13 @@ Ordered size bands. The first band whose `over` threshold is met wins.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`] **Default:** `field(default_factory=_default_bands)`
 
-Per-tool band lists that replace `bands` for the named tools.
-
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
-
-Which tools this capability touches. Non-matching tools always pass through.
-
-**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `'all'`
-
 Measure band thresholds in estimated tokens instead of characters.
 
 **Type:** `bool`**Default:** `False`
 
-Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
+Per-tool band lists that replace `bands` for the named tools.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
 
 Backend for spilled payloads. Defaults to a `LocalFileStore`.
 
@@ -256,12 +240,13 @@ Prompt template for `Summarize`. Must contain `{tool_name}` and `{output}`.
 
 **Type:** `str`**Default:** `_DEFAULT_SUMMARY_PROMPT`
 
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Register the `read_tool_result` tool for reading spilled payloads on demand.
+Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
 
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+
+Which tools this capability touches. Non-matching tools always pass through.
+
+**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `'all'`
 
 `@async`
 
@@ -276,6 +261,13 @@ def after_tool_execute(
 ) -> Any
 ```
 Reduce the tool result — both `return_value` and model-visible `content`.
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Register the `read_tool_result` tool for reading spilled payloads on demand.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 # Citations
 

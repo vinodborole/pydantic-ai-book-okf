@@ -4,7 +4,7 @@ title: Compaction | Pydantic Docs
 description: A menu of strategies -- clear, dedupe, trim, or summarize -- for keeping
   an agent's conversation history within the model's context window.
 resource: https://pydantic.dev/docs/ai/harness/compaction
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Compaction
@@ -13,7 +13,9 @@ Compaction is a menu of strategies for keeping an agent’s conversation history
 
 All strategies preserve tool-call / tool-return **pairing**. Core does not validate this, and a provider rejects an orphaned pair, so the pairing guarantee is what makes these safe to drop into an agent. The zero-LLM strategies never call a model; only `SummarizingCompaction` (and `TieredCompaction` when it escalates that far) spends tokens.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+On OpenAI and Anthropic, core also ships [provider-native compaction](https://pydantic.dev/docs/ai/capabilities/compaction/) — the provider summarizes history server-side. The strategies on this page are the model-agnostic alternative: they work with every model and keep the compaction logic (and its costs) under your control.
+
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 An agent that runs for many turns accumulates history: tool outputs, file reads, model reasoning, repeated content. Left unchecked, that history outgrows the model’s context window and the next request fails. Compaction keeps the history bounded, and the right strategy depends on where the bloat lives and how much you can afford to spend reclaiming it.
 
@@ -28,7 +30,7 @@ An agent that runs for many turns accumulates history: tool outputs, file reads,
 | `WarnNearLimits` | zero-LLM | Injects an URGENT/CRITICAL warning as limits approach | You want the agent to wrap up rather than have its history rewritten | 
 | `ReportContextUsage` | zero-LLM | Reports context usage to your application; never edits history | You want a live context gauge in a UI | 
 
-Every size-based strategy triggers on `max_messages`, `max_tokens` (estimated), or `max_fraction`. Token counts use a ~4-chars-per-token heuristic by default; pass a `tokenizer` callable (for example `tiktoken`) for accuracy. `DeduplicateFileReads` runs on every request when no trigger is set (it is cheap and near-lossless). `TieredCompaction` triggers and stops on a single `target_tokens` / `target_fraction` budget. `ClampOversizedMessages` triggers per *part* (`max_part_tokens` / `max_part_chars`), not on the whole history — the failure it targets is one oversized part, not a large total.
+Every size-based strategy triggers on `max_messages`, `max_tokens` (estimated), or `max_fraction`. Token counts anchor on the provider-reported usage of the most recent model response when one is available. That provider usage includes the instructions, tool definitions, and `FilePart` payloads sent in the anchored request; only the messages added since are estimated. The suffix after the anchor, or a history with no usage anchor, uses `tokenizer` or a ~4-chars-per-token heuristic and cannot see `FilePart` payloads. Pending tool schemas newly revealed for the request are conservatively estimated by the implementation. `DeduplicateFileReads` runs on every request when no trigger is set (it is cheap and near-lossless). `TieredCompaction` triggers and stops on a single `target_tokens` / `target_fraction` budget. `ClampOversizedMessages` triggers per *part* (`max_part_tokens` / `max_part_chars`), not on the whole history — the failure it targets is one oversized part, not a large total.
 
 An absolute `max_tokens` is only correct for the model it was measured against. Configure `180_000` and a 1M-context model compacts at a fifth of its capacity, paying for summaries it did not need; a 128K model configured for `1_000_000` never compacts before the provider rejects the request.
 
@@ -36,7 +38,7 @@ An absolute `max_tokens` is only correct for the model it was measured against. 
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SummarizingCompaction
+from pydantic_ai_harness import SummarizingCompaction
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[SummarizingCompaction(max_fraction=0.9, keep_messages=20)],
@@ -54,7 +56,7 @@ Every capability that takes a fraction takes the fallback too, so you are not st
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SummarizingCompaction
+from pydantic_ai_harness import SummarizingCompaction
 agent = Agent(
     'google-gla:gemini-2.5-pro',
     capabilities=[SummarizingCompaction(max_fraction=0.9, fallback_context_window=1_000_000)],
@@ -77,13 +79,18 @@ A self-hosted or proxied endpoint reports a model id whose registry entry descri
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SummarizingCompaction
+from pydantic_ai_harness import SummarizingCompaction
 agent = Agent(
     'openai:gpt-4o',  # served by a local endpoint with a smaller window than the registry records
     capabilities=[SummarizingCompaction(max_fraction=0.9, context_window=32_000)],
 )
 ```
-The estimator counts every part that is sent: prompts, system prompts, tool calls and their results, retry prompts, extended-thinking blocks, provider-side tool results, and the instructions, once. It is a ~4-characters-per-token approximation, not a tokenizer; pass `tokenizer=` to any strategy to measure with the real one. `FilePart` is not counted — its payload is binary, and its length in characters would mean nothing.
+With a usage anchor, the provider-reported usage covers everything billed for the anchored request,
+including its instructions, tool definitions, and `FilePart` payloads. For the suffix after the
+anchor, and for a whole history with no usage anchor, the estimator uses `tokenizer` when supplied
+or a ~4-characters-per-token heuristic. That estimated portion cannot see `FilePart` payloads.
+Pending tool schemas newly revealed for the request are conservatively estimated by the
+implementation, since they are not covered by the earlier anchor.
 
 **If you already set an absolute `max_tokens`, re-check it.** The estimator used to count only user and system prompts, tool returns, response text, and tool calls. `ThinkingPart` / `CompactionPart` content, `RetryPromptPart` content, `NativeToolCallPart` / `NativeToolReturnPart`, and the most recent `ModelRequest.instructions` are now counted too, so the same history measures higher and an unchanged `max_tokens` compacts earlier. How much earlier depends on how much of the history is thinking blocks, retries, and instructions; on a thinking-heavy tool-calling history it can be several times the old count. What each strategy clears is unchanged — only when it runs.
 
@@ -91,7 +98,7 @@ A strategy knows when to act but says nothing about how close the run is to the 
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import ReportContextUsage, SummarizingCompaction
+from pydantic_ai_harness import ReportContextUsage, SummarizingCompaction
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[
@@ -100,14 +107,21 @@ agent = Agent(
     ],
 )
 ```
-Each reading carries `used_tokens`, `window_tokens`, and `resolved` — `False` when the window is the fallback rather than the model’s real one, so a gauge can show that the percentage is a guess. `on_usage` may be a coroutine function, so a gauge that pushes over a socket does not need a sync bridge. Order matters: register the monitor *after* a compaction capability to observe the compacted history, or before it to see what triggered the compaction.
+Each reading carries `used_tokens`, `window_tokens`, and `resolved` — `False` when the window is the fallback rather than the model’s real one, so a gauge can show that the percentage is a guess. `on_usage` may be a coroutine function, so a gauge that pushes over a socket does not need a sync bridge. Order matters: register the monitor *after* a compaction capability to observe the corrected current history after same-cycle compaction, or before it to see what triggered the compaction.
 
-`used_tokens` counts the same way the triggers do: every message part that is sent, plus the most recent `ModelRequest.instructions` once. Tool schemas are outside that count, so the reading is lower than what the provider bills; tool-schema accounting is tracked in [#100](https://github.com/pydantic/pydantic-ai-harness/issues/100).
+`used_tokens` follows the accounting above: provider usage anchors include instructions, tool
+definitions, and `FilePart` payloads from the anchored request. The suffix after the anchor, or a
+history with no anchor, uses `tokenizer` or a ~4-characters-per-token heuristic and cannot see
+`FilePart` payloads. Pending newly revealed tool schemas are conservatively estimated by the
+implementation. When a compaction capability runs earlier in the same cycle, a monitor registered
+after it subtracts the rewrite’s heuristic reclaim while retaining the anchor’s fixed provider
+overhead.
 
 A strategy’s `compact` takes a `RunContext`, which an application holding a conversation *between* runs does not have — and that is exactly when a user types `/compact`. `compact_now` builds a throwaway context so the same strategy the agent uses can be driven from a command handler:
 
 ```
-from pydantic_ai_harness.compaction import SummarizingCompaction, compact_now
+from pydantic_ai_harness import SummarizingCompaction
+from pydantic_ai_harness.compaction import compact_now
 strategy = SummarizingCompaction(max_fraction=0.9, keep_messages=20)
 history = await compact_now(
     strategy,
@@ -128,12 +142,7 @@ The field consensus (Anthropic, OpenCode, Letta) is to clear and dedupe first, a
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import (
-    ClearToolResults,
-    DeduplicateFileReads,
-    SummarizingCompaction,
-    TieredCompaction,
-)
+from pydantic_ai_harness import ClearToolResults, DeduplicateFileReads, SummarizingCompaction, TieredCompaction
 from pydantic_ai.messages import ToolCallPart
 def my_file_key(call: ToolCallPart) -> str | None:
     if call.tool_name != 'read_file':
@@ -161,7 +170,7 @@ A single model response of repeated whitespace, or a single tool call with a gia
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import ClampOversizedMessages
+from pydantic_ai_harness import ClampOversizedMessages
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
@@ -181,11 +190,7 @@ Request-side parts (user prompts, tool *returns*, system prompts) are deliberate
 Use it as the first tier of `TieredCompaction`, before `ClearToolResults`:
 
 ```
-from pydantic_ai_harness.compaction import (
-    ClampOversizedMessages,
-    ClearToolResults,
-    TieredCompaction,
-)
+from pydantic_ai_harness import ClampOversizedMessages, ClearToolResults, TieredCompaction
 TieredCompaction(
     tiers=[
         ClampOversizedMessages(max_part_tokens=50_000),
@@ -200,7 +205,7 @@ Framework-typed tool results — core’s `search_tools` and `load_capability` r
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import ClearToolResults
+from pydantic_ai_harness import ClearToolResults
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[ClearToolResults(max_tokens=100_000, keep_pairs=3)],
@@ -215,7 +220,7 @@ There is no default `file_key`: identifying a file read is agent-specific, and a
 ```
 from pydantic_ai import Agent
 from pydantic_ai.messages import ToolCallPart
-from pydantic_ai_harness.compaction import DeduplicateFileReads
+from pydantic_ai_harness import DeduplicateFileReads
 def file_key(call: ToolCallPart) -> str | None:
     if call.tool_name != 'read_file':
         return None
@@ -228,7 +233,7 @@ When the conversation exceeds the configured threshold, `SlidingWindowCompaction
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SlidingWindowCompaction
+from pydantic_ai_harness import SlidingWindowCompaction
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[SlidingWindowCompaction(max_messages=80, keep_messages=40)],
@@ -240,7 +245,7 @@ When old context still matters but must be compressed, `SummarizingCompaction` s
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SummarizingCompaction
+from pydantic_ai_harness import SummarizingCompaction
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
@@ -260,7 +265,7 @@ The summary call is a real request to the model, so its full usage — tokens **
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import WarnNearLimits
+from pydantic_ai_harness import WarnNearLimits
 agent = Agent(
     'openai:gpt-4o',
     capabilities=[
@@ -293,7 +298,7 @@ The span name is the static `compact_messages`; the strategy is an attribute, no
 Compaction is a memory wipe the model cannot veto and often cannot detect, which invites *resumption drift* — the model confabulates continuity with history it no longer has. A receipt makes the wipe legible: after a boundary-crossing strategy rewrites history it appends a short, deterministic note recording how much was compacted, warning that what survives is secondhand, and — when a handle provider is attached — an identifier for persisted run history.
 
 ```
-from pydantic_ai_harness.compaction import SlidingWindowCompaction, SummarizingCompaction
+from pydantic_ai_harness import SlidingWindowCompaction, SummarizingCompaction
 SummarizingCompaction(max_messages=60, keep_messages=20, receipts=True)
 SlidingWindowCompaction(max_messages=80, keep_messages=40, receipts=True)
 ```
@@ -325,7 +330,7 @@ The `Planning` capability does not need pinning: its plan is re-injected ephemer
 User turns are the highest signal-per-token content in a conversation, and losing them is the main driver of resumption drift. `SummarizingCompaction(keep_user_messages=True)` preserves the newest user turns from the summarized prefix alongside the summary. They consume the existing `keep_messages` tail budget, so at most that many retained user messages and tail messages survive together; compaction therefore does not grow retained copies on each cycle. When `keep_tokens` is set, those same retained user messages and tail messages also share its token budget; a user turn that does not fit is summarized instead. Each retained turn is bounded to `keep_user_messages_max_chars` (default 20k) with an explicit truncation marker when it overruns. The character budget applies per part and is shared across the text items of a multi-part prompt; images, audio, and cache points pass through untouched. This supersedes `preserve_first_user_message`, which keeps only the first turn.
 
 ```
-from pydantic_ai_harness.compaction import SummarizingCompaction
+from pydantic_ai_harness import SummarizingCompaction
 SummarizingCompaction(max_tokens=120_000, keep_messages=20, keep_user_messages=True)
 ```
 Retaining user turns leaves the summary, any receipt, and the retained turns as adjacent `ModelRequest`s. Providers that require one request per turn — Bedrock Converse and Gemini among them — never see that shape: Pydantic AI normalizes the history with `_merge_consecutive_messages` after the `before_model_request` hooks run, combining adjacent requests into a single turn before dispatch. `keep_user_messages` therefore needs no provider-specific handling.
@@ -338,7 +343,7 @@ The family token is a coarse approximation: drop any `provider:` prefix, then ta
 
 As with receipts, the update instruction and the bridge-prefix wording are content, shipped minimal and neutral pending the eval-rig pass; the anchoring and family-gating mechanisms are structural.
 
-These strategies compress or drop context *inside* the window. Moving large tool outputs *out* of the window — overflowing them to a file the agent (or a subagent) can query on demand — is a separate capability ([tool output limits](/docs/ai/harness/tool-output-limits)), not lossy truncation. Prefer it over capping individual tool outputs.
+These strategies compress or drop context *inside* the window. Moving large tool outputs *out* of the window — overflowing them to a file the agent (or a subagent) can query on demand — is a separate capability ([tool output limits](/docs/ai/harness/tool-output-limits/)), not lossy truncation. Prefer it over capping individual tool outputs.
 
 The recommended default is `TieredCompaction`; the other strategies below can be used standalone or plugged in as its tiers.
 
@@ -353,23 +358,6 @@ only reached when the cheap passes cannot reclaim enough.
 
 Each tier’s own trigger is bypassed — `TieredCompaction` drives the tiers directly via
 their `compact` method and decides when to stop.
-
-Strategies to apply in order, cheap-to-expensive. The last is typically a summarizer.
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`CompactionStrategy`[`AgentDepsT`]]
-
-Stop escalating once the estimated token count is at or below this value.
-
-Mutually exclusive with `target_fraction`; exactly one of the two must be set.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Target expressed as a fraction of the model’s context window, resolved per request.
-
-Use this instead of `target_tokens` when the same agent runs on models with
-different windows. Mutually exclusive with `target_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -387,6 +375,23 @@ registry cannot resolve.
 
 **Type:** `int`**Default:** `field(default=DEFAULT_CONTEXT_WINDOW, kw_only=True)`
 
+Target expressed as a fraction of the model’s context window, resolved per request.
+
+Use this instead of `target_tokens` when the same agent runs on models with
+different windows. Mutually exclusive with `target_tokens`.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Stop escalating once the estimated token count is at or below this value.
+
+Mutually exclusive with `target_fraction`; exactly one of the two must be set.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Strategies to apply in order, cheap-to-expensive. The last is typically a summarizer.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`CompactionStrategy`[`AgentDepsT`]]
+
 Optional tokenizer for accurate token counting.
 
 A callable that returns the token count for a given string.
@@ -394,14 +399,15 @@ When `None`, uses a ~4 characters-per-token heuristic.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
 
-```
-def with_focus(focus: str) -> TieredCompaction[AgentDepsT]
-```
-Return a copy whose focus-capable tiers prioritize `focus`.
+`@async`
 
-A tiered strategy is focusable when any of its tiers is: the summarizing tier writes the prose, so the hint has to reach it rather than stopping at this wrapper. Tiers that cannot honour a focus are passed through unchanged.
-
-`TieredCompaction`[`AgentDepsT`]
+```
+def before_model_request(
+    ctx: RunContext[AgentDepsT],
+    request_context: ModelRequestContext,
+) -> ModelRequestContext
+```
+Escalate through the tiers when the conversation exceeds the target.
 
 `@async`
 
@@ -413,15 +419,14 @@ def compact(
 ```
 Apply tiers in order until the history fits the target or tiers run out.
 
-`@async`
+```
+def with_focus(focus: str) -> TieredCompaction[AgentDepsT]
+```
+Return a copy whose focus-capable tiers prioritize `focus`.
 
-```
-def before_model_request(
-    ctx: RunContext[AgentDepsT],
-    request_context: ModelRequestContext,
-) -> ModelRequestContext
-```
-Escalate through the tiers when the conversation exceeds the target.
+A tiered strategy is focusable when any of its tiers is: the summarizing tier writes the prose, so the hint has to reach it rather than stopping at this wrapper. Tiers that cannot honour a focus are passed through unchanged.
+
+`TieredCompaction`[`AgentDepsT`]
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -457,13 +462,9 @@ A part is clamped only when it is oversized *and* the clamp actually shrinks it,
 Composes as the first tier of a `TieredCompaction` (run it before `ClearToolResults`):
 it is the only zero-LLM way to keep a run alive after a runaway generation.
 
-Clamp a part whose estimated token count exceeds this value. `None` disables this trigger.
+When `True`, also clamp oversized `ToolCallPart` args, not just response text.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Clamp a part whose character count exceeds this value. `None` disables this trigger.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** `bool`**Default:** `True`
 
 Characters of the part’s head to retain.
 
@@ -473,9 +474,13 @@ Characters of the part’s tail to retain.
 
 **Type:** `int`**Default:** `2000`
 
-When `True`, also clamp oversized `ToolCallPart` args, not just response text.
+Clamp a part whose character count exceeds this value. `None` disables this trigger.
 
-**Type:** `bool`**Default:** `True`
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Clamp a part whose estimated token count exceeds this value. `None` disables this trigger.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
 Optional tokenizer for accurate token counting.
 
@@ -487,22 +492,22 @@ When `None`, uses a ~4 characters-per-token heuristic.
 `@async`
 
 ```
-def compact(
-    messages: list[ModelMessage],
-    ctx: RunContext[AgentDepsT],
-) -> list[ModelMessage]
-```
-Clamp every oversized response text part (and tool-call args, if enabled).
-
-`@async`
-
-```
 def before_model_request(
     ctx: RunContext[AgentDepsT],
     request_context: ModelRequestContext,
 ) -> ModelRequestContext
 ```
 Clamp any oversized response part before the request is sent.
+
+`@async`
+
+```
+def compact(
+    messages: list[ModelMessage],
+    ctx: RunContext[AgentDepsT],
+) -> list[ModelMessage]
+```
+Clamp every oversized response text part (and tool-call args, if enabled).
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -520,20 +525,9 @@ prompt cache from the clear point onward (the next request pays a cache-write). 
 `min_clear_tokens` to skip clearing that reclaims too little to be worth busting the
 cache.
 
-Trigger clearing when message count exceeds this value. `None` disables.
+When `True`, also blank the arguments of the cleared tool calls.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger clearing when estimated token count exceeds this value. `None` disables.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger when estimated tokens exceed this fraction of the model’s context window.
-
-Resolved per request from the request’s model, so one setting behaves correctly on any
-model. Mutually exclusive with `max_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** `bool`**Default:** `False`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -543,6 +537,10 @@ the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_fraction`.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Tool names whose results are never cleared.
+
+**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset()`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -555,23 +553,30 @@ Number of most-recent tool-call / tool-return pairs left untouched.
 
 **Type:** `int`**Default:** `3`
 
-Replacement content for a cleared tool result.
+Trigger when estimated tokens exceed this fraction of the model’s context window.
 
-**Type:** `str`**Default:** `'[tool result cleared]'`
+Resolved per request from the request’s model, so one setting behaves correctly on any
+model. Mutually exclusive with `max_tokens`.
 
-Tool names whose results are never cleared.
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset()`
+Trigger clearing when message count exceeds this value. `None` disables.
 
-When `True`, also blank the arguments of the cleared tool calls.
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-**Type:** `bool`**Default:** `False`
+Trigger clearing when estimated token count exceeds this value. `None` disables.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
 Only clear if doing so reclaims at least this many estimated tokens.
 
 Protects the prompt cache from being invalidated for a trivial gain. `None` always clears.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Replacement content for a cleared tool result.
+
+**Type:** `str`**Default:** `'[tool result cleared]'`
 
 Optional tokenizer for accurate token counting.
 
@@ -583,22 +588,22 @@ When `None`, uses a ~4 characters-per-token heuristic.
 `@async`
 
 ```
-def compact(
-    messages: list[ModelMessage],
-    ctx: RunContext[AgentDepsT],
-) -> list[ModelMessage]
-```
-Blank the oldest tool results beyond the most recent `keep_pairs`.
-
-`@async`
-
-```
 def before_model_request(
     ctx: RunContext[AgentDepsT],
     request_context: ModelRequestContext,
 ) -> ModelRequestContext
 ```
 Clear old tool results if the conversation exceeds the configured threshold.
+
+`@async`
+
+```
+def compact(
+    messages: list[ModelMessage],
+    ctx: RunContext[AgentDepsT],
+) -> list[ModelMessage]
+```
+Blank the oldest tool results beyond the most recent `keep_pairs`.
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -610,29 +615,6 @@ File identity is supplied by the `file_key` seam — given a `ToolCallPart` it r
 a stable key for the file being read, or `None` if the call is not a file read.  There
 is no default: file-read identification is agent-specific, and a wrong guess would drop
 live data.
-
-Map a tool call to a stable file key, or `None` if it is not a file read.
-
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`ToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolCallPart)], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
-
-Replacement content for a superseded file read.
-
-**Type:** `str`**Default:** `'[superseded file read]'`
-
-Optional message-count trigger. When both triggers are `None`, runs whenever invoked.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Optional token-count trigger. When both triggers are `None`, runs whenever invoked.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger when estimated tokens exceed this fraction of the model’s context window.
-
-Resolved per request from the request’s model, so one setting behaves correctly on any
-model. Mutually exclusive with `max_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -650,22 +632,35 @@ registry cannot resolve.
 
 **Type:** `int`**Default:** `field(default=DEFAULT_CONTEXT_WINDOW, kw_only=True)`
 
+Map a tool call to a stable file key, or `None` if it is not a file read.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`ToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolCallPart)], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
+
+Trigger when estimated tokens exceed this fraction of the model’s context window.
+
+Resolved per request from the request’s model, so one setting behaves correctly on any
+model. Mutually exclusive with `max_tokens`.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Optional message-count trigger. When both triggers are `None`, runs whenever invoked.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Optional token-count trigger. When both triggers are `None`, runs whenever invoked.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Replacement content for a superseded file read.
+
+**Type:** `str`**Default:** `'[superseded file read]'`
+
 Optional tokenizer for accurate token counting.
 
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
-
-`@async`
-
-```
-def compact(
-    messages: list[ModelMessage],
-    ctx: RunContext[AgentDepsT],
-) -> list[ModelMessage]
-```
-Blank every file read that is later superseded by a newer read of the same file.
 
 `@async`
 
@@ -677,6 +672,16 @@ def before_model_request(
 ```
 Deduplicate file reads, optionally gated on a size threshold.
 
+`@async`
+
+```
+def compact(
+    messages: list[ModelMessage],
+    ctx: RunContext[AgentDepsT],
+) -> list[ModelMessage]
+```
+Blank every file read that is later superseded by a newer read of the same file.
+
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Zero-cost sliding-window trimmer.
@@ -685,21 +690,6 @@ When the conversation exceeds a configurable threshold (message count or estimat
 
 Trimming happens in `before_model_request` so it is transparent to the
 rest of the agent run.
-
-Trigger trimming when message count exceeds this value. `None` disables.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger trimming when estimated token count exceeds this value. `None` disables.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger when estimated tokens exceed this fraction of the model’s context window.
-
-Resolved per request from the request’s model, so one setting behaves correctly on any
-model. Mutually exclusive with `max_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -727,12 +717,20 @@ When `None`, falls back to `keep_messages`.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-Optional tokenizer for accurate token counting.
+Trigger when estimated tokens exceed this fraction of the model’s context window.
 
-A callable that returns the token count for a given string.
-When `None`, uses a ~4 characters-per-token heuristic.
+Resolved per request from the request’s model, so one setting behaves correctly on any
+model. Mutually exclusive with `max_tokens`.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Trigger trimming when message count exceeds this value. `None` disables.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Trigger trimming when estimated token count exceeds this value. `None` disables.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
 When `True`, the first `ModelRequest` containing a `UserPromptPart`
 is always kept after trimming, in addition to system prompts.
@@ -746,15 +744,12 @@ Opt-in for now: the receipt text is content, so defaulting it on is deferred to 
 
 **Type:** `bool`**Default:** `False`
 
-`@async`
+Optional tokenizer for accurate token counting.
 
-```
-def compact(
-    messages: list[ModelMessage],
-    ctx: RunContext[AgentDepsT],
-) -> list[ModelMessage]
-```
-Drop the oldest messages down to the configured tail.
+A callable that returns the token count for a given string.
+When `None`, uses a ~4 characters-per-token heuristic.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
 
 `@async`
 
@@ -765,6 +760,16 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Trim the message list if it exceeds the configured threshold.
+
+`@async`
+
+```
+def compact(
+    messages: list[ModelMessage],
+    ctx: RunContext[AgentDepsT],
+) -> list[ModelMessage]
+```
+Drop the oldest messages down to the configured tail.
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -777,28 +782,12 @@ tokens — so it is best used behind cheaper passes (see `TieredCompaction`).
 
 The summary call’s usage is folded into the parent run’s usage (it counts as a real request), so cost accounting stays honest; note this also increments the run’s request count, which a request-count limiter would see.
 
-Model used to generate summaries.
+When `True` and the summarizer’s model family differs from the family that produced
+the history, prepend a neutral one-line note marking the summary as a cross-model handoff
+(Codex prior art, anti-confabulation).  Only fires on a genuine family mismatch, so it is
+cheap and off in the common same-model case; the note’s wording is flagged pending eval-rig.
 
-When `None`, inherits the model the request being compacted is going to. Core starts
-that as the run’s model, so the two differ only where a capability replaced
-`ModelRequestContext.model`; set this explicitly to pin the summarizer regardless.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Model` | `None`**Default:** `None`
-
-Trigger compaction when message count exceeds this value.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger compaction when estimated token count exceeds this value.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Trigger when estimated tokens exceed this fraction of the model’s context window.
-
-Resolved per request from the request’s model, so one setting behaves correctly on any
-model. Mutually exclusive with `max_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** `bool`**Default:** `False`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -816,6 +805,13 @@ registry cannot resolve.
 
 **Type:** `int`**Default:** `field(default=DEFAULT_CONTEXT_WINDOW, kw_only=True)`
 
+When `True`, feed any existing summary from a prior compaction back as an anchored
+`<previous-summary>` block with an update instruction (preserve still-true, remove stale,
+merge new) so it is updated in place rather than re-summarized — avoiding
+summary-of-summary decay.
+
+**Type:** `bool`**Default:** `True`
+
 Number of tail messages to preserve after compaction (message-count trigger).
 
 **Type:** `int`**Default:** `20`
@@ -825,6 +821,54 @@ Target token budget to preserve after compaction (token-count trigger).
 When `None`, falls back to `keep_messages`.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+When `True`, preserve recent summarized user messages (each truncated to
+`keep_user_messages_max_chars`) alongside the summary. Retained messages consume the
+`keep_messages` tail budget, keeping compaction bounded. Supersedes
+`preserve_first_user_message`.
+
+**Type:** `bool`**Default:** `False`
+
+Per-message character cap for `keep_user_messages`; oversized messages are truncated
+with an explicit marker (the shared truncation-marker convention).
+
+**Type:** `int`**Default:** `20000`
+
+Trigger when estimated tokens exceed this fraction of the model’s context window.
+
+Resolved per request from the request’s model, so one setting behaves correctly on any
+model. Mutually exclusive with `max_tokens`.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Trigger compaction when message count exceeds this value.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Trigger compaction when estimated token count exceeds this value.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Model used to generate summaries.
+
+When `None`, inherits the model the request being compacted is going to. Core starts
+that as the run’s model, so the two differ only where a capability replaced
+`ModelRequestContext.model`; set this explicitly to pin the summarizer regardless.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Model` | `None`**Default:** `None`
+
+When `True`, the first `ModelRequest` containing a `UserPromptPart`
+is always kept after compaction, in addition to system prompts.
+
+**Type:** `bool`**Default:** `True`
+
+When `True`, append a deterministic compaction receipt after the summary noting how
+much history was summarized, that the summary is secondhand, and — when a
+`TranscriptHandleProvider` capability is attached — a persisted-run handle.
+
+Opt-in for now: the receipt text is content, so defaulting it on is deferred to the benchmark eval-rig pass. The mechanism itself is structural.
+
+**Type:** `bool`**Default:** `False`
 
 Prompt template for generating summaries.
 
@@ -839,44 +883,25 @@ When `None`, uses a ~4 characters-per-token heuristic.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
 
-When `True`, the first `ModelRequest` containing a `UserPromptPart`
-is always kept after compaction, in addition to system prompts.
+`@async`
 
-**Type:** `bool`**Default:** `True`
+```
+def before_model_request(
+    ctx: RunContext[AgentDepsT],
+    request_context: ModelRequestContext,
+) -> ModelRequestContext
+```
+Summarize older messages when the threshold is exceeded.
 
-When `True`, feed any existing summary from a prior compaction back as an anchored
-`<previous-summary>` block with an update instruction (preserve still-true, remove stale,
-merge new) so it is updated in place rather than re-summarized — avoiding
-summary-of-summary decay.
+`@async`
 
-**Type:** `bool`**Default:** `True`
-
-When `True` and the summarizer’s model family differs from the family that produced
-the history, prepend a neutral one-line note marking the summary as a cross-model handoff
-(Codex prior art, anti-confabulation).  Only fires on a genuine family mismatch, so it is
-cheap and off in the common same-model case; the note’s wording is flagged pending eval-rig.
-
-**Type:** `bool`**Default:** `False`
-
-When `True`, preserve recent summarized user messages (each truncated to
-`keep_user_messages_max_chars`) alongside the summary. Retained messages consume the
-`keep_messages` tail budget, keeping compaction bounded. Supersedes
-`preserve_first_user_message`.
-
-**Type:** `bool`**Default:** `False`
-
-Per-message character cap for `keep_user_messages`; oversized messages are truncated
-with an explicit marker (the shared truncation-marker convention).
-
-**Type:** `int`**Default:** `20000`
-
-When `True`, append a deterministic compaction receipt after the summary noting how
-much history was summarized, that the summary is secondhand, and — when a
-`TranscriptHandleProvider` capability is attached — a persisted-run handle.
-
-Opt-in for now: the receipt text is content, so defaulting it on is deferred to the benchmark eval-rig pass. The mechanism itself is structural.
-
-**Type:** `bool`**Default:** `False`
+```
+def compact(
+    messages: list[ModelMessage],
+    ctx: RunContext[AgentDepsT],
+) -> list[ModelMessage]
+```
+Summarize older messages, replacing them with a single summary message.
 
 ```
 def with_focus(focus: str) -> SummarizingCompaction[AgentDepsT]
@@ -889,26 +914,6 @@ model-supplied focus are escaped to survive it.
 
 `SummarizingCompaction`[`AgentDepsT`]
 
-`@async`
-
-```
-def compact(
-    messages: list[ModelMessage],
-    ctx: RunContext[AgentDepsT],
-) -> list[ModelMessage]
-```
-Summarize older messages, replacing them with a single summary message.
-
-`@async`
-
-```
-def before_model_request(
-    ctx: RunContext[AgentDepsT],
-    request_context: ModelRequestContext,
-) -> ModelRequestContext
-```
-Summarize older messages when the threshold is exceeded.
-
 **Bases:** `AbstractCapability[AgentDepsT]`
 
 Injects a warning message when the agent approaches configured limits.
@@ -919,21 +924,6 @@ The warning is appended as a trailing `ModelRequest` with a
 
 Previous warnings injected by this capability are stripped before deciding whether to inject a new one.
 
-Maximum allowed requests for the run.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Maximum context-window size to warn against.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Context limit as a fraction of the model’s real context window, resolved per request.
-
-Use this instead of `max_context_tokens` when the same agent runs on models with
-different windows. Mutually exclusive with `max_context_tokens`.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
-
 Window override in tokens. `None` resolves it from the request’s model.
 
 Unlike `fallback_context_window`, this applies whether or not resolution succeeds. Reach
@@ -943,12 +933,31 @@ deployment. Only consulted alongside `max_context_fraction`.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
+Remaining request count at which iteration warnings become CRITICAL.
+
+**Type:** `int`**Default:** `3`
+
 Window assumed when the request’s model is not in the pricing registry.
 
 Only consulted alongside `max_context_fraction`. Supply the real number for a deployment
 the registry cannot resolve.
 
 **Type:** `int`**Default:** `field(default=DEFAULT_CONTEXT_WINDOW, kw_only=True)`
+
+Context limit as a fraction of the model’s real context window, resolved per request.
+
+Use this instead of `max_context_tokens` when the same agent runs on models with
+different windows. Mutually exclusive with `max_context_tokens`.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+
+Maximum context-window size to warn against.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Maximum allowed requests for the run.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
 Maximum cumulative run token budget to warn against.
 
@@ -961,10 +970,6 @@ Which limits should emit warnings. Defaults to all configured limits.
 Fraction of a limit at which warnings begin (between 0 and 1).
 
 **Type:** `float`**Default:** `0.7`
-
-Remaining request count at which iteration warnings become CRITICAL.
-
-**Type:** `int`**Default:** `3`
 
 `@async`
 
@@ -985,13 +990,9 @@ A compaction strategy knows when to act but says nothing about how close the run
 It only observes — it never edits the history.
 
 Order matters: register it *after* a compaction capability to see the compacted history,
-or before it to see what triggered the compaction.
-
-Called with a fresh reading before every model request.
-
-A coroutine function is awaited, so a gauge that pushes over a socket does not need a sync bridge. An exception raised here propagates and fails the run.
-
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`ContextUsage`], [`None`](https://docs.python.org/3/library/constants.html#None) | [`Awaitable`](https://docs.python.org/3/library/typing.html#typing.Awaitable)[[`None`](https://docs.python.org/3/library/constants.html#None)]]
+or before it to see what triggered the compaction. After a preceding compactor rewrites
+anchored history, the reading subtracts that compactor’s heuristic reclaim while retaining
+the anchor’s fixed provider overhead.
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -1000,6 +1001,12 @@ Window override in tokens. `None` resolves it from the request’s model.
 Window assumed when the request’s model is not in the pricing registry.
 
 **Type:** `int`**Default:** `DEFAULT_CONTEXT_WINDOW`
+
+Called with a fresh reading before every model request.
+
+A coroutine function is awaited, so a gauge that pushes over a socket does not need a sync bridge. An exception raised here propagates and fails the run.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`ContextUsage`], [`None`](https://docs.python.org/3/library/constants.html#None) | [`Awaitable`](https://docs.python.org/3/library/typing.html#typing.Awaitable)[[`None`](https://docs.python.org/3/library/constants.html#None)]]
 
 Optional tokenizer, matching the one your compaction strategy uses.
 
@@ -1017,18 +1024,9 @@ Measure the pending history and hand the reading to `on_usage`.
 
 A single reading of how full the context is.
 
-Estimated tokens in the message history about to be sent.
+`used_tokens` as a fraction of the window.
 
-Counted by `estimate_token_count`: every message part that is sent, plus the most recent
-`ModelRequest.instructions` once. Tool schemas are outside the count, so a gauge built on
-this reads lower than what the provider bills. Tool-schema accounting is tracked separately
-in pydantic/pydantic-ai-harness#100.
-
-**Type:** `int`
-
-Context window the reading is measured against.
-
-**Type:** `int`
+**Type:** `float`
 
 Whether `window_tokens` is the model’s real window or the fallback.
 
@@ -1036,9 +1034,19 @@ A gauge can render an unresolved window differently — the percentage is a gues
 
 **Type:** `bool`
 
-`used_tokens` as a fraction of the window.
+Estimated tokens in the message history about to be sent.
 
-**Type:** `float`
+Counted by `estimate_context_tokens`: the provider-reported usage of the most recent model
+response (tool schemas included) plus an estimate of messages and newly revealed tool schemas
+added since. With no reported usage, message text falls back to the character heuristic;
+schemas named by availability deltas are still estimated from the pending request
+parameters, but other tool schemas remain outside that heuristic.
+
+**Type:** `int`
+
+Context window the reading is measured against.
+
+**Type:** `int`
 
 ```
 def pin(content: str) -> UserPromptPart

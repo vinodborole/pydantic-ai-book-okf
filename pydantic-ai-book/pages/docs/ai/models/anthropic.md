@@ -2,7 +2,7 @@
 type: Web Page
 title: Anthropic | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/anthropic
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Anthropic
@@ -215,7 +215,7 @@ def search_docs(ctx: RunContext, query: str) -> str:
 result = agent.run_sync('Search for Python best practices')
 print(result.output)
 ```
-When you use `anthropic_cache_instructions` with both static and dynamic [instructions](/docs/ai/core-concepts/agent#instructions), Pydantic AI automatically places the cache boundary at the optimal point. Static instructions (from `Agent(instructions=...)`) are sorted before dynamic instructions (from `@agent.instructions` functions or [toolsets](/docs/ai/tools-toolsets/toolsets)), and the cache point is placed after the last static instruction block.
+When you use `anthropic_cache_instructions` with both static and dynamic [instructions](/docs/ai/core-concepts/agent/#instructions), Pydantic AI automatically places the cache boundary at the optimal point. Static instructions (from `Agent(instructions=...)`) are sorted before dynamic instructions (from `@agent.instructions` functions or [toolsets](/docs/ai/tools-toolsets/toolsets/)), and the cache point is placed after the last static instruction block.
 
 This means your stable, static instructions are cached efficiently, while dynamic instructions (which may change between requests) remain outside the cache boundary and don’t cause cache invalidation.
 
@@ -347,7 +347,7 @@ Support varies by model and by transport — the [Microsoft Foundry](#microsoft-
 
 The difference between the two shows up on instructions a model *should* be wary of taking from its user: given the native entry, Claude will lift a restriction its top-level prompt set, and given the identical text in a `<system>` tag it refuses. For an instruction with nothing to distrust, such as a change of format, both work.
 
-See [mid-conversation system prompts](/docs/ai/core-concepts/message-history#mid-conversation-system-prompts) for how these behave across providers, how to phrase one, and why untrusted content doesn’t belong in one.
+See [mid-conversation system prompts](/docs/ai/core-concepts/message-history/#mid-conversation-system-prompts) for how these behave across providers, how to phrase one, and why untrusted content doesn’t belong in one.
 
 Fast mode provides higher output tokens per second and is currently supported on **Claude Opus 4.6**, **Claude Opus 4.7**, **Claude Opus 4.8**, and **Claude Opus 5**. It is a research preview. Set [`anthropic_speed`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_speed) to `'fast'` to enable it; Pydantic AI automatically adds the required `fast-mode-2026-02-01` beta. On unsupported models, `anthropic_speed='fast'` is ignored with a `UserWarning`. For pricing, rate limits, and the latest list of supported models, see the [Anthropic fast mode docs](https://platform.claude.com/docs/en/build-with-claude/fast-mode).
 
@@ -360,12 +360,14 @@ agent = Agent(
 )
 ...
 ```
-Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while thinking is enabled. **Claude Fable 5** and the **Claude Mythos** models reject a forced tool choice unconditionally — even without thinking — so Pydantic AI marks them with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
+Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while [extended thinking](/docs/ai/capabilities/thinking/#anthropic) is enabled — [adaptive thinking](/docs/ai/capabilities/thinking/#adaptive-thinking-effort) is compatible with forcing. **Claude Fable 5** and the **Claude Mythos** models reject a forced tool choice unconditionally — even without thinking — so Pydantic AI marks them with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
 
 On a model that doesn’t support forcing:
 
 - An explicit `tool_choice='required'` (or a list of tool names) raises a[`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) ; use`tool_choice='auto'` instead.
-- A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output#tool-output) ) falls back softly to`'auto'` , with the available tools filtered to the requested set so the model can still only pick from them. Filtering the tool definitions invalidates Anthropic’s prompt cache, since the cached prefix includes the tool array.
+- A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output/#tool-output) ) falls back softly to`'auto'` . If the resolved choice named a single tool, the available tool list is filtered to that tool while`tool_choice` remains`'auto'` , which invalidates Anthropic’s prompt cache since the cached prefix includes the tool array. The model may therefore answer with text instead of calling it; when an output tool is required, Pydantic AI retries with a prompt to call a tool.
+
+Because [Tool Output](/docs/ai/core-concepts/output/#tool-output) resolves to a forced tool choice, extended thinking is also incompatible with it: a bare structured `output_type` switches to [Native Output](/docs/ai/core-concepts/output/#native-output) (or [Prompted Output](/docs/ai/core-concepts/output/#prompted-output) on models without JSON schema support), and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError). Adaptive thinking keeps Tool Output, except on the models above that reject forcing outright — whenever a thinking setting is configured, those behave as they always have: a bare structured `output_type` switches away from Tool Output, and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError).
 
 Anthropic supports [automatic context compaction](https://docs.anthropic.com/en/docs/build-with-claude/compaction) to manage long conversations. When input tokens exceed a configured threshold, the API automatically generates a summary that replaces older messages while preserving context.
 

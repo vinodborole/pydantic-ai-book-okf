@@ -4,20 +4,20 @@ title: Advisor | Pydantic Docs
 description: Let an executor model consult a separate advisor model through a provider-native
   tool or a local Pydantic AI fallback.
 resource: https://pydantic.dev/docs/ai/harness/advisor
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Advisor
 
 Give an executor model a way to consult a separate advisor model before it answers or commits to a decision.
 
-The API may change between releases. Breaking changes ship deprecation warnings where practical.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Pass the advisor model as the first argument. The model can be any model name or model instance accepted by Pydantic AI:
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.advisor import Advisor
+from pydantic_ai_harness import Advisor
 agent = Agent(
     'openai:gpt-5.4',
     capabilities=[
@@ -43,7 +43,7 @@ The executor decides when to consult. Ask it explicitly in the user prompt or th
 In the default `auto` mode, native selection is conservative. The capability only reuses an explicit provider-qualified model name when the executor and advisor share a provider, so it does not guess how an Anthropic model ID maps to an OpenRouter catalog slug. For example:
 
 ```
-from pydantic_ai_harness.advisor import Advisor
+from pydantic_ai_harness import Advisor
 # Native for an Anthropic executor; local for OpenAI, Google, and other executors.
 anthropic_advisor = Advisor('anthropic:claude-opus-4-8')
 # Native for an OpenRouter executor.
@@ -119,34 +119,6 @@ agent = Agent(
     capabilities=[Advisor('anthropic:claude-opus-4-8')],
 )
 ```
-The model to consult.
-
-Accepts the same model names and model instances as `Agent`. In `auto`
-mode, model instances use local execution so their provider configuration
-is preserved.
-
-**Type:** `ModelSelection` **Default:** `model`
-
-How advisor consultations are executed.
-
-`auto` uses a native advisor only for an explicit same-provider model name.
-`native` requires a provider-native advisor, and `local` always runs a
-separate Pydantic AI agent.
-
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘native’, ‘local’] **Default:** `mode`
-
-Maximum consultations in one executor model request.
-
-The limit resets on the next executor request. OpenRouter’s native advisor does not honor this option, so setting it selects the local fallback there.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_uses`
-
-Maximum output tokens for each advisor consultation.
-
-Values below 1024 are rejected so the setting remains valid on every native and local execution path.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_tokens`
-
 Anthropic-native advisor prompt caching.
 
 This is an opportunistic optimization. OpenRouter and the local fallback do not provide an equivalent cache control.
@@ -158,6 +130,34 @@ Whether local consultations receive the executor’s completed message history.
 Native execution keeps the provider’s transcript behavior unchanged.
 
 **Type:** `bool`**Default:** `forward_history`
+
+Maximum output tokens for each advisor consultation.
+
+Values below 1024 are rejected so the setting remains valid on every native and local execution path.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_tokens`
+
+Maximum consultations in one executor model request.
+
+The limit resets on the next executor request. OpenRouter’s native advisor does not honor this option, so setting it selects the local fallback there.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_uses`
+
+How advisor consultations are executed.
+
+`auto` uses a native advisor only for an explicit same-provider model name.
+`native` requires a provider-native advisor, and `local` always runs a
+separate Pydantic AI agent.
+
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘native’, ‘local’] **Default:** `mode`
+
+The model to consult.
+
+Accepts the same model names and model instances as `Agent`. In `auto`
+mode, model instances use local execution so their provider configuration
+is preserved.
+
+**Type:** `ModelSelection` **Default:** `model`
 
 ```
 def __init__(
@@ -173,15 +173,6 @@ def __init__(
 `@async`
 
 ```
-def for_run(ctx: RunContext[AgentDepsT]) -> Advisor[AgentDepsT]
-```
-Return a fresh capability with local usage isolated to this run.
-
-`Advisor`[`AgentDepsT`]
-
-`@async`
-
-```
 def after_model_request(
     ctx: RunContext[AgentDepsT],
     *,
@@ -190,6 +181,15 @@ def after_model_request(
 ) -> ModelResponse
 ```
 Reset the local consultation allowance for each executor response.
+
+`@async`
+
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> Advisor[AgentDepsT]
+```
+Return a fresh capability with local usage isolated to this run.
+
+`Advisor`[`AgentDepsT`]
 
 # Citations
 

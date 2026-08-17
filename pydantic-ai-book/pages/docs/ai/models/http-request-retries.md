@@ -2,12 +2,14 @@
 type: Web Page
 title: HTTP Request Retries | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/http-request-retries
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # HTTP Request Retries
 
 Pydantic AI provides retry functionality for HTTP requests made by model providers through custom HTTP transports. This is particularly useful for handling transient failures like rate limits, network timeouts, or temporary server errors.
+
+This is the lowest of the [several layers that can retry](/docs/ai/core-concepts/retries/) in an agent run, and the only one the model never sees.
 
 The retry functionality is built on top of the [tenacity](https://github.com/jd/tenacity) library and integrates
 seamlessly with httpx clients. You can configure retry behavior for any provider that accepts a custom HTTP client.
@@ -61,7 +63,7 @@ The AWS Bedrock provider uses boto3’s built-in retry mechanisms instead of htt
 from botocore.config import Config
 config = Config(retries={'max_attempts': 5, 'mode': 'adaptive'})
 ```
-See [Bedrock: Configuring Retries](/docs/ai/models/bedrock#configuring-retries) for complete examples.
+See [Bedrock: Configuring Retries](/docs/ai/models/bedrock/#configuring-retries) for complete examples.
 
 # Citations
 

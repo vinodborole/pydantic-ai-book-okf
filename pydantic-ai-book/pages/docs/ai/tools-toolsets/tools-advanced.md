@@ -2,14 +2,14 @@
 type: Web Page
 title: Advanced Tool Features | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Advanced Tool Features
 
-This page covers advanced features for function tools in Pydantic AI. For basic tool usage, see the [Function Tools](/docs/ai/tools-toolsets/tools) documentation.
+This page covers advanced features for function tools in Pydantic AI. For basic tool usage, see the [Function Tools](/docs/ai/tools-toolsets/tools/) documentation.
 
-Tools can return anything that Pydantic can serialize to JSON, as well as audio, video, image or document content depending on the types of [multi-modal input](/docs/ai/core-concepts/input) the model supports:
+Tools can return anything that Pydantic can serialize to JSON, as well as audio, video, image or document content depending on the types of [multi-modal input](/docs/ai/core-concepts/input/) the model supports:
 
 *(This example is complete, it can be run “as is”)*
 
@@ -143,18 +143,19 @@ If both per-tool `prepare` and agent-wide `prepare_tools` are used, the per-tool
 
 The `tool_choice` setting in [`ModelSettings`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) controls which tools the model can use during a request. This is useful for disabling tools, forcing tool use, or restricting which tools are available.
 
-Pydantic AI distinguishes between **[function tools](/docs/ai/tools-toolsets/tools)** (tools you register via `@agent.tool`, [toolsets](/docs/ai/tools-toolsets/toolsets), or [MCP](/docs/ai/mcp/client)), and **output tools** (internal tools used for [structured output](/docs/ai/core-concepts/output#tool-output)).
+Pydantic AI distinguishes between **[function tools](/docs/ai/tools-toolsets/tools/)** (tools you register via `@agent.tool`, [toolsets](/docs/ai/tools-toolsets/toolsets/), or [MCP](/docs/ai/mcp/client/)), and **output tools** (internal tools used for [structured output](/docs/ai/core-concepts/output/#tool-output)).
 
 | Value | Description | 
 |---|---|
 | `'auto'` (default) | Model decides whether to use tools. All tools available. | 
 | `'none'` | Disable function tools. Model can respond with text or use output tools. | 
-| `'required'` | Force the model to use a function tool. Excludes output tools, so set dynamically via a [capability](#dynamic-tool-choice-via-capabilities) or use[direct model requests](/docs/ai/core-concepts/direct) ; raises an error when set statically in`agent.run()` . | 
+| `'required'` | Force the model to use a function tool. Excludes output tools, so set dynamically via a [capability](#dynamic-tool-choice-via-capabilities) or use[direct model requests](/docs/ai/core-concepts/direct/) ; raises an error when set statically in`agent.run()` . | 
 | `['tool_a', ...]` | Restrict to specific tools by name. Excludes output tools — same dynamic/direct requirement as `'required'` . | 
 | [`ToolOrOutput`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ToolOrOutput)`(function_tools=['...'])` | Restrict function tools while auto-including all output tools. | 
 
 Tools hidden by [deferred loading](#tool-search) interact with `tool_choice`: a tool that is still
-hidden names are ignored when forcing by name, and an explicit choice raises only when every requested tool is hidden. `'required'` raises when every function
+hidden is ignored when forcing by name, and an explicit choice raises only when every requested
+tool is hidden. `'required'` raises when every function
 tool is hidden. A tool *declared* with its schema deferred can be forced. On providers that carry
 revealed definitions outside the `tools` list (OpenAI Responses `additional_tools`), a revealed
 tool can’t be forced by name either, since by-name forcing can only target declared tools.
@@ -188,12 +189,15 @@ All providers support `'auto'` and `'none'`. Key differences for other options:
 | Provider | `'required'` | Specific tools | Notes | 
 |---|---|---|---|
 | OpenAI | ✓ | ✓ | Full support | 
-| Anthropic | ⚠️ | ⚠️ | Not supported with thinking enabled | 
+| Anthropic | ⚠️ | ⚠️ | Not supported with extended thinking; adaptive thinking is compatible | 
 |  | ✓ | ✓ |  | 
 | Bedrock | ✓ | Single only | Multiple tools fall back to ‘any’ mode | 
 | Groq/HuggingFace | ✓ | Single only | Multiple tools fall back to ‘required’ mode | 
 | Mistral | ✓ | ✓ | Maps `'required'` to`'any'` mode | 
+| Cohere | ✓ | ✓ | Maps `'required'` to`'REQUIRED'` ; a named subset is applied by trimming the tools array | 
 | xAI | ✓ | ✓ | Some models may not support forcing; falls back to ‘auto’ | 
+
+The model classes built on `OpenAIChatModel` — Cerebras, Crusoe, Ollama, OpenRouter, Snowflake, Z.AI and Bedrock Mantle Chat — behave as the OpenAI row describes, with two exceptions. Ollama documents `tool_choice` as unsupported and ignores it. OpenRouter raises a `UserError` for an explicit `'required'` or named subset on models that can’t combine forced tool choice with thinking, rather than silently dropping the reasoning; forcing that Pydantic AI merely inferred falls back to `'auto'` instead.
 
 Restricting the available tool set via `tool_choice` can invalidate provider prompt caches because most provider APIs cache on the full tools array. Pydantic AI restricts the tool set in two ways:
 
@@ -204,18 +208,19 @@ The table below covers the cases where Pydantic AI must filter client-side and t
 
 | Provider | Cache-breaking case | 
 |---|---|
-| Anthropic | `tool_choice` is a list of multiple tools, OR a single tool with thinking enabled | 
+| Anthropic | `tool_choice` is a list of multiple tools, OR a single tool with extended thinking or on a model that doesn’t support forcing | 
 | OpenAI Chat | `tool_choice` is a list of multiple tools, OR a single tool on a model that doesn’t support forcing | 
 | Bedrock | `tool_choice` is a list of multiple tools, OR a single tool with thinking enabled or on a model that doesn’t support forcing | 
 | Groq / HuggingFace | `tool_choice` is a list of multiple tools | 
 | Mistral | `tool_choice` is a list (any size) — the API doesn’t accept specific tool names | 
+| Cohere | `tool_choice` is a list (any size) — the API doesn’t accept specific tool names | 
 | xAI | `tool_choice` is a list of multiple tools, OR a single tool on a model that doesn’t support forcing | 
 | OpenAI Responses | Never — `allowed_tools` handles all cases natively | 
 |  | Never — `allowed_function_names` handles all cases natively | 
 
 If preserving cache hits matters, prefer providers/cases marked “Never”, or use `ToolOrOutput` (which keeps the full set) instead of a restrictive list.
 
-When a tool is executed, its arguments (provided by the LLM) are first validated against the function’s signature using Pydantic (with optional [validation context](/docs/ai/core-concepts/output#validation-context)). If validation fails (e.g., due to incorrect types or missing required arguments), a `ValidationError` is raised, and the framework automatically generates a [`RetryPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.RetryPromptPart) containing the validation details. This prompt is sent back to the LLM, informing it of the error and allowing it to correct the parameters and retry the tool call.
+When a tool is executed, its arguments (provided by the LLM) are first validated against the function’s signature using Pydantic (with optional [validation context](/docs/ai/core-concepts/output/#validation-context)). If validation fails (e.g., due to incorrect types or missing required arguments), a `ValidationError` is raised, and the framework automatically generates a [`RetryPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.RetryPromptPart) containing the validation details. This prompt is sent back to the LLM, informing it of the error and allowing it to correct the parameters and retry the tool call.
 
 If a tool’s own logic cannot produce a normal result, choose the exception based on what you want the model to do next:
 
@@ -264,22 +269,22 @@ def read_file(path: str) -> str:
         raise ToolFailed(f'File not found: {path}')
     return file_path.read_text()
 ```
-The exception message is recorded in message history as a [`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) with `outcome='failed'`. Where the model API has a native error or failed-status field for tool results, Pydantic AI uses it. For APIs without a native error channel, the model-visible content is JSON-framed as `{"error": ...}` so the failure is still explicit. The failed outcome is preserved in Pydantic AI message history; protocol adapters may need their own carrier when that history is round-tripped, as described for [AG-UI](/docs/ai/integrations/ui/ag-ui#preserving-failed-tool-outcomes). The call is traced as an error in telemetry.
+The exception message is recorded in message history as a [`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) with `outcome='failed'`. Where the model API has a native error or failed-status field for tool results, Pydantic AI uses it. For APIs without a native error channel, the model-visible content is JSON-framed as `{"error": ...}` so the failure is still explicit. The failed outcome is preserved in Pydantic AI message history; protocol adapters may need their own carrier when that history is round-tripped, as described for [AG-UI](/docs/ai/integrations/ui/ag-ui/#preserving-failed-tool-outcomes). The call is traced as an error in telemetry.
 
 Unlike `ModelRetry`, `ToolFailed` does **not** consume the per-tool retry budget; bounding repeated failures is the job of [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) at the run level — specifically [`request_limit`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits.request_limit), since [`tool_calls_limit`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits.tool_calls_limit) only counts successful tool invocations.
 
-Rule of thumb: raise `ModelRetry` when you want the model to try again with corrections; raise `ToolFailed` when the call is done and the result is a failure. For MCP server tool errors, the same choice is available as the [`tool_error_behavior`](/docs/ai/mcp/client#tool-errors) configuration.
+Rule of thumb: raise `ModelRetry` when you want the model to try again with corrections; raise `ToolFailed` when the call is done and the result is a failure. For MCP server tool errors, the same choice is available as the [`tool_error_behavior`](/docs/ai/mcp/client/#tool-errors) configuration.
 
-You can also raise `ModelRetry` or `ToolFailed` from tool validation and execution hooks. This is useful for converting third-party exceptions without repeating `try`/`except` in every tool; see [Error hooks](/docs/ai/core-concepts/hooks#error-hooks) and [Tool execution hooks](/docs/ai/core-concepts/hooks#tool-execution-hooks).
+You can also raise `ModelRetry` or `ToolFailed` from tool validation and execution hooks. This is useful for converting third-party exceptions without repeating `try`/`except` in every tool; see [Error hooks](/docs/ai/core-concepts/hooks/#error-hooks) and [Tool execution hooks](/docs/ai/core-concepts/hooks/#tool-execution-hooks).
 
-`ToolFailed` is handled for function tools, their `args_validator`, and tool validation or execution hooks. [Output functions](/docs/ai/core-concepts/output#output-functions) and [output validators](/docs/ai/core-concepts/output#output-validator-functions) use `ModelRetry` when the model should try again; there, `ToolFailed` is an ordinary exception that aborts the run unless an output-process error hook recovers from it.
+`ToolFailed` is handled for function tools, their `args_validator`, and tool validation or execution hooks. [Output functions](/docs/ai/core-concepts/output/#output-functions) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions) use `ModelRetry` when the model should try again; there, `ToolFailed` is an ordinary exception that aborts the run unless an output-process error hook recovers from it.
 
 You can set a timeout for tool execution to prevent tools from running indefinitely. If a tool exceeds its timeout, it is treated as a retryable failure and a retry prompt is sent to the model (counting towards the retry limit).
 
 ```
 import asyncio
 from pydantic_ai import Agent
-# Set a default timeout for all tools on the agent
+# Set a default timeout for the agent's own tools
 agent = Agent('test', tool_timeout=30)
 @agent.tool_plain
 async def slow_tool() -> str:
@@ -292,24 +297,26 @@ async def fast_tool() -> str:
     await asyncio.sleep(1)
     return 'Done'
 ```
-- **Agent-level timeout** : Set`tool_timeout` on the[`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) to apply a default timeout to all tools.
+- **Agent-level timeout** : Set`tool_timeout` on the[`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) to apply a default timeout to the tools registered on it.
 - **Per-tool timeout** : Set`timeout` on individual tools via[`@agent.tool`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool) ,[`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain) , or the[`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) dataclass. This overrides the agent-level default.
 
 When a timeout occurs, the tool is treated as a retryable failure and the model receives a retry prompt with the message `"Timed out after {timeout} seconds."`. This counts towards the tool’s retry limit just like validation errors or explicit [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) exceptions.
 
-A tool can abort the entire run by calling [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) — e.g. when it discovers that further work is pointless, or a stop signal reaches your application while a tool holds the `RunContext`. From outside the run, pass a [`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) to any run method. The run tears down whatever is in flight and raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) to the caller. Tool calls executing [in parallel](#parallel-tool-calls-concurrency) are cancelled and drained, but any that already completed keep their results in the message history, and a tool call that never produced a result is repaired automatically when that history is reused. Both cancellation surfaces require being in the same process as the run, so they do not cross a [durable execution](/docs/ai/capabilities/durable_execution/overview) serialization boundary such as a Temporal activity.
+Both settings are enforced by [`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset), which is what backs the agent’s own tools. Tools served by an [MCP server](/docs/ai/mcp/client/), an [external toolset](/docs/ai/tools-toolsets/deferred-tools/), or a custom [`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset) do not read them — bind those deadlines at the server or transport level instead. See [Timeouts](/docs/ai/core-concepts/timeouts/#bounding-how-long-a-step-takes) for how tool timeouts relate to the other deadlines in a run.
 
-See [Cancelling a Run](/docs/ai/core-concepts/agent#cancelling-a-run) for the full picture, including cancelling from outside the run and accessing the cancelled run’s state.
+A tool can abort the entire run by calling [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) — e.g. when it discovers that further work is pointless, or a stop signal reaches your application while a tool holds the `RunContext`. From outside the run, pass a [`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) to any run method. The run tears down whatever is in flight and raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) to the caller. Tool calls executing [in parallel](#parallel-tool-calls-concurrency) are cancelled and drained, but any that already completed keep their results in the message history, and a tool call that never produced a result is repaired automatically when that history is reused. Both cancellation surfaces require being in the same process as the run, so they do not cross a [durable execution](/docs/ai/capabilities/durable_execution/overview/) serialization boundary such as a Temporal activity.
 
-The `args_validator` parameter lets you define custom validation that runs after Pydantic schema validation but before the tool executes. This is useful for business logic validation, cross-field validation, or validating arguments before requesting [human approval](/docs/ai/tools-toolsets/deferred-tools) for deferred tools.
+See [Cancelling a Run](/docs/ai/core-concepts/agent/#cancelling-a-run) for the full picture, including cancelling from outside the run and accessing the cancelled run’s state.
 
-The validator receives [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) as its first argument, followed by the same parameters as the tool function. Return `None` on success, raise [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to ask the model to correct the arguments and try again, raise [`ToolFailed`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed) to report a terminal failure the model should adapt to instead of retrying, or raise [`ApprovalRequired`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ApprovalRequired) / [`CallDeferred`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.CallDeferred) to [defer the call](/docs/ai/tools-toolsets/deferred-tools) (see below).
+The `args_validator` parameter lets you define custom validation that runs after Pydantic schema validation but before the tool executes. This is useful for business logic validation, cross-field validation, or validating arguments before requesting [human approval](/docs/ai/tools-toolsets/deferred-tools/) for deferred tools.
+
+The validator receives [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) as its first argument, followed by the same parameters as the tool function. Return `None` on success, raise [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to ask the model to correct the arguments and try again, raise [`ToolFailed`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ToolFailed) to report a terminal failure the model should adapt to instead of retrying, or raise [`ApprovalRequired`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ApprovalRequired) / [`CallDeferred`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.CallDeferred) to [defer the call](/docs/ai/tools-toolsets/deferred-tools/) (see below).
 
 *(This example is complete, it can be run “as is”)*
 
-When schema validation fails, or an `args_validator` raises `ModelRetry`, the error message is sent back to the LLM as a retry prompt (with instructions to try again) and respects the tool’s `retries` setting. When an `args_validator` raises `ToolFailed`, the model instead receives a failed tool result it should adapt to rather than retry, and the retry budget is left untouched. For [deferred tools](/docs/ai/tools-toolsets/deferred-tools), validation runs at deferral time — only tool calls with valid arguments are deferred.
+When schema validation fails, or an `args_validator` raises `ModelRetry`, the error message is sent back to the LLM as a retry prompt (with instructions to try again) and respects the tool’s `retries` setting. When an `args_validator` raises `ToolFailed`, the model instead receives a failed tool result it should adapt to rather than retry, and the retry budget is left untouched. For [deferred tools](/docs/ai/tools-toolsets/deferred-tools/), validation runs at deferral time — only tool calls with valid arguments are deferred.
 
-A validator can defer the call itself, just like the tool function can — and it’s the better place to make that decision, since bad arguments are rejected before a human is asked to approve them. A validator that raises `ApprovalRequired` or `CallDeferred` doesn’t consume the retry budget either: the arguments were valid, so the deferral is a deliberate decision rather than a failure. The tool function is not executed, and the call joins the run’s other [deferred tool calls](/docs/ai/tools-toolsets/deferred-tools): it’s resolved inline by a [`HandleDeferredToolCalls`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.HandleDeferredToolCalls) handler if you have one, or surfaced in the run’s `DeferredToolRequests` output. Once the call is [approved](/docs/ai/tools-toolsets/deferred-tools#human-in-the-loop-tool-approval), the validator runs again — this time with [`RunContext.tool_call_approved`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tool_call_approved) set to `True` — and the tool executes.
+A validator can defer the call itself, just like the tool function can — and it’s the better place to make that decision, since bad arguments are rejected before a human is asked to approve them. A validator that raises `ApprovalRequired` or `CallDeferred` doesn’t consume the retry budget either: the arguments were valid, so the deferral is a deliberate decision rather than a failure. The tool function is not executed, and the call joins the run’s other [deferred tool calls](/docs/ai/tools-toolsets/deferred-tools/): it’s resolved inline by a [`HandleDeferredToolCalls`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.HandleDeferredToolCalls) handler if you have one, or surfaced in the run’s `DeferredToolRequests` output. Once the call is [approved](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval), the validator runs again — this time with [`RunContext.tool_call_approved`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tool_call_approved) set to `True` — and the tool executes.
 
 Here, an impossible amount is rejected outright while a large one is put in front of a human:
 
@@ -327,7 +334,7 @@ When a model returns multiple tool calls in one response, Pydantic AI schedules 
 
 To stop a specific tool from overlapping with others, mark it `sequential=True` — it then acts as a barrier: tools the model emitted before it finish first, it runs alone, and tools emitted after it start only once it finishes.
 
-You can pass the [`sequential`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition.sequential) flag when registering any function tool, and the same barrier is available for [output tools](/docs/ai/core-concepts/output#tool-output) via [`ToolOutput(sequential=True)`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput) (see [Controlling output tool parallelism](/docs/ai/core-concepts/output#controlling-output-tool-parallelism)). To run an entire run’s tools serially regardless of which tools were called, wrap the run in the [`with agent.parallel_tool_call_execution_mode('sequential')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.parallel_tool_call_execution_mode) context manager, or set `parallel_tool_calls=False` on the [model settings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings).
+You can pass the [`sequential`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition.sequential) flag when registering any function tool, and the same barrier is available for [output tools](/docs/ai/core-concepts/output/#tool-output) via [`ToolOutput(sequential=True)`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput) (see [Controlling output tool parallelism](/docs/ai/core-concepts/output/#controlling-output-tool-parallelism)). To run an entire run’s tools serially regardless of which tools were called, wrap the run in the [`with agent.parallel_tool_call_execution_mode('sequential')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.parallel_tool_call_execution_mode) context manager, or set `parallel_tool_calls=False` on the [model settings](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings).
 
 Async functions are run on the event loop, while sync functions are offloaded to threads. To get the best performance, *always* use an async function *unless* you’re doing blocking I/O (and there’s no way to use a non-blocking library instead) or CPU-bound work (like `numpy` or `scikit-learn` operations), so that simple functions are not offloaded to threads unnecessarily.
 
@@ -351,14 +358,14 @@ async def lifespan(app):
         yield
     executor.shutdown(wait=True)
 ```
-When a model produces a final result — an [output tool](/docs/ai/core-concepts/output#tool-output) call, or structured [native](/docs/ai/core-concepts/output#native-output)/[prompted](/docs/ai/core-concepts/output#prompted-output) or [image](/docs/ai/core-concepts/output#image-output) output — in parallel with other tools, the agent’s [`end_strategy`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) parameter controls how these tool calls are executed.
+When a model produces a final result — an [output tool](/docs/ai/core-concepts/output/#tool-output) call, or structured [native](/docs/ai/core-concepts/output/#native-output)/[prompted](/docs/ai/core-concepts/output/#prompted-output) or [image](/docs/ai/core-concepts/output/#image-output) output — in parallel with other tools, the agent’s [`end_strategy`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.end_strategy) parameter controls how these tool calls are executed.
 The default `'graceful'` strategy ensures all function tools are executed even after a final result is found, while skipping remaining output tools. The `'exhaustive'` strategy goes further and also executes all output tools. Both are useful when tools have side effects (like logging, sending notifications, or updating metrics) that should always execute.
 
-For more information on how `end_strategy` works with function tools, output tools, and non-tool output, see [Tool calls alongside a final result](/docs/ai/core-concepts/output#parallel-output-tool-calls).
+For more information on how `end_strategy` works with function tools, output tools, and non-tool output, see [Tool calls alongside a final result](/docs/ai/core-concepts/output/#parallel-output-tool-calls).
 
-Agents with many tools (e.g. [MCP servers](/docs/ai/mcp/client) exposing dozens of endpoints) can spend a lot of input tokens on tool definitions before any work happens, and tool selection accuracy noticeably degrades past ~30–50 available tools. Marking tools for deferred loading hides them from the model’s initial context; the model discovers hidden tools by keyword when it needs them.
+Agents with many tools (e.g. [MCP servers](/docs/ai/mcp/client/) exposing dozens of endpoints) can spend a lot of input tokens on tool definitions before any work happens, and tool selection accuracy noticeably degrades past ~30–50 available tools. Marking tools for deferred loading hides them from the model’s initial context; the model discovers hidden tools by keyword when it needs them.
 
-For workflow *bundles* — instructions, tools, model settings, and hooks that travel together — see [on-demand capabilities](/docs/ai/capabilities/on-demand), which build on the same machinery but disclose at the bundle level rather than the individual-tool level.
+For workflow *bundles* — instructions, tools, model settings, and hooks that travel together — see [on-demand capabilities](/docs/ai/capabilities/on-demand/), which build on the same machinery but disclose at the bundle level rather than the individual-tool level.
 
 Reach for it when:
 
@@ -378,11 +385,11 @@ Once deferred tools exist, search is handled by the auto-injected [`ToolSearch`]
 
 Pydantic AI prefers native search whenever available because the discovery exchange happens append-only (a `tool_search_call` + `tool_search_output` pair) while each tool’s authored `defer_loading` value remains stable, so prompt caching is preserved across rounds. On the local fallback, revealed tools are tracked separately from their stable definitions and sent only once discovered.
 
-Every searchable deferred tool remains in the search corpus for the whole run, including tools the model has already discovered. Repeating a search is safe and lets the model recover a tool after its earlier discovery is no longer visible, such as after [compaction](/docs/ai/capabilities/compaction). With the default keyword strategy, undiscovered matches always rank ahead of already-available ones, so when `max_results` trims the list, an already-available tool never displaces an undiscovered match — it only fills leftover slots.
+Every searchable deferred tool remains in the search corpus for the whole run, including tools the model has already discovered. Repeating a search is safe and lets the model recover a tool after its earlier discovery is no longer visible, such as after [compaction](/docs/ai/capabilities/compaction/). With the default keyword strategy, undiscovered matches always rank ahead of already-available ones, so when `max_results` trims the list, an already-available tool never displaces an undiscovered match — it only fills leftover slots.
 
 Toolsets that aggregate or wrap deferred definitions can check visibility with [`ctx.is_tool_available(tool_def)`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.is_tool_available) inside `get_tools`. A definition is available when it is not deferred or its name has been revealed in history. Pass the definition the toolset is holding; the name form applies the same test to the current resolved [`ctx.tools`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tools) snapshot and is intended for model-request hooks and tool execution.
 
-Tools gated as a bundle are covered by [on-demand capabilities](/docs/ai/capabilities/on-demand); they are not part of the searchable corpus.
+Tools gated as a bundle are covered by [on-demand capabilities](/docs/ai/capabilities/on-demand/); they are not part of the searchable corpus.
 
 Each recorded reveal also surfaces as a [`ToolAvailabilityDeltaEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolAvailabilityDeltaEvent) in the agent event stream and as the corresponding persistent Vercel AI data chunk or AG-UI activity snapshot.
 
@@ -437,13 +444,13 @@ that control primitive, a mid-conversation system instruction announces
 local search exchange is synthesized only when its result must reveal a schema that is actually
 withheld, so the tool does not remain locked behind `defer_loading`.
 
-See [`ToolDefinition.defer_loading`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition.defer_loading) and [Deferred Loading](/docs/ai/tools-toolsets/toolsets#deferred-loading) for more details.
+See [`ToolDefinition.defer_loading`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition.defer_loading) and [Deferred Loading](/docs/ai/tools-toolsets/toolsets/#deferred-loading) for more details.
 
 Prompt caching keys on a **stable prefix**: providers cache the longest unchanged run of tokens from the start of the request, in roughly the order tool definitions → system/instructions → message history. A change at any layer invalidates the cache for that layer and everything after it — so on most providers **changing, adding, removing, or reordering a tool definition invalidates the cache**, because tool definitions sit at the very front.
 
 Tool search works on **every model**, but it only *preserves* the cache where the model supports native tool search — Anthropic Sonnet 4.5+, Opus 4.5+, and Haiku 4.5+, and OpenAI Responses on GPT-5.4+. There, discovery is [append-only](#tool-search) and the deferred tools never enter the prompt prefix, so an identical prefix is re-read from cache across discovery rounds. On every other model — including Google, and older Anthropic and OpenAI models — the local `search_tools` fallback reveals a discovered tool by adding it to the tools array, which **invalidates the cached prefix from the tool definitions onward on each discovery turn** (on Google, a stable `system_instruction` sits ahead of the tool block and can still be reused — see [Related caching controls](#related-caching-controls) below).
 
-For [on-demand capabilities](/docs/ai/capabilities/on-demand#on-demand-capabilities), loading a capability that reveals no new tool definitions — instructions or model settings only — preserves the cache on every provider, even without native tool search. Anthropic excludes deferred entries from its cache key: capability-only runs pre-advertise them from turn one, making the one-time deferred preamble part of the initial prefix, while mixed runs pay that preamble through the searchable corpus and append revealed deferred entries outside the cached prefix. No Anthropic capability reveal introduces the deferred preamble midway through a run. First-party OpenAI Responses appends the reveal as an `additional_tools` input item without changing `tools[]`. Elsewhere the revealed tool enters the tool-definitions prefix, as does a native tool, and as does a deferred `prepare_tools`/`prepare_output_tools` hook that rewrites tool definitions on load. See [Cache implications](/docs/ai/capabilities/on-demand#cache-implications) for the full breakdown.
+For [on-demand capabilities](/docs/ai/capabilities/on-demand/#on-demand-capabilities), loading a capability that reveals no new tool definitions — instructions or model settings only — preserves the cache on every provider, even without native tool search. Anthropic excludes deferred entries from its cache key: capability-only runs pre-advertise them from turn one, making the one-time deferred preamble part of the initial prefix, while mixed runs pay that preamble through the searchable corpus and append revealed deferred entries outside the cached prefix. No Anthropic capability reveal introduces the deferred preamble midway through a run. First-party OpenAI Responses appends the reveal as an `additional_tools` input item without changing `tools[]`. Elsewhere the revealed tool enters the tool-definitions prefix, as does a native tool, and as does a deferred `prepare_tools`/`prepare_output_tools` hook that rewrites tool definitions on load. See [Cache implications](/docs/ai/capabilities/on-demand/#cache-implications) for the full breakdown.
 
 For a genuinely open-ended tool universe, route everything through a single, stable tool. The harness [`CodeMode`](https://pydantic.dev/docs/ai/harness/code-mode/) capability collapses many tools into one `run_code` tool whose definition stays byte-stable; newly discovered tools are surfaced as callables inside the sandbox rather than as new tool schemas, keeping the tool-definitions prefix — and its cache — intact across discoveries.
 
@@ -452,13 +459,13 @@ With native tool search the deferred catalog never enters the cached prefix, so 
 Change a single tool definition, and the whole prefix is re-created instead — the [same request with one tool’s description edited](https://logfire-us.pydantic.dev/public-trace/c3205dc9-6251-40fa-9d0a-ed647be9ba30?spanId=38ef4635ecaf3e0b) records no cache read.
 
 - Restricting the *active* tools with[`tool_choice`](#tool-choice) can also invalidate the cache when Pydantic AI has to trim the array client-side — see[Prompt caching implications](#tool-choice-caching) for the per-provider breakdown and the cache-preserving alternatives (`allowed_tools` ,`allowed_function_names` ,`ToolOrOutput` ).
-- To place explicit cache breakpoints on messages, use [`CachePoint`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint) (honored by Anthropic, Bedrock, and OpenRouter). Anthropic’s tool, system, and instruction caching settings are documented under[Anthropic prompt caching](/docs/ai/models/anthropic#prompt-caching) .
-- On providers that cache tool definitions at the front of the prefix — Anthropic, OpenAI, and xAI — editing a single tool’s description invalidates the cached prefix. Google’s *implicit* cache is prefix-based on a different layout (its`system_instruction` is a separate field ahead of the tool block), so a large stable system instruction can keep cache hits even when the tool list changes; an explicit[`CachedContent`](/docs/ai/models/google) instead fixes the tools as an immutable part of the cache by construction.
+- To place explicit cache breakpoints on messages, use [`CachePoint`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CachePoint) (honored by Anthropic, Bedrock, and OpenRouter). Anthropic’s tool, system, and instruction caching settings are documented under[Anthropic prompt caching](/docs/ai/models/anthropic/#prompt-caching) .
+- On providers that cache tool definitions at the front of the prefix — Anthropic, OpenAI, and xAI — editing a single tool’s description invalidates the cached prefix. Google’s *implicit* cache is prefix-based on a different layout (its`system_instruction` is a separate field ahead of the tool block), so a large stable system instruction can keep cache hits even when the tool list changes; an explicit[`CachedContent`](/docs/ai/models/google/) instead fixes the tools as an immutable part of the cache by construction.
 
-- [Function Tools](/docs/ai/tools-toolsets/tools) - Basic tool concepts and registration
-- [Toolsets](/docs/ai/tools-toolsets/toolsets) - Managing collections of tools
-- [Deferred Tools](/docs/ai/tools-toolsets/deferred-tools) - Tools requiring approval or external execution
-- [Third-Party Tools](/docs/ai/tools-toolsets/third-party-tools) - Integrations with external tool libraries
+- [Function Tools](/docs/ai/tools-toolsets/tools/) - Basic tool concepts and registration
+- [Toolsets](/docs/ai/tools-toolsets/toolsets/) - Managing collections of tools
+- [Deferred Tools](/docs/ai/tools-toolsets/deferred-tools/) - Tools requiring approval or external execution
+- [Third-Party Tools](/docs/ai/tools-toolsets/third-party-tools/) - Integrations with external tool libraries
 
 # Citations
 

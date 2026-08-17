@@ -2,12 +2,12 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Native Tools
 
-Native tools are native tools provided by LLM providers that can be used to enhance your agent’s capabilities. Unlike [common tools](/docs/ai/tools-toolsets/common-tools), which are custom implementations that Pydantic AI executes, native tools are executed directly by the model provider.
+Native tools are native tools provided by LLM providers that can be used to enhance your agent’s capabilities. Unlike [common tools](/docs/ai/tools-toolsets/common-tools/), which are custom implementations that Pydantic AI executes, native tools are executed directly by the model provider.
 
 Pydantic AI supports the following native tools:
 
@@ -23,7 +23,7 @@ Pydantic AI supports the following native tools:
 
 These tools are passed to the agent’s `capabilities` list, wrapped in [`NativeTool`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool), and are executed by the model provider’s infrastructure.
 
-[Gemini 3 models](https://ai.google.dev/gemini-api/docs/structured-output#structured_outputs_with_tools) support combining native tools with function tools, including [output tools](/docs/ai/core-concepts/output#tool-output), and [`NativeOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput). Earlier Gemini models cannot use these combinations; use [`PromptedOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput) for structured output alongside native tools.
+[Gemini 3 models](https://ai.google.dev/gemini-api/docs/structured-output#structured_outputs_with_tools) support combining native tools with function tools, including [output tools](/docs/ai/core-concepts/output/#tool-output), and [`NativeOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput). Earlier Gemini models cannot use these combinations; use [`PromptedOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput) for structured output alongside native tools.
 
 Sometimes you need to configure a native tool dynamically based on the [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) (e.g., user dependencies), or conditionally omit it. You can achieve this by wrapping a function with [`NativeTool`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.NativeTool) in `capabilities`. The function takes [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) as an argument and returns an [`AbstractNativeTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.AbstractNativeTool) or `None`.
 
@@ -34,12 +34,12 @@ making it ideal for queries that require up-to-date data.
 
 | Provider | Supported | Notes | 
 |---|---|---|
-| OpenAI Responses | ✅ | Full feature support. To include search results on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_web_search_sources`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_web_search_sources)[model setting](/docs/ai/core-concepts/agent#model-run-settings) . | 
+| OpenAI Responses | ✅ | Full feature support. To include search results on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_web_search_sources`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_web_search_sources)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . | 
 | Anthropic | ✅ | Full feature support | 
 |  | ✅ | No parameter support. No [`NativeToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolCallPart) or[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) is generated when streaming. See[Google tool combinations](#google-tool-combinations) . | 
 | xAI | ✅ | Supports `blocked_domains` ,`allowed_domains` , and`user_location` parameters. | 
 | Groq | ✅ | Limited parameter support. To use web search capabilities with Groq, you need to use the [compound models](https://console.groq.com/docs/compound) . | 
-| OpenRouter | ✅ | Web search via [plugins](https://openrouter.ai/docs/features/web-search) . Supports`search_context_size` . Uses native search for supported providers (OpenAI, Anthropic, Perplexity, xAI), Exa for others. | 
+| OpenRouter | ✅ | Uses OpenRouter’s [Beta web-search server tool](https://openrouter.ai/docs/guides/features/server-tools/web-search) . The model can make 0–N searches. Recorded requests verify only that OpenRouter accepts the parameter names; the per-engine effects below are per OpenRouter’s docs: native search ignores`search_context_size` ;`user_location` is native-only; native OpenAI ignores`blocked_domains` ; and`max_uses` works with non-native or Anthropic native search. | 
 | OpenAI Chat Completions | ❌ | Not supported | 
 | Bedrock | ❌ | Not supported | 
 | Mistral | ❌ | Not supported | 
@@ -59,11 +59,13 @@ The `WebSearchTool` supports several configuration parameters:
 | Parameter | OpenAI | Anthropic | xAI | Groq | OpenRouter | 
 |---|---|---|---|---|---|
 | `search_context_size` | ✅ | ❌ | ❌ | ❌ | ✅ | 
-| `user_location` | ✅ | ✅ | ✅ | ❌ | ❌ | 
-| `blocked_domains` | ❌ | ✅ | ✅ | ✅ | ❌ | 
-| `allowed_domains` | ✅ | ✅ | ✅ | ✅ | ❌ | 
-| `max_uses` | ❌ | ✅ | ❌ | ❌ | ❌ | 
+| `user_location` | ✅ | ✅ | ✅ | ❌ | ✅ | 
+| `blocked_domains` | ❌ | ✅ | ✅ | ✅ | ✅ | 
+| `allowed_domains` | ✅ | ✅ | ✅ | ✅ | ✅ | 
+| `max_uses` | ❌ | ✅ | ❌ | ❌ | ✅* | 
 | `external_web_access` | ✅ | ❌ | ❌ | ❌ | ❌ | 
+
+- Per OpenRouter’s documentation, native provider search forwards `max_uses` only to Anthropic; other native providers ignore it.
 
 The [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) allows your agent to search X/Twitter for real-time posts and content. Natively supported by xAI models; usable on other models via the [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability with `fallback_model` set. See the [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search) for more details.
 
@@ -78,9 +80,9 @@ in a secure environment, making it perfect for computational tasks, data analysi
 
 | Provider | Supported | Notes | 
 |---|---|---|
-| OpenAI | ✅ | To include code execution output on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_code_execution_outputs`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_code_execution_outputs)[model setting](/docs/ai/core-concepts/agent#model-run-settings) . If the code execution generated images, like charts, they will be available on[`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) as[`BinaryImage`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage) objects. The generated image can also be used as[image output](/docs/ai/core-concepts/output#image-output) for the agent run. | 
+| OpenAI | ✅ | To include code execution output on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_code_execution_outputs`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_code_execution_outputs)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . If the code execution generated images, like charts, they will be available on[`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) as[`BinaryImage`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage) objects. The generated image can also be used as[image output](/docs/ai/core-concepts/output/#image-output) for the agent run. | 
 |  | ✅ | See [Google tool combinations](#google-tool-combinations) . | 
-| Anthropic | ✅ | Available on compatible Anthropic models. Pydantic AI selects a compatible code execution tool version automatically; see [Anthropic code execution tool version](/docs/ai/models/anthropic#code-execution-tool-version) to override it. | 
+| Anthropic | ✅ | Available on compatible Anthropic models. Pydantic AI selects a compatible code execution tool version automatically; see [Anthropic code execution tool version](/docs/ai/models/anthropic/#code-execution-tool-version) to override it. | 
 | xAI | ✅ | Full feature support. | 
 | Groq | ❌ |  | 
 | Bedrock | ✅ | Only available for Nova 2.0 models. | 
@@ -90,7 +92,7 @@ in a secure environment, making it perfect for computational tasks, data analysi
 
 *(This example is complete, it can be run “as is”)*
 
-In addition to text output, code execution with OpenAI can generate images as part of their response. Accessing this image via [`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) or [image output](/docs/ai/core-concepts/output#image-output) requires the `OpenAIResponsesModelSettings.openai_include_code_execution_outputs`[model setting](/docs/ai/core-concepts/agent#model-run-settings) to be enabled.
+In addition to text output, code execution with OpenAI can generate images as part of their response. Accessing this image via [`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) or [image output](/docs/ai/core-concepts/output/#image-output) requires the `OpenAIResponsesModelSettings.openai_include_code_execution_outputs`[model setting](/docs/ai/core-concepts/agent/#model-run-settings) to be enabled.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -110,7 +112,7 @@ The [`ImageGenerationTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.n
 | Provider | Supported | Notes | 
 |---|---|---|
 | OpenAI Responses | ✅ | Full feature support. Only supported by models newer than `gpt-5.2` . Metadata about the generated image, like the[`revised_prompt`](https://platform.openai.com/docs/guides/tools-image-generation#revised-prompt) sent to the underlying image model, is available on the[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) . | 
-|  | ✅ | Limited parameter support. Only supported by [image generation models](https://ai.google.dev/gemini-api/docs/image-generation) like`gemini-3-pro-image` and`gemini-3.1-flash-image` . These models do not support[function tools](/docs/ai/tools-toolsets/tools) and will always have the option of generating images, even if this native tool is not explicitly specified. | 
+|  | ✅ | Limited parameter support. Only supported by [image generation models](https://ai.google.dev/gemini-api/docs/image-generation) like`gemini-3-pro-image` and`gemini-3.1-flash-image` . These models do not support[function tools](/docs/ai/tools-toolsets/tools/) and will always have the option of generating images, even if this native tool is not explicitly specified. | 
 | Anthropic | ❌ |  | 
 | xAI | ❌ |  | 
 | Groq | ❌ |  | 
@@ -127,7 +129,7 @@ Image generation with Google [image generation models](https://ai.google.dev/gem
 
 *(This example is complete, it can be run “as is”)*
 
-The `ImageGenerationTool` can be used together with `output_type=BinaryImage` to get [image output](/docs/ai/core-concepts/output#image-output). If the `ImageGenerationTool` native tool is not explicitly specified, it will be enabled automatically:
+The `ImageGenerationTool` can be used together with `output_type=BinaryImage` to get [image output](/docs/ai/core-concepts/output/#image-output). If the `ImageGenerationTool` native tool is not explicitly specified, it will be enabled automatically:
 
 *(This example is complete, it can be run “as is”)*
 
@@ -244,7 +246,7 @@ With Anthropic, Pydantic AI preserves plaintext and encrypted advisor results in
 
 The [`MCPServerTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.MCPServerTool) allows your agent to use remote MCP servers with communication handled by the model provider.
 
-This requires the MCP server to live at a public URL the provider can reach and does not support many of the advanced features of Pydantic AI’s agent-side [MCP support](/docs/ai/mcp/client),
+This requires the MCP server to live at a public URL the provider can reach and does not support many of the advanced features of Pydantic AI’s agent-side [MCP support](/docs/ai/mcp/client/),
 but can result in optimized context use and caching, and faster performance due to the lack of a round-trip back to Pydantic AI.
 
 | Provider | Supported | Notes | 
@@ -293,9 +295,9 @@ The [`FileSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native
 
 | Provider | Supported | Notes | 
 |---|---|---|
-| OpenAI Responses | ✅ | Full feature support. Requires files to be uploaded to vector stores via the [OpenAI Files API](https://platform.openai.com/docs/api-reference/files) . To include search results on the[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_file_search_results`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_file_search_results)[model setting](/docs/ai/core-concepts/agent#model-run-settings) . | 
+| OpenAI Responses | ✅ | Full feature support. Requires files to be uploaded to vector stores via the [OpenAI Files API](https://platform.openai.com/docs/api-reference/files) . To include search results on the[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_file_search_results`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_file_search_results)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . | 
 | Google (Gemini) | ✅ | Requires files to be uploaded via the [Gemini Files API](https://ai.google.dev/gemini-api/docs/files) . Files are automatically deleted after 48 hours. Supports up to 2 GB per file and 20 GB per project. See[Google tool combinations](#google-tool-combinations) . | 
-| xAI | ✅ | Mapped to xAI collections search. Requires collection IDs. To include search results on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) , enable the[`XaiModelSettings.xai_include_collections_search_output`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_include_collections_search_output)[model setting](/docs/ai/core-concepts/agent#model-run-settings) . | 
+| xAI | ✅ | Mapped to xAI collections search. Requires collection IDs. To include search results on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) , enable the[`XaiModelSettings.xai_include_collections_search_output`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_include_collections_search_output)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . | 
 |  | Google Cloud | ❌ | 
 | Anthropic | ❌ | Not supported | 
 | Groq | ❌ | Not supported | 
@@ -313,7 +315,7 @@ With xAI, `FileSearchTool` maps to the [collections search](https://docs.x.ai/de
 
 xAI’s collections search also accepts options to control result count, ranking guidance, and retrieval strategy. These map to the `max_num_results`, `instructions`, and `retrieval_mode` fields on [`FileSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.FileSearchTool). When omitted, the server applies its own defaults (10 results, hybrid retrieval).
 
-For complete API documentation, see the [API Reference](/docs/ai/api/pydantic-ai/native_tools).
+For complete API documentation, see the [API Reference](/docs/ai/api/pydantic-ai/native_tools/).
 
 # Citations
 

@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Shell
@@ -13,6 +13,8 @@ timestamp: '2026-08-03T09:54:19.663642+00:00'
 controls, environment scrubbing, and managed background processes. It exposes
 command-execution tools rooted at a working directory and cleans up any
 background processes automatically when the agent run ends.
+
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Agents frequently need to run a build, a test suite, a linter, or a quick
 `grep`. Wiring up subprocess handling — streaming output, timeouts, truncation,
@@ -100,8 +102,7 @@ both unset preserves the inherit-everything default.
 
 ```
 import os
-from pydantic_ai_harness import Shell
-from pydantic_ai_harness.shell import LLM_API_KEY_ENV_PATTERNS
+from pydantic_ai_harness import LLM_API_KEY_ENV_PATTERNS, Shell
 # Strip provider credentials from the inherited environment.
 Shell(cwd='./repo', denied_env_patterns=LLM_API_KEY_ENV_PATTERNS)
 # Or hand the subprocess a fixed environment, inheriting nothing.
@@ -215,48 +216,27 @@ Shell command execution for agents.
 Commands execute in a subprocess rooted at `cwd`. Use `allowed_commands`
 or `denied_commands` to control what the agent can invoke.
 
-Working directory for command execution.
+If True, allow interactive commands (vi, nano, ssh, etc.). Blocked by default.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
+**Type:** `bool`**Default:** `False`
 
 If non-empty, only these command names may be executed (allowlist).
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+Working directory for command execution.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
+
+Default timeout in seconds for command execution.
+
+**Type:** `float`**Default:** `30.0`
 
 These command names are always rejected (denylist).
 
 Defaults to blocking destructive commands (rm, dd, shutdown, etc.). Set to an empty list to disable.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `_DEFAULT_DENIED_COMMANDS`
-
-Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
-Default timeout in seconds for command execution.
-
-**Type:** `float`**Default:** `30.0`
-
-Maximum characters of output returned to the model. Must be positive.
-
-**Type:** `int`**Default:** `50000`
-
-If True, track cd commands and adjust the working directory for subsequent calls.
-
-**Type:** `bool`**Default:** `False`
-
-If True, allow interactive commands (vi, nano, ssh, etc.). Blocked by default.
-
-**Type:** `bool`**Default:** `False`
-
-Explicit environment for spawned subprocesses, replacing inheritance.
-
-When `None` (default) the subprocess inherits the parent environment. Set
-this to a fixed mapping to start subprocesses with exactly these variables
-and nothing else — a hard boundary that keeps host secrets (LLM API keys,
-tokens) out of commands the agent runs.
-
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
 Glob patterns for environment variable names to strip before spawning.
 
@@ -268,6 +248,27 @@ when both are set, so patterns filter an explicit `env` too. See
 `LLM_API_KEY_ENV_PATTERNS` for a ready-made provider-credential denylist.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+Explicit environment for spawned subprocesses, replacing inheritance.
+
+When `None` (default) the subprocess inherits the parent environment. Set
+this to a fixed mapping to start subprocesses with exactly these variables
+and nothing else — a hard boundary that keeps host secrets (LLM API keys,
+tokens) out of commands the agent runs.
+
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
+Maximum characters of output returned to the model. Must be positive.
+
+**Type:** `int`**Default:** `50000`
+
+If True, track cd commands and adjust the working directory for subsequent calls.
+
+**Type:** `bool`**Default:** `False`
 
 ```
 def __post_init__() -> None

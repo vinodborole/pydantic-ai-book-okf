@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent the same local Macroscope code review its 
   plugins run -- streamed findings parsed into structured issues the agent validates
   and fixes with its own tools.
 resource: https://pydantic.dev/docs/ai/harness/macroscope
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Macroscope
@@ -16,11 +16,13 @@ CLI, parses the streamed findings, and returns them as structured data. The
 agent validates each finding and fixes the real ones with the tools it already
 has — this capability surfaces findings only.
 
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
+
 Macroscope reviews the current branch’s diff and streams findings, but it ships as editor plugins (Claude Code, Codex, Cursor, OpenCode). There is no way to give a Pydantic AI agent the same review-and-fix loop from your own code.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.macroscope import Macroscope
+from pydantic_ai_harness import Macroscope
 agent = Agent('anthropic:claude-sonnet-5', capabilities=[Macroscope()])
 result = agent.run_sync('Run a Macroscope review and fix any real findings.')
 print(result.output)
@@ -52,7 +54,7 @@ duplicates, and verify each fix.
 Every field of `Macroscope` with its default:
 
 ```
-from pydantic_ai_harness.macroscope import Macroscope
+from pydantic_ai_harness import Macroscope
 Macroscope(
     base=None,             # git ref to diff against -- None lets the CLI auto-detect
     command='macroscope',  # binary name or path
@@ -85,7 +87,7 @@ capabilities:
 ```
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.macroscope import Macroscope
+from pydantic_ai_harness import Macroscope
 agent = Agent.from_file('agent.yaml', custom_capability_types=[Macroscope])
 ```
 Pass `custom_capability_types` so the spec loader knows how to instantiate
@@ -122,10 +124,6 @@ Repository directory the review runs in.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
-Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
-
-**Type:** `float`**Default:** `600.0`
-
 Custom review guidance for the system prompt.
 
 Leave as `None` for the default validate-then-fix guidance, or set `''` to
@@ -133,12 +131,9 @@ contribute no instructions at all.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-```
-def get_toolset() -> MacroscopeToolset[AgentDepsT]
-```
-Build the toolset that provides the `run_macroscope_review` tool.
+Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
 
-`MacroscopeToolset`[`AgentDepsT`]
+**Type:** `float`**Default:** `600.0`
 
 ```
 def get_instructions() -> str | None
@@ -147,6 +142,13 @@ Static validate-then-fix guidance.
 
 A non-`None` `guidance` replaces the default; `''` disables
 instructions entirely.
+
+```
+def get_toolset() -> MacroscopeToolset[AgentDepsT]
+```
+Build the toolset that provides the `run_macroscope_review` tool.
+
+`MacroscopeToolset`[`AgentDepsT`]
 
 **Bases:** `BaseModel`
 

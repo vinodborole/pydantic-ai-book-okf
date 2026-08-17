@@ -2,12 +2,12 @@
 type: Web Page
 title: Troubleshooting | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/troubleshooting
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Troubleshooting
 
-Below are suggestions on how to fix some common errors you might encounter while using Pydantic AI. If the issue you’re experiencing is not listed below or addressed in the documentation, please feel free to ask in the [Pydantic Slack](/docs/ai/overview/help) or create an issue on [GitHub](https://github.com/pydantic/pydantic-ai/issues).
+Below are suggestions on how to fix some common errors you might encounter while using Pydantic AI. If the issue you’re experiencing is not listed below or addressed in the documentation, please feel free to ask in the [Pydantic Slack](/docs/ai/overview/help/) or create an issue on [GitHub](https://github.com/pydantic/pydantic-ai/issues).
 
 **Modern Jupyter/IPython (7.0+)**: This environment supports top-level `await` natively. You can use `Agent.run()` directly in notebook cells without additional setup:
 
@@ -32,13 +32,13 @@ Synchronous methods like [`Agent.run_sync()`](/docs/ai/api/pydantic-ai/agent/#py
 ### [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError): Set the `[PROVIDER]_API_KEY` environment variable or pass it via the provider’s `api_key=...` argument
 
 `UserError`
-If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
+If you’re running into issues with setting the API key for your model, visit the [Models](/docs/ai/models/overview/) page to learn more about how to set an environment variable and/or pass in an `api_key` argument.
 
-To try Pydantic AI without an API key, use the built-in [`'test'` model](/docs/ai/guides/testing#unit-testing-with-testmodel): [`Agent('test')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent).
+To try Pydantic AI without an API key, use the built-in [`'test'` model](/docs/ai/guides/testing/#unit-testing-with-testmodel): [`Agent('test')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent).
 
 You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
 
-It’s particularly helpful to use `logfire`’s [HTTPX integration](/docs/ai/integrations/logfire#monitoring-http-requests) to monitor the above.
+It’s particularly helpful to use `logfire`’s [HTTPX integration](/docs/ai/integrations/logfire/#monitoring-http-requests) to monitor the above.
 
 # Citations
 

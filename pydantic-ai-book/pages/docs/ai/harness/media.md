@@ -1,20 +1,20 @@
 ---
 type: Web Page
-title: Media Externalization
+title: Media Externalization | Pydantic Docs
 description: Content-addressed stores and walker helpers that move large binary and
   text payloads out of message history into deduplicated storage and put them back
   on demand.
 resource: https://pydantic.dev/docs/ai/harness/media
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
-# Media
+# Media Externalization
 
 A conversation that carries images, audio, or other `BinaryContent` inlines those bytes into every message, and a large text part (a big tool-return string, say) is just as heavy. Persist that history and each snapshot re-serializes the payloads; the same image referenced by ten messages is ten copies of the bytes. Media externalization solves that: content-addressed stores write each payload once, keyed by its own hash, and leave a short `media+sha256://` URI in its place. Reach for it whenever large binary or text payloads would otherwise balloon what you store or send.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
-These are building blocks. There is no class you add to `Agent(capabilities=[...])` yet. [`StepPersistence`](/docs/ai/harness/step-persistence) already uses them to keep snapshots small when messages carry `BinaryContent` or large text (e.g. a big tool-return string), and a forthcoming `MediaExternalizer` capability ([#254](https://github.com/pydantic/pydantic-ai-harness/issues/254)) will reuse the same stores to rewrite `BinaryContent` into URL parts before the model sees them.
+These are building blocks. There is no class you add to `Agent(capabilities=[...])` yet. [`StepPersistence`](/docs/ai/harness/step-persistence/) already uses them to keep snapshots small when messages carry `BinaryContent` or large text (e.g. a big tool-return string), and a forthcoming `MediaExternalizer` capability ([#254](https://github.com/pydantic/pydantic-ai-harness/issues/254)) will reuse the same stores to rewrite `BinaryContent` into URL parts before the model sees them.
 
 The URI is derived from the payload hash, so identical bytes deduplicate automatically. The same bytes are stored once no matter how many messages or snapshots reference them, and moving the underlying storage is a one-line swap because the URI does not change.
 
@@ -118,7 +118,7 @@ If your strategy depends on `ctx.media_type`, the same context must be supplied 
 
 Source: [`pydantic_ai_harness/media/`](https://github.com/pydantic/pydantic-ai-harness/tree/main/pydantic_ai_harness/media/).
 
-- [Step Persistence](/docs/ai/harness/step-persistence) — the first consumer of these stores, externalizing large`BinaryContent` and text parts in run snapshots.
+- [Step Persistence](/docs/ai/harness/step-persistence/) — the first consumer of these stores, externalizing large`BinaryContent` and text parts in run snapshots.
 
 # Citations
 

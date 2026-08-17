@@ -4,14 +4,14 @@ title: Conversation Search | Pydantic Docs
 description: BM25-search the history StepPersistence already stores -- turns that
   compaction dropped from the live context, and past runs in the same store.
 resource: https://pydantic.dev/docs/ai/harness/conversation-search
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Conversation Search
 
 `ConversationSearch` gives the model a `search_conversation_history` tool that BM25-ranks the history a `StepPersistence` capability already persists — earlier turns that compaction dropped from the live context, and past runs in the same store.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Compaction capabilities (`SlidingWindowCompaction`, `SummarizingCompaction`, …) narrow the live history so it fits the context window. `SummarizingCompaction` persists its edits: once a prefix is replaced by a summary, the originals are gone from the run’s `message_history` on the next turn. The model can no longer recall an exact file path, a decision, or a value stated earlier — only the summary’s paraphrase of it. And nothing at all from previous runs is reachable, however well persisted.
 
@@ -21,9 +21,9 @@ The shipped source, `SnapshotHistorySource`, reads the snapshots `StepPersistenc
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.compaction import SlidingWindowCompaction
-from pydantic_ai_harness.conversation_search import ConversationSearch, SnapshotHistorySource
-from pydantic_ai_harness.step_persistence import SqliteStepStore, StepPersistence
+from pydantic_ai_harness import ConversationSearch, SlidingWindowCompaction, StepPersistence
+from pydantic_ai_harness.conversation_search import SnapshotHistorySource
+from pydantic_ai_harness.step_persistence import SqliteStepStore
 store = SqliteStepStore(database='sessions.db')
 agent = Agent(
     'openai:gpt-5',
@@ -83,8 +83,8 @@ Scoping is applied to the `RunRecord`s a `HistorySource` returns, so a custom so
 - Reading snapshots restores externalized media (large binary payloads) even though the text index never uses it; stores with remote media backends pay that fetch cost per search.
 
 - [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
-- [Step Persistence](/docs/ai/harness/step-persistence) — the substrate this capability reads
-- [Compaction](/docs/ai/harness/compaction) — the capabilities whose drops this one recovers from
+- [Step Persistence](/docs/ai/harness/step-persistence/) — the substrate this capability reads
+- [Compaction](/docs/ai/harness/compaction/) — the capabilities whose drops this one recovers from
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -119,10 +119,26 @@ so the union of a run’s snapshots still holds the originals —
 the capabilities is required; the search tool reads the store lazily at call
 time.
 
-Where the search corpus comes from. Use `SnapshotHistorySource` over the
-store a `StepPersistence` capability writes to.
+Emit a short instruction telling the model the recall tool exists.
 
-**Type:** `HistorySource`
+**Type:** `bool`**Default:** `True`
+
+BM25 length-normalization, between `0.0` and `1.0` (Lucene/Elasticsearch default).
+
+**Type:** `float`**Default:** `0.75`
+
+BM25 term-frequency saturation, non-negative. This capability’s default; Lucene’s
+`BM25Similarity` uses `1.2`.
+
+**Type:** `float`**Default:** `1.5`
+
+Number of surrounding lines shown around each search match. Must be non-negative.
+
+**Type:** `int`**Default:** `5`
+
+Maximum number of matching excerpts the search tool returns. Must be non-negative.
+
+**Type:** `int`**Default:** `10`
 
 How much of the store one search may reach.
 
@@ -135,37 +151,14 @@ so, rather than falling back to every other unlabelled run.
 
 **Type:** `SearchScope` **Default:** `'all'`
 
+Where the search corpus comes from. Use `SnapshotHistorySource` over the
+store a `StepPersistence` capability writes to.
+
+**Type:** `HistorySource`
+
 Toolset id for the `search_conversation_history` tool.
 
 **Type:** `str`**Default:** `'conversation-search'`
-
-Maximum number of matching excerpts the search tool returns. Must be non-negative.
-
-**Type:** `int`**Default:** `10`
-
-Number of surrounding lines shown around each search match. Must be non-negative.
-
-**Type:** `int`**Default:** `5`
-
-BM25 term-frequency saturation, non-negative. This capability’s default; Lucene’s
-`BM25Similarity` uses `1.2`.
-
-**Type:** `float`**Default:** `1.5`
-
-BM25 length-normalization, between `0.0` and `1.0` (Lucene/Elasticsearch default).
-
-**Type:** `float`**Default:** `0.75`
-
-Emit a short instruction telling the model the recall tool exists.
-
-**Type:** `bool`**Default:** `True`
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Provide the `search_conversation_history` tool over the source.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 ```
 def get_instructions() -> AgentInstructions[AgentDepsT] | None
@@ -173,6 +166,13 @@ def get_instructions() -> AgentInstructions[AgentDepsT] | None
 Tell the model the recall tool exists, unless `add_instructions` is false.
 
 `AgentInstructions`[`AgentDepsT`] | `None`
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Provide the `search_conversation_history` tool over the source.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 # Citations
 

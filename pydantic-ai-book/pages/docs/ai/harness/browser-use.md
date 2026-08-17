@@ -5,7 +5,7 @@ description: Delegate open-ended web tasks from a Pydantic AI agent to an autono
   browser-use agent -- one browse_web tool hands over a natural-language goal, browser-use
   drives a real browser, and the result comes back as text or validated JSON.
 resource: https://pydantic.dev/docs/ai/harness/browser-use
-timestamp: '2026-08-10T07:48:56.025339+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # Browser Use
@@ -17,13 +17,15 @@ self-contained natural-language goal, browser-use drives a real Chromium with
 its own perception-action loop (indexed DOM, screenshots, planning,
 self-healing), and the tool returns a text result.
 
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
+
 Low-level browser tools (goto, click a selector, extract text) work well when the flow is known: the host model decides every action, which is cheap and deterministic. On an unknown page layout or a fuzzy goal (“find the price of the Pro plan”, “fill in this form”), the host model ends up micro-managing a DOM it cannot perceive well, burning a model round-trip per click and getting stuck on dynamic pages.
 
 browser-use already ships an agent tuned for exactly that loop: it indexes the
 live DOM into numbered elements, feeds the model page state (optionally with
 screenshots), plans, detects loops, and recovers from failed actions.
 `BrowserUse` integrates it the way the harness integrates other agents (see
-[Subagents](/docs/ai/harness/subagents) and `ExaAgent` on [Exa Search](/docs/ai/harness/exa-search)): as a
+[Subagents](/docs/ai/harness/subagents/) and `ExaAgent` on [Exa Search](/docs/ai/harness/exa-search/)): as a
 delegation target, not as a bag of low-level tools. The host agent stays
 high-level and calls `browse_web` with a goal; the sub-agent does the browsing
 and reports back.
@@ -37,7 +39,7 @@ model for the sub-agent:
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[
@@ -94,7 +96,8 @@ policy. Use a custom factory to introduce uploads only with controls appropriate
 to your application.
 
 ```
-from pydantic_ai_harness.browser_use import BrowserAgentSettings, BrowserUse
+from pydantic_ai_harness import BrowserUse
+from pydantic_ai_harness.browser_use import BrowserAgentSettings
 BrowserUse(
     llm='anthropic:claude-sonnet-4-6',
     agent_settings=BrowserAgentSettings(
@@ -115,7 +118,7 @@ output:
 
 ```
 from pydantic import BaseModel
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 class Product(BaseModel):
     name: str
     price_usd: float
@@ -130,7 +133,7 @@ browser. Scope entries to a domain with the nested form, and combine with
 `allowed_domains` so the values cannot be typed anywhere else:
 
 ```
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 BrowserUse(
     allowed_domains=['travel.example.com'],
     sensitive_data={'https://travel.example.com': {'x_user': 'me@example.com', 'x_pass': '...'}},
@@ -196,7 +199,7 @@ starting a browser that nothing is left to close.
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 async def main():
     async with BrowserUse(llm='anthropic:claude-sonnet-4-6', session_scope='agent') as browser:
         agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[browser])
@@ -225,7 +228,7 @@ below, or to `''` to contribute no instructions at all. (`guidance` steers the
 Every field of `BrowserUse` with its default:
 
 ```
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 BrowserUse(
     llm=None,                    # Pydantic AI model/string or browser-use chat model; None = browser-use's default
     browser_profile=None,        # full BrowserProfile (proxy, user_data_dir, storage_state, ...)
@@ -254,7 +257,8 @@ resolved `settings`, and returns the agent to run:
 
 ```
 from browser_use import Agent as BrowserUseAgent
-from pydantic_ai_harness.browser_use import BrowserAgent, BrowserTask, BrowserUse
+from pydantic_ai_harness import BrowserUse
+from pydantic_ai_harness.browser_use import BrowserAgent, BrowserTask
 def factory(request: BrowserTask) -> BrowserAgent:
     return BrowserUseAgent(
         task=request.task,
@@ -304,15 +308,13 @@ capabilities:
 ```
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.browser_use import BrowserUse
+from pydantic_ai_harness import BrowserUse
 agent = Agent.from_file('agent.yaml', custom_capability_types=[BrowserUse])
 ```
 The `llm`, `browser_profile`, `output_schema`, `agent_settings`, and
 `browser_agent` fields are not spec-serializable; spec-loaded instances use
 browser-use’s own default model selection and browser and agent configuration,
 prose output, and the default agent factory.
-
-The API may change between releases while the capability settles; breaking changes ship deprecation warnings where practical.
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -338,33 +340,12 @@ and runs the sub-agent’s loop to completion, so calls are long and cost one
 LLM call per step. The host model is told to reach for it when a task needs
 judgement about unknown pages, not for scripted flows.
 
-The chat model driving the sub-agent.
+Supported browser-use `Agent` options (judge, planning, timeouts, custom tools, …).
 
-Accepts a Pydantic AI model or model name string (e.g.
-`'anthropic:claude-sonnet-4-6'`), which is wrapped in
-`PydanticAIChatModel` — one model configuration for host and sub-agent,
-with Pydantic AI’s structured-output handling and Logfire tracing. A
-browser-use chat model (e.g. `browser_use.ChatAnthropic(...)`) is used
-as-is.
+`None` behaves like an empty `BrowserAgentSettings`, i.e. browser-use’s own
+defaults. See `BrowserAgentSettings` for the full list.
 
-With `None`, browser-use falls back to its own default model selection,
-which ends at its hosted `ChatBrowserUse` model (a separate account and
-`BROWSER_USE_API_KEY`). Pass an explicit model to keep inference in your
-own stack.
-
-**Type:** `ChatModelInput` | `None`**Default:** `None`
-
-Full browser configuration: proxy, `user_data_dir`, `storage_state`, viewport, and the rest.
-
-Kept out of `repr()` for the same reason as `sensitive_data`: a profile carries proxy
-credentials and `storage_state` cookies.
-
-`None` uses browser-use’s defaults. The capability’s `headless`,
-`allowed_domains`, `block_ip_addresses`, and `cdp_url` fields override the profile when set,
-mirroring how `BrowserSession` itself merges a profile with directly
-passed fields.
-
-**Type:** `BrowserProfile` | `None`**Default:** `field(default=None, repr=False)`
+**Type:** `BrowserAgentSettings` | `None`**Default:** `None`
 
 Domains the sub-agent may navigate to; `None` means no restriction.
 
@@ -383,6 +364,50 @@ It overrides the `browser_profile`’s `block_ip_addresses` setting.
 
 **Type:** `bool`**Default:** `True`
 
+Factory for the sub-agent; `None` builds a real `browser_use.Agent`.
+
+Use it to intercept sub-agent construction, or to substitute a fake in tests.
+
+**Type:** `BrowserAgentFactory` | `None`**Default:** `None`
+
+Full browser configuration: proxy, `user_data_dir`, `storage_state`, viewport, and the rest.
+
+Kept out of `repr()` for the same reason as `sensitive_data`: a profile carries proxy
+credentials and `storage_state` cookies.
+
+`None` uses browser-use’s defaults. The capability’s `headless`,
+`allowed_domains`, `block_ip_addresses`, and `cdp_url` fields override the profile when set,
+mirroring how `BrowserSession` itself merges a profile with directly
+passed fields.
+
+**Type:** `BrowserProfile` | `None`**Default:** `field(default=None, repr=False)`
+
+Attach to an existing Chromium over CDP instead of launching one locally.
+
+Points the session at a remote browser, e.g. a container or a hosted
+browser service. When set, it overrides the `browser_profile`’s own
+`cdp_url`. Ending a call disconnects from an attached browser rather than
+terminating it: browser-use only kills a browser process it launched
+itself, so a browser you manage survives `'call'` scope.
+
+Kept out of `repr()` because hosted endpoints can include credentials.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
+
+Extra instructions appended to the browser agent’s own system prompt.
+
+Use it to give the sub-agent standing constraints (“never submit forms”, “prefer the English version of pages”) without replacing browser-use’s prompt.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Custom delegation guidance for the system prompt.
+
+Leave as `None` for the default guidance, or set `''` to contribute no
+instructions at all. Custom guidance must retain the untrusted web-content
+safety rule from the default guidance.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
 Run the browser without a visible window.
 
 `None` (the default) means headless, except when a `browser_profile` is
@@ -391,19 +416,27 @@ work.
 
 **Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
 
+The chat model driving the sub-agent.
+
+Accepts a Pydantic AI model or model name string (e.g.
+`'anthropic:claude-sonnet-4-6'`), which is wrapped in
+`PydanticAIChatModel` — one model configuration for host and sub-agent,
+with Pydantic AI’s structured-output handling and Logfire tracing. A
+browser-use chat model (e.g. `browser_use.ChatAnthropic(...)`) is used
+as-is.
+
+With `None`, browser-use falls back to its own default model selection,
+which ends at its hosted `ChatBrowserUse` model (a separate account and
+`BROWSER_USE_API_KEY`). Pass an explicit model to keep inference in your
+own stack.
+
+**Type:** `ChatModelInput` | `None`**Default:** `None`
+
 Hard cap on the sub-agent’s perception-action steps per `browse_web` call.
 
 Each step is one LLM call. When the cap is hit before the task finishes, the tool reports that the agent stopped without a result.
 
 **Type:** `int`**Default:** `50`
-
-Send page screenshots to the sub-agent’s model.
-
-Vision makes the agent markedly better on visual layouts but adds image
-tokens on every step; turn it off for text-heavy tasks on a budget, or use
-`'auto'` to follow the model’s declared vision support.
-
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’] **Default:** `True`
 
 Pydantic model class the sub-agent’s final result must conform to. `None` returns prose.
 
@@ -429,19 +462,6 @@ same-origin frames only.
 
 **Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)]] | `None`**Default:** `field(default=None, repr=False)`
 
-Extra instructions appended to the browser agent’s own system prompt.
-
-Use it to give the sub-agent standing constraints (“never submit forms”, “prefer the English version of pages”) without replacing browser-use’s prompt.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Supported browser-use `Agent` options (judge, planning, timeouts, custom tools, …).
-
-`None` behaves like an empty `BrowserAgentSettings`, i.e. browser-use’s own
-defaults. See `BrowserAgentSettings` for the full list.
-
-**Type:** `BrowserAgentSettings` | `None`**Default:** `None`
-
 How long a browser session lives.
 
 `'call'` (the default) gives every `browse_web` call a fresh session and
@@ -455,71 +475,13 @@ capability is closed for good. For cookie/login persistence alone, a
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘call’, ‘agent’] **Default:** `'call'`
 
-Attach to an existing Chromium over CDP instead of launching one locally.
+Send page screenshots to the sub-agent’s model.
 
-Points the session at a remote browser, e.g. a container or a hosted
-browser service. When set, it overrides the `browser_profile`’s own
-`cdp_url`. Ending a call disconnects from an attached browser rather than
-terminating it: browser-use only kills a browser process it launched
-itself, so a browser you manage survives `'call'` scope.
+Vision makes the agent markedly better on visual layouts but adds image
+tokens on every step; turn it off for text-heavy tasks on a budget, or use
+`'auto'` to follow the model’s declared vision support.
 
-Kept out of `repr()` because hosted endpoints can include credentials.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
-
-Custom delegation guidance for the system prompt.
-
-Leave as `None` for the default guidance, or set `''` to contribute no
-instructions at all. Custom guidance must retain the untrusted web-content
-safety rule from the default guidance.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Factory for the sub-agent; `None` builds a real `browser_use.Agent`.
-
-Use it to intercept sub-agent construction, or to substitute a fake in tests.
-
-**Type:** `BrowserAgentFactory` | `None`**Default:** `None`
-
-```
-def __post_init__() -> None
-```
-Require an effective navigation allowlist when flat secrets are configured.
-
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Static delegation guidance: when to hand a task to `browse_web`.
-
-A non-empty `guidance` replaces the delegation guidance but retains the
-untrusted-output safety rule. `''` disables instructions entirely.
-
-`AgentInstructions`[`AgentDepsT`] | `None`
-
-```
-def get_toolset() -> BrowserUseToolset[AgentDepsT]
-```
-The toolset providing the `browse_web` tool (built once, then reused).
-
-Caching keeps `'agent'`-scoped session state in one place, so repeated
-calls do not each spawn their own shared browser.
-
-`BrowserUseToolset`[`AgentDepsT`]
-
-`@async`
-
-```
-def aclose() -> None
-```
-Kill the shared browser session, if one is alive (`'agent'` scope).
-
-Call it when the capability is no longer needed, or use the capability
-as an async context manager. In `'agent'` scope it closes for good: a
-later `browse_web` raises rather than starting a browser that nothing
-would close. A no-op in `'call'` scope, where no session is retained
-between calls, and before the first `browse_web` call. It waits for an
-in-flight `browse_web` call to finish rather than closing the browser
-under it, so cancel the run first if you need to close sooner.
+**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’] **Default:** `True`
 
 `@async`
 
@@ -540,6 +502,26 @@ def __aexit__(
 ) -> None
 ```
 Exit the `async with` block, killing any shared browser session.
+
+```
+def __post_init__() -> None
+```
+Require an effective navigation allowlist when flat secrets are configured.
+
+`@async`
+
+```
+def aclose() -> None
+```
+Kill the shared browser session, if one is alive (`'agent'` scope).
+
+Call it when the capability is no longer needed, or use the capability
+as an async context manager. In `'agent'` scope it closes for good: a
+later `browse_web` raises rather than starting a browser that nothing
+would close. A no-op in `'call'` scope, where no session is retained
+between calls, and before the first `browse_web` call. It waits for an
+in-flight `browse_web` call to finish rather than closing the browser
+under it, so cancel the run first if you need to close sooner.
 
 `@classmethod`
 
@@ -568,6 +550,26 @@ agent configuration, prose output, and the default agent factory.
 
 `BrowserUse`[`AgentDepsT`]
 
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Static delegation guidance: when to hand a task to `browse_web`.
+
+A non-empty `guidance` replaces the delegation guidance but retains the
+untrusted-output safety rule. `''` disables instructions entirely.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
+
+```
+def get_toolset() -> BrowserUseToolset[AgentDepsT]
+```
+The toolset providing the `browse_web` tool (built once, then reused).
+
+Caching keeps `'agent'`-scoped session state in one place, so repeated
+calls do not each spawn their own shared browser.
+
+`BrowserUseToolset`[`AgentDepsT`]
+
 Supported `browser_use.Agent` options, with browser-use’s defaults.
 
 Pass an instance as `BrowserUse.agent_settings`. The defaults are a
@@ -578,83 +580,19 @@ silently changing behaviour. The `*_llm` fields accept the same inputs as
 the capability’s `llm` field: a browser-use chat model, a Pydantic AI model,
 or a model name string.
 
-Custom action registry (browser-use `Tools`): register your own actions, exclude built-ins.
-
-**Type:** `Tools`[[`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
-
-Replace the browser agent’s system prompt entirely (`BrowserUse.extend_system_message` appends instead).
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Consecutive step failures before the agent gives up.
-
-**Type:** `int`**Default:** `5`
-
-How many actions the model may emit per step.
-
-**Type:** `int`**Default:** `5`
-
-Include a thinking field in the agent’s output schema.
-
-**Type:** `bool`**Default:** `True`
-
-Minimal output schema (skips evaluation/memory/goal fields) for speed.
-
-**Type:** `bool`**Default:** `False`
-
-Cap on agent-history items kept in the model’s context; `None` keeps all.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Separate model for page-content extraction; `None` uses the main model.
-
-**Type:** `ChatModelInput` | `None`**Default:** `None`
-
-Model to fall back to when the main model errors.
-
-**Type:** `ChatModelInput` | `None`**Default:** `None`
-
-Run a judge model call over the finished task (one extra LLM call per task).
-
-**Type:** `bool`**Default:** `True`
-
-Separate model for the judge; `None` uses the main model.
-
-**Type:** `ChatModelInput` | `None`**Default:** `None`
-
-Reference answer for the judge to evaluate the result against.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
 Track token costs via browser-use’s pricing data.
 
 **Type:** `bool`**Default:** `False`
 
-Screenshot detail level sent to the model.
+Slow the browser down and highlight interactions, for demos; `None` uses browser-use’s default.
 
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘low’, ‘high’] **Default:** `'auto'`
-
-Resize screenshots to (width, height) before sending them to the model.
-
-**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/library/functions.html#int), [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
-
-Seconds to wait for a single model call; `None` uses browser-use’s per-model default.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Seconds to wait for a single agent step.
-
-**Type:** `int`**Default:** `180`
+**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
 
 Open a URL found in the task as the first action, before the first model call.
 
 **Type:** `bool`**Default:** `True`
 
-Include recent browser events in the model’s context.
-
-**Type:** `bool`**Default:** `False`
-
-Ask the model for a final summary even when the task failed or ran out of steps.
+Include the contents of files the agent wrote in its final message.
 
 **Type:** `bool`**Default:** `True`
 
@@ -662,29 +600,41 @@ Run browser-use’s planning loop alongside the action loop.
 
 **Type:** `bool`**Default:** `True`
 
-Steps without progress before the planner replans.
+JSON schema for browser-use’s page-extraction action (distinct from the task’s `output_schema`).
 
-**Type:** `int`**Default:** `3`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
-Cap on exploratory planning steps.
+Model to fall back to when the main model errors.
 
-**Type:** `int`**Default:** `5`
+**Type:** `ChatModelInput` | `None`**Default:** `None`
 
-Detect and break repeated-action loops.
+Directory backing the sub-agent’s own file system; `None` uses a temporary one per run.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Ask the model for a final summary even when the task failed or ran out of steps.
 
 **Type:** `bool`**Default:** `True`
 
-How many recent steps the loop detector inspects.
+Minimal output schema (skips evaluation/memory/goal fields) for speed.
 
-**Type:** `int`**Default:** `20`
+**Type:** `bool`**Default:** `False`
 
-Compact older messages in the sub-agent’s context; pass settings for fine control.
+Record the run as a GIF (`True` for a default path, or a target path).
 
-**Type:** `MessageCompactionSettings` | [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `True`
+**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
 
-Character cap for the serialized clickable-elements listing.
+Reference answer for the judge to evaluate the result against.
 
-**Type:** `int`**Default:** `40000`
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+DOM attributes serialized for the model with each element; `None` uses browser-use’s set.
+
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
+Include recent browser events in the model’s context.
+
+**Type:** `bool`**Default:** `False`
 
 Include tool-call examples in the system prompt.
 
@@ -694,13 +644,69 @@ Actions to run before the first model call, e.g. `[{'navigate': {'url': ...}}]`.
 
 **Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)]]] | `None`**Default:** `None`
 
-Directory backing the sub-agent’s own file system; `None` uses a temporary one per run.
+Separate model for the judge; `None` uses the main model.
+
+**Type:** `ChatModelInput` | `None`**Default:** `None`
+
+Resize screenshots to (width, height) before sending them to the model.
+
+**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/library/functions.html#int), [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+
+Seconds to wait for a single model call; `None` uses browser-use’s per-model default.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Detect and break repeated-action loops.
+
+**Type:** `bool`**Default:** `True`
+
+How many recent steps the loop detector inspects.
+
+**Type:** `int`**Default:** `20`
+
+How many actions the model may emit per step.
+
+**Type:** `int`**Default:** `5`
+
+Character cap for the serialized clickable-elements listing.
+
+**Type:** `int`**Default:** `40000`
+
+Consecutive step failures before the agent gives up.
+
+**Type:** `int`**Default:** `5`
+
+Cap on agent-history items kept in the model’s context; `None` keeps all.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Compact older messages in the sub-agent’s context; pass settings for fine control.
+
+**Type:** `MessageCompactionSettings` | [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `True`
+
+Replace the browser agent’s system prompt entirely (`BrowserUse.extend_system_message` appends instead).
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Include the contents of files the agent wrote in its final message.
+Separate model for page-content extraction; `None` uses the main model.
 
-**Type:** `bool`**Default:** `True`
+**Type:** `ChatModelInput` | `None`**Default:** `None`
+
+Cap on exploratory planning steps.
+
+**Type:** `int`**Default:** `5`
+
+Steps without progress before the planner replans.
+
+**Type:** `int`**Default:** `3`
+
+Override the pricing data source used when `calculate_cost` is on.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Reference images (with captions) prepended to the sub-agent’s context, e.g. what to look for.
+
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[`ContentPartTextParam` | `ContentPartImageParam`] | `None`**Default:** `None`
 
 Write the full sub-agent conversation to this path for debugging.
 
@@ -710,37 +716,33 @@ Encoding for the saved conversation file.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'utf-8'`
 
-DOM attributes serialized for the model with each element; `None` uses browser-use’s set.
+browser-use skills to enable by id; the id-addressed counterpart of `skills`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
-JSON schema for browser-use’s page-extraction action (distinct from the task’s `output_schema`).
-
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
-
-Reference images (with captions) prepended to the sub-agent’s context, e.g. what to look for.
-
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[`ContentPartTextParam` | `ContentPartImageParam`] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
 
 browser-use skills to enable by name, or `'*'` for all; needs a browser-use account.
 
 **Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
 
-browser-use skills to enable by id; the id-addressed counterpart of `skills`.
+Seconds to wait for a single agent step.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
+**Type:** `int`**Default:** `180`
 
-Override the pricing data source used when `calculate_cost` is on.
+Custom action registry (browser-use `Tools`): register your own actions, exclude built-ins.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** `Tools`[[`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
 
-Record the run as a GIF (`True` for a default path, or a target path).
+Run a judge model call over the finished task (one extra LLM call per task).
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
+**Type:** `bool`**Default:** `True`
 
-Slow the browser down and highlight interactions, for demos; `None` uses browser-use’s default.
+Include a thinking field in the agent’s output schema.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
+**Type:** `bool`**Default:** `True`
+
+Screenshot detail level sent to the model.
+
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘low’, ‘high’] **Default:** `'auto'`
 
 **Bases:** `BaseChatModel`
 
@@ -753,11 +755,11 @@ output type per call. Structured output uses Pydantic AI’s output handling
 across providers — including ones that reject browser-use’s
 `response_format` JSON schema.
 
-The wrapped model’s provider identifier.
+The wrapped model’s name.
 
 **Type:** `str`
 
-The wrapped model’s name.
+The wrapped model’s provider identifier.
 
 **Type:** `str`
 
@@ -786,20 +788,6 @@ Provides the `browse_web` tool: run an autonomous browser-use agent per task.
 `@async`
 
 ```
-def browse_web(task: str) -> str
-```
-Have an autonomous browser agent carry out a web task and return its result.
-
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — The browser agent’s final text result, or JSON conforming to the
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — configured output schema when one is set.
-
-**`task`** : `str`
-
-One self-contained web goal in natural language, e.g. “find the price of the Pro plan on example.com and return it”.
-
-`@async`
-
-```
 def aclose() -> None
 ```
 Kill the shared browser session and refuse to open another.
@@ -814,24 +802,34 @@ finish before the final cleanup attempt — and a call can run for
 `max_steps` steps of up to `BrowserAgentSettings.step_timeout` each.
 Cancel the run first if you need to close sooner.
 
+`@async`
+
+```
+def browse_web(task: str) -> str
+```
+Have an autonomous browser agent carry out a web task and return its result.
+
+[`str`](https://docs.python.org/3/library/stdtypes.html#str) — The browser agent’s final text result, or JSON conforming to the
+[`str`](https://docs.python.org/3/library/stdtypes.html#str) — configured output schema when one is set.
+
+**`task`** : `str`
+
+One self-contained web goal in natural language, e.g. “find the price of the Pro plan on example.com and return it”.
+
 Everything the `browse_web` tool passes to a `BrowserAgentFactory` for one call.
 
 A dataclass rather than keyword arguments so that new fields can be added without breaking existing factories: unpack what you forward, ignore the rest.
-
-The natural-language goal for the browser agent.
-
-**Type:** `str`
-
-The resolved chat model; `None` means browser-use’s own default.
-
-**Type:** `BaseChatModel` | `None`
 
 The session to browse in. Owned by the tool: killed after the call in
 `'call'` scope, kept alive and reused in `'agent'` scope.
 
 **Type:** `BrowserSession`
 
-Whether to send page screenshots to the model (`'auto'` follows the model’s capabilities).
+Extra instructions appended to the browser agent’s own system prompt.
+
+The resolved chat model; `None` means browser-use’s own default.
+
+**Type:** `BaseChatModel` | `None`
 
 Schema the agent’s final result must conform to, forwarded as browser-use’s `output_model_schema`.
 
@@ -842,14 +840,18 @@ likely to end up in a log line or a traceback.
 
 **Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)]] | `None`**Default:** `field(repr=False)`
 
-Extra instructions appended to the browser agent’s own system prompt.
-
 The remaining browser-use `Agent` options, always a concrete instance.
 
 Its `*_llm` fields arrive resolved to browser-use chat models, so factories
 can forward them verbatim.
 
 **Type:** `BrowserAgentSettings`
+
+The natural-language goal for the browser agent.
+
+**Type:** `str`
+
+Whether to send page screenshots to the model (`'auto'` follows the model’s capabilities).
 
 **Bases:** `Protocol`
 
@@ -904,14 +906,14 @@ The final result parsed against the configured output schema, if any.
 **Type:** `BaseModel` | `None`
 
 ```
-def final_result() -> None | str
-```
-The text of the final result, or `None` when the agent never finished.
-
-```
 def errors() -> list[str | None]
 ```
 One entry per step: the step’s error message, or `None` for clean steps.
+
+```
+def final_result() -> None | str
+```
+The text of the final result, or `None` when the agent never finished.
 
 ```
 def is_successful() -> bool | None

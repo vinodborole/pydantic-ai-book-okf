@@ -4,14 +4,14 @@ title: System Reminders | Pydantic Docs
 description: Re-inject behavioral guidance mid-run -- on a cadence or reactively --
   to counter instruction fade, without invalidating the prompt cache.
 resource: https://pydantic.dev/docs/ai/harness/system-reminders
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-08-17T07:03:21.217446+00:00'
 ---
 
 # System Reminders
 
 `SystemReminders` re-states targeted behavioral guidance partway through a run — on a fixed cadence or reactively from a condition — to counter the instruction fade that sets in over many turns, without ever invalidating the prompt cache.
 
-The API may change between releases. Where practical, breaking changes ship with a deprecation warning.
+While Pydantic AI Harness is on 0.x releases, the API may change between minor releases; when it does, deprecation warnings and release-note migration guidance tell you (or your agent) exactly how to upgrade. See the [version policy](/docs/ai/harness/#version-policy).
 
 Long multi-turn runs suffer instruction fade: after many tool-use turns the model progressively ignores the guidance it was given at the start. A single start-of-session system prompt is not enough for extended work. The fix is to re-state targeted guidance mid-run — on a fixed cadence, or reactively when a condition is detected.
 
@@ -26,7 +26,8 @@ Construct an `Agent` with `SystemReminders(...)` in its `capabilities`:
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai_harness.system_reminders import SystemReminders, Reminder
+from pydantic_ai_harness import SystemReminders
+from pydantic_ai_harness.system_reminders import Reminder
 agent = Agent(
     'anthropic:claude-sonnet-4-6',
     capabilities=[
@@ -56,7 +57,7 @@ The `tag` wrapping applies only to static `Reminder` content. Dynamic callables 
 A dynamic reminder is any callable `(RunContext) -> str | None` (sync or async), evaluated on every model request. Return a string to inject, or `None` to skip. This is the general seam for conditions that need run state — token budget, post-compaction, mode switches — without hardcoded detectors:
 
 ```
-from pydantic_ai_harness.system_reminders import SystemReminders
+from pydantic_ai_harness import SystemReminders
 SystemReminders(
     dynamic_reminders=[
         lambda ctx: 'Wrap up soon.' if ctx.run_step > 20 else None,
@@ -66,13 +67,15 @@ SystemReminders(
 `GoalReanchor` re-states the run’s first user request as the anchor and asks the model to check its next action advances it. No model call, no dependencies:
 
 ```
-from pydantic_ai_harness.system_reminders import SystemReminders, GoalReanchor
+from pydantic_ai_harness import SystemReminders
+from pydantic_ai_harness.system_reminders import GoalReanchor
 SystemReminders(dynamic_reminders=[GoalReanchor()])
 ```
 `LLMReminder` has a model summarize a compact transcript (original goal + recent activity) into a short stay-on-task nudge. It requires an explicit `model` — there is no default model id — and falls back to `GoalReanchor` text on any error, so a failed generation never blocks the run:
 
 ```
-from pydantic_ai_harness.system_reminders import SystemReminders, LLMReminder
+from pydantic_ai_harness import SystemReminders
+from pydantic_ai_harness.system_reminders import LLMReminder
 SystemReminders(dynamic_reminders=[LLMReminder(model='anthropic:claude-haiku-4-5')])
 ```
 Dynamic reminders have no cadence of their own — they run on every model request. `LLMReminder` therefore issues one extra model call per turn (its usage is threaded onto the parent run via `ctx.usage`, so it shows up in `result.usage()`). The nested call also runs under the parent’s `usage_limits` with one request held back for the model request it precedes, so the reminder cannot push a run past its `request_limit`; once the budget is that tight the generation is skipped and `GoalReanchor` text is used instead. Because the fallback is silent, a persistently misconfigured `model` (bad id, missing key) looks like normal operation. To bound the cost, gate it behind a cadence with an async wrapper:
@@ -86,7 +89,8 @@ SystemReminders(dynamic_reminders=[every_tenth])
 `LLMReminder` generates inside `wrap_model_request`, so under durable execution (Temporal, DBOS, Prefect) its model call runs in orchestration context rather than a durable step — non-deterministic on replay and not checkpointed, with errors falling back silently to `GoalReanchor`. For durable runs prefer `GoalReanchor` (no model call) or gate `LLMReminder` off.
 
 ```
-from pydantic_ai_harness.system_reminders import SystemReminders, Reminder
+from pydantic_ai_harness import SystemReminders
+from pydantic_ai_harness.system_reminders import Reminder
 SystemReminders(
     reminders=[Reminder('...', interval=5)],
     dynamic_reminders=[],       # callables evaluated every request
@@ -103,7 +107,7 @@ Reminders are never injected into the system prompt or instructions. They ride t
 
 `CachePoint` is supported on Anthropic, Amazon Bedrock (Converse API), and OpenRouter (Anthropic and Gemini models); on providers without prompt caching it’s simply ignored (nothing to bust). The reminder leads with its `CachePoint` only when the request already carries user content for the breakpoint to attach to — on a turn whose only tail content is the reminder (for example an `instructions`-only run’s first request), the reminder is injected without a breakpoint, since there is no prefix to protect.
 
-- [Planning](/docs/ai/harness/planning) uses the same ephemeral-tail mechanism to surface the plan. Both compose in one agent: each appends its own tail part behind its own`CachePoint` , and neither is persisted. Note that each ephemeral-tail capability adds a cache breakpoint: Anthropic allows 4 (3 with automatic caching), and core trims the excess oldest-first, so stacking several tail-injecting capabilities alongside`anthropic_cache_instructions` /`anthropic_cache_tool_definitions` can evict an older breakpoint. Two capabilities plus the defaults stay within budget.
+- [Planning](/docs/ai/harness/planning/) uses the same ephemeral-tail mechanism to surface the plan. Both compose in one agent: each appends its own tail part behind its own`CachePoint` , and neither is persisted. Note that each ephemeral-tail capability adds a cache breakpoint: Anthropic allows 4 (3 with automatic caching), and core trims the excess oldest-first, so stacking several tail-injecting capabilities alongside`anthropic_cache_instructions` /`anthropic_cache_tool_definitions` can evict an older breakpoint. Two capabilities plus the defaults stay within budget.
 - Loop detection (detect-and-interrupt with a durable nudge) is a separate concern. `SystemReminders` is cadence/condition steering that stays ephemeral; a dynamic reminder can read loop state from your deps if you want to steer on it.
 
 The tail reminder is only appended when the last message in the request is a `ModelRequest` and at least one reminder fires, so a turn where nothing fires adds nothing to the request. Provider-resume turns (where the request tail is a suspended `ModelResponse` that is echoed back verbatim) are skipped and do not consume a cadence slot.
@@ -113,7 +117,7 @@ The tail reminder is only appended when the last message in the request is a `Mo
 - [Pydantic AI capabilities](/docs/ai/capabilities/overview/)
 - [Hooks](/docs/ai/core-concepts/hooks/) —`wrap_model_request` is the ephemeral injection point used here
 - [Anthropic prompt caching](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
-- [Planning](/docs/ai/harness/planning) — another prompt-cache-aware harness capability
+- [Planning](/docs/ai/harness/planning/) — another prompt-cache-aware harness capability
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -144,21 +148,21 @@ agent = Agent(
     ],
 )
 ```
-Static reminders injected on a cadence.
+TTL for the cache breakpoint placed before the tail reminder.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Reminder`[`AgentDepsT`]] **Default:** `()`
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
 
 Callables evaluated every model request; return text to inject or `None` to skip.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`DynamicReminder`[`AgentDepsT`] | `AsyncDynamicReminder`[`AgentDepsT`]] **Default:** `()`
 
-TTL for the cache breakpoint placed before the tail reminder.
-
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
-
 Optional observability callback invoked with each rendered reminder as it fires.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
+
+Static reminders injected on a cadence.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Reminder`[`AgentDepsT`]] **Default:** `()`
 
 `@async`
 
@@ -172,6 +176,13 @@ Return a fresh per-run instance with reset counters (config preserved).
 dict — so concurrent runs on the same agent never share fire state.
 
 `SystemReminders`[`AgentDepsT`]
+
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Not spec-serializable: reminders take arbitrary callables.
 
 `@async`
 
@@ -189,13 +200,6 @@ Runs after core persists the durable history; the per-request message list mutat
 here is never written back, so the reminder and its `CachePoint` reach the model but
 never enter `ctx.state.message_history`.
 
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Not spec-serializable: reminders take arbitrary callables.
-
 **Bases:** `Generic[AgentDepsT]`
 
 A static reminder injected on a cadence during an agent run.
@@ -204,20 +208,15 @@ The reminder text.
 
 **Type:** `str`
 
-Fire every N model requests within a run. `interval=3` fires on the 3rd, 6th, 9th, … request.
-
-**Type:** `int`**Default:** `1`
-
 Request number of the first fire. `None` (the default) fires on the first multiple of
 `interval` (plain modulo). When set, the reminder fires at `first_after`, then every
 `interval` requests after that.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-Optional predicate over the current `RunContext`. When set, the reminder fires only when
-the trigger returns `True` *and* the cadence condition is met.
+Fire every N model requests within a run. `interval=3` fires on the 3rd, 6th, 9th, … request.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/library/functions.html#bool)] | `None`**Default:** `None`
+**Type:** `int`**Default:** `1`
 
 Maximum number of times this reminder may fire within a run. `None` means no limit.
 
@@ -227,6 +226,11 @@ When set, wrap the content in an XML tag: `<tag>\ncontent\n</tag>`. Defaults to
 `'system-reminder'` (Claude Code’s convention); set `None` to emit the raw content.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'system-reminder'`
+
+Optional predicate over the current `RunContext`. When set, the reminder fires only when
+the trigger returns `True` *and* the cadence condition is met.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/library/functions.html#bool)] | `None`**Default:** `None`
 
 **Bases:** `Generic[AgentDepsT]`
 
