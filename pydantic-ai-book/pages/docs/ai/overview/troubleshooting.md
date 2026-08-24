@@ -2,7 +2,7 @@
 type: Web Page
 title: Troubleshooting | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/troubleshooting
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Troubleshooting
@@ -27,7 +27,7 @@ result = agent.run_sync('Who let the dogs out?')
 ```
 **Note**: This also applies to Google Colab and [Marimo](https://github.com/marimo-team/marimo) environments.
 
-Synchronous methods like [`Agent.run_sync()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_sync) reuse the thread’s current event loop, and install a fresh one if other code closed it. If this error is raised from inside `httpx` or `httpcore` during a model request, the agent was already used before its event loop was closed: the provider’s HTTP connection pool still holds connections bound to the dead loop. Recreate the agent together with its model and provider (or pass a fresh `http_client` to the provider); reusing an existing `Model` instance keeps the dead connection pool. Avoid closing an event loop that other code is still using.
+Synchronous methods like [`Agent.run_sync()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_sync) reuse the thread’s current event loop, and install a fresh one if other code closed it. If this error is raised from inside `httpx2` (or legacy `httpx`) during a model request, the agent was already used before its event loop was closed: the provider’s HTTP connection pool still holds connections bound to the dead loop. Recreate the agent together with its model and provider (or pass a fresh `http_client` to the provider); reusing an existing `Model` instance keeps the dead connection pool. Avoid closing an event loop that other code is still using.
 
 ### [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError): Set the `[PROVIDER]_API_KEY` environment variable or pass it via the provider’s `api_key=...` argument
 
@@ -36,7 +36,7 @@ If you’re running into issues with setting the API key for your model, visit t
 
 To try Pydantic AI without an API key, use the built-in [`'test'` model](/docs/ai/guides/testing/#unit-testing-with-testmodel): [`Agent('test')`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent).
 
-You can use custom `httpx` clients in your models in order to access specific requests, responses, and headers at runtime.
+You can use custom `httpx2` (or legacy `httpx`) clients in your models in order to access specific requests, responses, and headers at runtime.
 
 It’s particularly helpful to use `logfire`’s [HTTPX integration](/docs/ai/integrations/logfire/#monitoring-http-requests) to monitor the above.
 

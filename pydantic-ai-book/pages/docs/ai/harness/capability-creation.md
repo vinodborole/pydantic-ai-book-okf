@@ -4,7 +4,7 @@ title: Runtime Capability Creation | Pydantic Docs
 description: Let an agent create, validate, and persist Pydantic AI capabilities during
   one run for activation on the next.
 resource: https://pydantic.dev/docs/ai/harness/capability-creation
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Runtime Capability Creation
@@ -118,13 +118,6 @@ Static, cache-stable guidance on the authoring tools.
 
 `AgentInstructions`[`AgentDepsT`] | `None`
 
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Not spec-serializable: the capability holds a live, disk-backed store.
-
 ```
 def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
@@ -132,7 +125,25 @@ Toolset providing the authoring tools over this capability’s store.
 
 [`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Not spec-serializable: the capability holds a live, disk-backed store.
+
 Read/write index of authored capability `.py` files under `directory`.
+
+```
+def write(name: str, code: str) -> AuthoredCapability
+```
+Write `code` to `<name>.py`, validate it, and upsert the manifest entry.
+
+Raises `ValueError` for an invalid name (before writing anything). A code
+that imports but fails validation is still written (so it can be
+inspected) and recorded with `last_error` set; `load_active` skips it.
+
+`AuthoredCapability`
 
 ```
 def disable(name: str) -> bool
@@ -157,19 +168,6 @@ capability never blocks the rest. A load outcome that disagrees with the
 record’s `last_error` is persisted back to the manifest: a newly broken
 entry records its error, a re-fixed entry clears it, so the manifest stays
 truthful about which capabilities are actually active.
-
-[`list`](https://docs.python.org/3/glossary.html#term-list)[`AbstractCapability`[[`object`](https://docs.python.org/3/glossary.html#term-object)]]
-
-```
-def write(name: str, code: str) -> AuthoredCapability
-```
-Write `code` to `<name>.py`, validate it, and upsert the manifest entry.
-
-Raises `ValueError` for an invalid name (before writing anything). A code
-that imports but fails validation is still written (so it can be
-inspected) and recorded with `last_error` set; `load_active` skips it.
-
-`AuthoredCapability`
 
 # Citations
 

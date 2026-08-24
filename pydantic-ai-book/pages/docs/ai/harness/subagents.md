@@ -4,7 +4,7 @@ title: Subagents | Pydantic Docs
 description: Let an agent delegate self-contained tasks to named child agents via
   a single delegate_task tool, with per-delegate budgets and failure handling.
 resource: https://pydantic.dev/docs/ai/harness/subagents
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Subagents
@@ -257,6 +257,28 @@ orchestrator = Agent(
     capabilities=[SubAgents(agents=[SubAgent(researcher), SubAgent(writer)])],
 )
 ```
+The sub-agents to expose, each a `SubAgent` pairing an agent with its
+per-delegate run controls. See `SubAgent`. These take precedence over any
+disk-loaded agents of the same name.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`SubAgent`[`AgentDepsT`]] **Default:** `()`
+
+A menu of models the parent can route an individual delegation to, keyed by
+the name the parent uses to pick one. Off by default: with no menu the delegate
+tool has no `model` argument and every delegation runs the way it always did.
+
+Each value is a model reference, or a `ModelOption` carrying a routing hint and
+its own `ModelSettings` (so one key can mean “same model, more thinking”). The
+keys and their descriptions are listed in the system prompt, so name them for
+the job — `'fast'`, `'deep'` — rather than for the vendor. `SubAgent.models`
+restricts which of them a given delegate accepts.
+
+```
+from pydantic_ai_harness.subagents import SubAgents
+SubAgents(models={'fast': 'anthropic:claude-haiku-4-5', 'deep': 'anthropic:claude-opus-4-7'})
+```
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `ModelOption`] **Default:** `field(default_factory=(dict[str, 'Model | KnownModelName | str | ModelOption']))`
+
 Where to load markdown agent definitions from, in addition to `agents`.
 Defaults to the conventional layout, so constructing the capability auto-loads
 a repo’s agent files with no extra configuration.
@@ -277,25 +299,14 @@ agent’s `model` (otherwise the parent’s model is inherited) and its `effort`
 
 **Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), `AgentOverride`] **Default:** `field(default_factory=(dict[str, AgentOverride]))`
 
-The sub-agents to expose, each a `SubAgent` pairing an agent with its
-per-delegate run controls. See `SubAgent`. These take precedence over any
-disk-loaded agents of the same name.
+Optional override for how a disk agent gets its tools. When set, each tool
+name in a definition’s `tools`/`allowed-tools` frontmatter is passed to this
+resolver and the returned toolsets are attached to that agent; an unknown name
+(resolver returns `None`) is skipped with a warning. When unset, the
+frontmatter tool list is ignored and disk agents inherit the parent’s tools
+via `inherit_tools` (set `inherit_tools=True` to expose them).
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`SubAgent`[`AgentDepsT`]] **Default:** `()`
-
-Default for `SubAgent.contain_errors`: whether an unexpected sub-agent crash
-is caught and returned to the parent as a bounded `ModelRetry` instead of
-aborting the parent run. Off by default, so a crash propagates. Any `SubAgent`
-can override this per delegate. See `SubAgent.contain_errors` for the
-containment contract and what always propagates regardless.
-
-**Type:** `bool`**Default:** `False`
-
-If set, this handler is passed to each sub-agent run, so the sub-agent’s
-model-streaming and tool events surface to the caller. The handler receives
-the sub-agent’s own `RunContext` and event stream.
-
-**Type:** `EventStreamHandler`[`AgentDepsT`] | `None`**Default:** `None`
+**Type:** `ToolResolver` | `None`**Default:** `None`
 
 If `True`, the parent run’s `usage` is shared with each sub-agent run, so
 token usage aggregates and usage limits apply across the whole agent tree.
@@ -308,38 +319,19 @@ further delegation). Off by default to avoid silently widening sub-agent access.
 
 **Type:** `bool`**Default:** `False`
 
-A menu of models the parent can route an individual delegation to, keyed by
-the name the parent uses to pick one. Off by default: with no menu the delegate
-tool has no `model` argument and every delegation runs the way it always did.
-
-Each value is a model reference, or a `ModelOption` carrying a routing hint and
-its own `ModelSettings` (so one key can mean “same model, more thinking”). The
-keys and their descriptions are listed in the system prompt, so name them for
-the job — `'fast'`, `'deep'` — rather than for the vendor. `SubAgent.models`
-restricts which of them a given delegate accepts.
-
-```
-from pydantic_ai_harness.subagents import SubAgents
-SubAgents(models={'fast': 'anthropic:claude-haiku-4-5', 'deep': 'anthropic:claude-opus-4-7'})
-```
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `ModelOption`] **Default:** `field(default_factory=(dict[str, 'Model | KnownModelName | str | ModelOption']))`
-
 Capabilities applied to every sub-agent run, in addition to whatever each sub-agent already has.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`AgentCapability`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AgentCapability)[`AgentDepsT`]] **Default:** `()`
 
+If set, this handler is passed to each sub-agent run, so the sub-agent’s
+model-streaming and tool events surface to the caller. The handler receives
+the sub-agent’s own `RunContext` and event stream.
+
+**Type:** `EventStreamHandler`[`AgentDepsT`] | `None`**Default:** `None`
+
 Name of the delegate tool exposed to the model.
 
 **Type:** `str`**Default:** `'delegate_task'`
-
-Optional override for how a disk agent gets its tools. When set, each tool
-name in a definition’s `tools`/`allowed-tools` frontmatter is passed to this
-resolver and the returned toolsets are attached to that agent; an unknown name
-(resolver returns `None`) is skipped with a warning. When unset, the
-frontmatter tool list is ignored and disk agents inherit the parent’s tools
-via `inherit_tools` (set `inherit_tools=True` to expose them).
-
-**Type:** `ToolResolver` | `None`**Default:** `None`
 
 Retries for the delegate tool — how many extra attempts it gets after a
 sub-agent error before the parent run aborts. A sub-agent failure (e.g. it
@@ -350,26 +342,13 @@ not total ones. Defaults to `2` (pydantic-ai’s per-tool default is `1`) so a
 repeated flaky sub-agent does not abort the parent run on its first repeat;
 set `None` to inherit the parent agent’s default tool retries instead.
 
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Static, cache-stable listing of the available sub-agents and models.
+Default for `SubAgent.contain_errors`: whether an unexpected sub-agent crash
+is caught and returned to the parent as a bounded `ModelRetry` instead of
+aborting the parent run. Off by default, so a crash propagates. Any `SubAgent`
+can override this per delegate. See `SubAgent.contain_errors` for the
+containment contract and what always propagates regardless.
 
-`AgentInstructions`[`AgentDepsT`] | `None`
-
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Not spec-serializable — the capability holds live `Agent` instances.
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Toolset providing the delegate tool, or `None` when no sub-agents are configured.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+**Type:** `bool`**Default:** `False`
 
 `@async`
 
@@ -381,6 +360,27 @@ def wrap_run(
 ) -> AgentRunResult[Any]
 ```
 Run the parent agent, then drop this run’s delegation counts so they don’t accumulate.
+
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Static, cache-stable listing of the available sub-agents and models.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Toolset providing the delegate tool, or `None` when no sub-agents are configured.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Not spec-serializable — the capability holds live `Agent` instances.
 
 **Bases:** `Generic[AgentDepsT]`
 
@@ -398,6 +398,50 @@ The agent that runs when this delegate is invoked.
 
 **Type:** `AbstractAgent`[`AgentDepsT`, [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
+Name the parent model uses to delegate to this agent. Defaults to the
+agent’s own `name` when unset.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Description for the system-prompt listing. Defaults to the agent’s own
+`description` when unset; a delegate with neither is listed by name alone.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Which of `SubAgents.models` this delegate may run on, as menu keys, and
+which one it runs on by default: the first key listed. Leave it unset to let
+the parent pick any configured option and to fall back to the delegate’s own
+model when it picks none. Set it to pin a delegate to one option
+(`models=['fast']`) or to bound an expensive delegate to a subset. Naming a key
+the menu does not define is an error.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
+Request/token budget for one delegation. When set, the child runs with
+its own usage accounting so the budget counts only the child’s own requests
+and tokens (not the parent’s or siblings’), even when `forward_usage=True`.
+The tradeoff: that child’s tokens no longer aggregate into the parent’s
+`usage`. Hitting this budget is a soft outcome (steering message), not a
+run-stopping `UsageLimitExceeded`.
+
+**Type:** [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) | `None`**Default:** `None`
+
+Wall-clock budget for one delegation. When the child exceeds it, the run is cancelled and the parent gets a soft steering message instead of hanging on the child.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `None`
+
+Maximum number of delegations to this sub-agent per parent run. Once reached, further delegations return a soft budget-exhausted message without running the child.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+Steering message returned to the parent for any soft degradation of this
+delegate (timeout, child failure, usage budget reached, call budget
+exhausted), in place of the built-in default. Setting it also makes child
+failures soft: a child error returns this message as a normal tool result
+instead of raising a parent `ModelRetry`.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
 Whether an unexpected sub-agent crash is contained instead of aborting the
 parent run. When `True`, an exception the child raises that is not an expected
 soft degradation (a provider `ModelAPIError`/`FallbackExceptionGroup`, a plain
@@ -412,51 +456,7 @@ degradations; a contained crash always raises the loud `ModelRetry`.
 
 **Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
 
-Description for the system-prompt listing. Defaults to the agent’s own
-`description` when unset; a delegate with neither is listed by name alone.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Maximum number of delegations to this sub-agent per parent run. Once reached, further delegations return a soft budget-exhausted message without running the child.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-Which of `SubAgents.models` this delegate may run on, as menu keys, and
-which one it runs on by default: the first key listed. Leave it unset to let
-the parent pick any configured option and to fall back to the delegate’s own
-model when it picks none. Set it to pin a delegate to one option
-(`models=['fast']`) or to bound an expensive delegate to a subset. Naming a key
-the menu does not define is an error.
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
-Name the parent model uses to delegate to this agent. Defaults to the
-agent’s own `name` when unset.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Steering message returned to the parent for any soft degradation of this
-delegate (timeout, child failure, usage budget reached, call budget
-exhausted), in place of the built-in default. Setting it also makes child
-failures soft: a child error returns this message as a normal tool result
-instead of raising a parent `ModelRetry`.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
 The delegate’s name: `name` if set, else the agent’s own `name`.
-
-Wall-clock budget for one delegation. When the child exceeds it, the run is cancelled and the parent gets a soft steering message instead of hanging on the child.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `None`
-
-Request/token budget for one delegation. When set, the child runs with
-its own usage accounting so the budget counts only the child’s own requests
-and tokens (not the parent’s or siblings’), even when `forward_usage=True`.
-The tradeoff: that child’s tokens no longer aggregate into the parent’s
-`usage`. Hitting this budget is a soft outcome (steering message), not a
-run-stopping `UsageLimitExceeded`.
-
-**Type:** [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) | `None`**Default:** `None`
 
 One entry on the model menu, as a model plus how it should run.
 
@@ -477,13 +477,13 @@ SubAgents(
     },
 )
 ```
-What this option is for, listed in the prompt next to the key so the parent can route on task difficulty rather than on model names alone.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
 The model a delegation routed to this option runs on.
 
 **Type:** `Model` | `KnownModelName` | `str`
+
+What this option is for, listed in the prompt next to the key so the parent can route on task difficulty rather than on model names alone.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
 Settings for a delegation routed to this option — thinking effort,
 temperature, and so on. They merge over the sub-agent’s own `model_settings`,
@@ -497,11 +497,13 @@ Both fields are optional. An unset `model` inherits the parent run’s model; an
 unset `effort` runs at the capability’s minimum effort floor (see
 `clamp_effort`).
 
+Model to run this disk agent with, in place of inheriting the parent’s.
+
+**Type:** `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
 Thinking/reasoning level for this disk agent. Raised to at least the floor.
 
 **Type:** `ThinkingLevel` | `None`**Default:** `None`
-
-Model to run this disk agent with, in place of inheriting the parent’s.
 
 # Citations
 

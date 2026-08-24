@@ -2,7 +2,7 @@
 type: Web Page
 title: Mistral | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/mistral
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Mistral
@@ -43,10 +43,10 @@ model = MistralModel(
 agent = Agent(model)
 ...
 ```
-You can also customize the provider with a custom `httpx.AsyncClient`:
+You can also customize the provider with a custom `httpx2.AsyncClient`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 from pydantic_ai.providers.mistral import MistralProvider
@@ -58,6 +58,7 @@ model = MistralModel(
 agent = Agent(model)
 ...
 ```
+The Mistral provider also accepts a legacy `httpx.AsyncClient` during Pydantic AI v2, but emits a deprecation warning. Use `httpx2.AsyncClient` for new code; legacy HTTPX client support will be removed in Pydantic AI v3.
 
 # Citations
 

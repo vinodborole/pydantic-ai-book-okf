@@ -4,7 +4,7 @@ title: Modal Sandbox | Pydantic Docs
 description: Give a Pydantic AI agent a per-run Modal sandbox with command and file
   tools.
 resource: https://pydantic.dev/docs/ai/harness/modal-sandbox
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Modal Sandbox
@@ -220,6 +220,28 @@ agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[ModalSandbox()])
 result = agent.run_sync('Write a Python script that prints the first 10 primes and run it.')
 print(result.output)
 ```
+Container image for owned sandboxes, as a registry tag (e.g. `python:3.12-slim`).
+
+**Type:** `str`**Default:** `_DEFAULT_IMAGE`
+
+Attach to an existing sandbox by id instead of creating one. Attached sandboxes are not terminated.
+
+Use this to reuse a sandbox created elsewhere (e.g. via the Modal CLI). The settings
+that only apply when creating a sandbox (`image`, `app_name`, `create_app_if_missing`,
+`sandbox_timeout`, `workdir`, `env`) cannot be combined with `sandbox_id`.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Use a sandbox session you own and keep open across runs, instead of a per-run one.
+
+Pass an already-entered `ModalSandboxSession` to reuse one sandbox across runs while
+controlling its lifetime yourself: the capability uses it but never opens or terminates
+it. Cannot be combined with `sandbox_id` or the owned-sandbox creation settings (the
+session already owns those). Like `sandbox_id`, a shared session is not concurrency-safe
+across overlapping runs.
+
+**Type:** `ModalSandboxSession` | `None`**Default:** `None`
+
 Modal app the owned sandbox is created under.
 
 **Type:** `str`**Default:** `_DEFAULT_APP_NAME`
@@ -228,13 +250,15 @@ If True, create the Modal app when it does not already exist.
 
 **Type:** `bool`**Default:** `True`
 
-Default timeout in seconds for one `run_command`, used when the model omits one.
+Maximum lifetime in seconds of an owned sandbox before Modal shuts it down.
 
-This bounds a single command; `sandbox_timeout` bounds the whole sandbox’s lifetime.
-Modal enforces whole-second deadlines, so fractional values are rounded up (0.5
-behaves as 1).
+This bounds the whole sandbox; `default_command_timeout` bounds a single command.
 
-**Type:** `float`**Default:** `60.0`
+**Type:** `int`**Default:** `_DEFAULT_SANDBOX_TIMEOUT`
+
+Working directory for commands inside an owned sandbox (Modal’s default when None).
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
 Environment variables to set in an owned sandbox.
 
@@ -243,18 +267,13 @@ set them when you create that sandbox yourself (e.g. with `modal.Secret`).
 
 **Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
-Container image for owned sandboxes, as a registry tag (e.g. `python:3.12-slim`).
+Default timeout in seconds for one `run_command`, used when the model omits one.
 
-**Type:** `str`**Default:** `_DEFAULT_IMAGE`
+This bounds a single command; `sandbox_timeout` bounds the whole sandbox’s lifetime.
+Modal enforces whole-second deadlines, so fractional values are rounded up (0.5
+behaves as 1).
 
-Instructions telling the model how to use the sandbox, added to the system prompt.
-
-Leave as `None` for a default that matches the mode (fresh sandbox per run, or a
-reused one that can carry files from earlier runs) and states the command timeout
-and its ceiling. Set `''` to add no instructions, or pass your own text — e.g. when
-wrapping with `PrefixTools`, so the tool names in the text match the prefixed ones.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** `float`**Default:** `60.0`
 
 Hard ceiling in seconds for any single `run_command`, including a model-supplied
 `timeout_seconds`. None falls back to `sandbox_timeout`.
@@ -293,31 +312,12 @@ Modal has no bounded file-read API. The tool checks metadata before reading and 
 
 **Type:** `int`**Default:** `_DEFAULT_MAX_READ_BYTES`
 
-Attach to an existing sandbox by id instead of creating one. Attached sandboxes are not terminated.
+Instructions telling the model how to use the sandbox, added to the system prompt.
 
-Use this to reuse a sandbox created elsewhere (e.g. via the Modal CLI). The settings
-that only apply when creating a sandbox (`image`, `app_name`, `create_app_if_missing`,
-`sandbox_timeout`, `workdir`, `env`) cannot be combined with `sandbox_id`.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Maximum lifetime in seconds of an owned sandbox before Modal shuts it down.
-
-This bounds the whole sandbox; `default_command_timeout` bounds a single command.
-
-**Type:** `int`**Default:** `_DEFAULT_SANDBOX_TIMEOUT`
-
-Use a sandbox session you own and keep open across runs, instead of a per-run one.
-
-Pass an already-entered `ModalSandboxSession` to reuse one sandbox across runs while
-controlling its lifetime yourself: the capability uses it but never opens or terminates
-it. Cannot be combined with `sandbox_id` or the owned-sandbox creation settings (the
-session already owns those). Like `sandbox_id`, a shared session is not concurrency-safe
-across overlapping runs.
-
-**Type:** `ModalSandboxSession` | `None`**Default:** `None`
-
-Working directory for commands inside an owned sandbox (Modal’s default when None).
+Leave as `None` for a default that matches the mode (fresh sandbox per run, or a
+reused one that can carry files from earlier runs) and states the command timeout
+and its ceiling. Set `''` to add no instructions, or pass your own text — e.g. when
+wrapping with `PrefixTools`, so the tool names in the text match the prefixed ones.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
@@ -425,19 +425,6 @@ against the sandbox working directory (see `_resolve`).
 `@async`
 
 ```
-def list_files(path: str) -> list[tuple[str, bool]]
-```
-List a sandbox directory as `(name, is_dir)` pairs.
-
-A relative `path` is resolved against the sandbox working directory (see
-`_resolve`). The Modal-native `FileInfo` entries are normalized to plain tuples
-here so the provider type does not leak past the session.
-
-- `ModalSandboxError` — if the directory cannot be listed.
-
-`@async`
-
-```
 def read_bytes(path: str) -> bytes
 ```
 Read a file’s raw bytes from the sandbox via Modal’s filesystem API.
@@ -462,31 +449,38 @@ creates missing parent directories itself.
 
 - `ModalSandboxError` — if the file cannot be written (bad path, permissions, …).
 
+`@async`
+
+```
+def list_files(path: str) -> list[tuple[str, bool]]
+```
+List a sandbox directory as `(name, is_dir)` pairs.
+
+A relative `path` is resolved against the sandbox working directory (see
+`_resolve`). The Modal-native `FileInfo` entries are normalized to plain tuples
+here so the provider type does not leak past the session.
+
+- `ModalSandboxError` — if the directory cannot be listed.
+
 The outcome of running a command in the sandbox.
-
-The whole-second deadline Modal enforced for this command, or None if unbounded.
-
-This is the quantized value actually sent to Modal, not the (possibly fractional) timeout the caller requested, so the caller can report the exact deadline.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
-
-The exit status: 0-255 for a real exit (128+n for signal n), or Modal’s `-1` deadline sentinel.
-
-**Type:** `int`
-
-The command’s standard error, tail-truncated when `max_output_bytes` was set.
-
-**Type:** `str`
-
-True when `max_output_bytes` dropped earlier stderr bytes; `stderr` is the retained tail.
-
-**Type:** `bool`**Default:** `False`
 
 The command’s standard output, tail-truncated when `max_output_bytes` was set.
 
 **Type:** `str`
 
+The command’s standard error, tail-truncated when `max_output_bytes` was set.
+
+**Type:** `str`
+
+The exit status: 0-255 for a real exit (128+n for signal n), or Modal’s `-1` deadline sentinel.
+
+**Type:** `int`
+
 True when `max_output_bytes` dropped earlier stdout bytes; `stdout` is the retained tail.
+
+**Type:** `bool`**Default:** `False`
+
+True when `max_output_bytes` dropped earlier stderr bytes; `stderr` is the retained tail.
 
 **Type:** `bool`**Default:** `False`
 
@@ -497,6 +491,12 @@ the same deadline surfaces as the plain SIGKILL exit (137), so that exit is also
 read as a timeout when the command consumed its whole deadline window.
 
 **Type:** `bool`**Default:** `False`
+
+The whole-second deadline Modal enforced for this command, or None if unbounded.
+
+This is the quantized value actually sent to Modal, not the (possibly fractional) timeout the caller requested, so the caller can report the exact deadline.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
 **Bases:** `RuntimeError`
 

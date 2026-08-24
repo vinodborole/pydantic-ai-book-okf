@@ -2,7 +2,7 @@
 type: Web Page
 title: Cerebras | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/cerebras
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Cerebras
@@ -43,10 +43,10 @@ model = CerebrasModel(
 agent = Agent(model)
 ...
 ```
-You can also customize the `CerebrasProvider` with a custom `httpx.AsyncClient`:
+You can also customize the `CerebrasProvider` with a custom `httpx2.AsyncClient`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.cerebras import CerebrasModel
 from pydantic_ai.providers.cerebras import CerebrasProvider

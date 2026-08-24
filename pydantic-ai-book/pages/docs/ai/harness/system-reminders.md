@@ -4,7 +4,7 @@ title: System Reminders | Pydantic Docs
 description: Re-inject behavioral guidance mid-run -- on a cadence or reactively --
   to counter instruction fade, without invalidating the prompt cache.
 resource: https://pydantic.dev/docs/ai/harness/system-reminders
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # System Reminders
@@ -148,21 +148,21 @@ agent = Agent(
     ],
 )
 ```
-TTL for the cache breakpoint placed before the tail reminder.
+Static reminders injected on a cadence.
 
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Reminder`[`AgentDepsT`]] **Default:** `()`
 
 Callables evaluated every model request; return text to inject or `None` to skip.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`DynamicReminder`[`AgentDepsT`] | `AsyncDynamicReminder`[`AgentDepsT`]] **Default:** `()`
 
+TTL for the cache breakpoint placed before the tail reminder.
+
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
+
 Optional observability callback invoked with each rendered reminder as it fires.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
-
-Static reminders injected on a cadence.
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Reminder`[`AgentDepsT`]] **Default:** `()`
 
 `@async`
 
@@ -176,13 +176,6 @@ Return a fresh per-run instance with reset counters (config preserved).
 dict — so concurrent runs on the same agent never share fire state.
 
 `SystemReminders`[`AgentDepsT`]
-
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Not spec-serializable: reminders take arbitrary callables.
 
 `@async`
 
@@ -200,6 +193,13 @@ Runs after core persists the durable history; the per-request message list mutat
 here is never written back, so the reminder and its `CachePoint` reach the model but
 never enter `ctx.state.message_history`.
 
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Not spec-serializable: reminders take arbitrary callables.
+
 **Bases:** `Generic[AgentDepsT]`
 
 A static reminder injected on a cadence during an agent run.
@@ -208,15 +208,20 @@ The reminder text.
 
 **Type:** `str`
 
+Fire every N model requests within a run. `interval=3` fires on the 3rd, 6th, 9th, … request.
+
+**Type:** `int`**Default:** `1`
+
 Request number of the first fire. `None` (the default) fires on the first multiple of
 `interval` (plain modulo). When set, the reminder fires at `first_after`, then every
 `interval` requests after that.
 
 **Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
 
-Fire every N model requests within a run. `interval=3` fires on the 3rd, 6th, 9th, … request.
+Optional predicate over the current `RunContext`. When set, the reminder fires only when
+the trigger returns `True` *and* the cadence condition is met.
 
-**Type:** `int`**Default:** `1`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/library/functions.html#bool)] | `None`**Default:** `None`
 
 Maximum number of times this reminder may fire within a run. `None` means no limit.
 
@@ -226,11 +231,6 @@ When set, wrap the content in an XML tag: `<tag>\ncontent\n</tag>`. Defaults to
 `'system-reminder'` (Claude Code’s convention); set `None` to emit the raw content.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'system-reminder'`
-
-Optional predicate over the current `RunContext`. When set, the reminder fires only when
-the trigger returns `True` *and* the cadence condition is met.
-
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/library/functions.html#bool)] | `None`**Default:** `None`
 
 **Bases:** `Generic[AgentDepsT]`
 

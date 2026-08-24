@@ -2,7 +2,7 @@
 type: Web Page
 title: HTTP Request Retries | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/http-request-retries
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # HTTP Request Retries
@@ -12,7 +12,8 @@ Pydantic AI provides retry functionality for HTTP requests made by model provide
 This is the lowest of the [several layers that can retry](/docs/ai/core-concepts/retries/) in an agent run, and the only one the model never sees.
 
 The retry functionality is built on top of the [tenacity](https://github.com/jd/tenacity) library and integrates
-seamlessly with httpx clients. You can configure retry behavior for any provider that accepts a custom HTTP client.
+seamlessly with [`httpx2`](https://httpx2.pydantic.dev/) clients. You can configure retry behavior for providers whose
+SDK accepts a custom `httpx2` client.
 
 To use the retry transports, you need to install `tenacity`, which you can do via the `retries` dependency group:
 
@@ -33,7 +34,14 @@ For synchronous HTTP clients:
 
 The `wait_retry_after` function automatically detects `Retry-After` headers in 429 (rate limit) responses and waits for the specified time. If no header is present, it falls back to exponential backoff.
 
-The retry transports work with any provider that accepts a custom HTTP client:
+The retry transports work with any provider whose `http_client` argument accepts an `httpx2.AsyncClient`. See each
+[provider’s docs](/docs/ai/models/overview/) for the client type it takes; [Bedrock](#aws-bedrock) uses boto3 and configures retries
+its own way.
+
+Providers whose SDKs still require a legacy `httpx.AsyncClient` (such as Anthropic, Groq, and Cohere) can use the
+deprecated [`TenacityTransport`](/docs/ai/api/pydantic-ai/retries/#pydantic_ai.retries.TenacityTransport) and
+[`AsyncTenacityTransport`](/docs/ai/api/pydantic-ai/retries/#pydantic_ai.retries.AsyncTenacityTransport) on that client during Pydantic AI v2; both are
+removed in v3 together with legacy client support.
 
 1. 
 **Start Conservative** : Begin with a small number of retries (3-5) and reasonable wait times.
@@ -44,7 +52,7 @@ The retry transports work with any provider that accepts a custom HTTP client:
 4. 
 **Handle Rate Limits Properly** : Respect`Retry-After` headers when possible.
 5. 
-**Log Retry Attempts** : Add logging to monitor retry behavior in production. (This will be picked up by Logfire automatically if you instrument httpx.)
+**Log Retry Attempts** : Add logging to monitor retry behavior in production. (This will be picked up by Logfire automatically if you instrument`httpx2` .)
 6. 
 **Consider Circuit Breakers** : For high-traffic applications, consider implementing circuit breaker patterns.
 
@@ -57,7 +65,7 @@ The retry transports will re-raise the last exception if all retry attempts fail
 
 For more advanced retry configurations, refer to the [tenacity documentation](https://tenacity.readthedocs.io/).
 
-The AWS Bedrock provider uses boto3’s built-in retry mechanisms instead of httpx. To configure retries for Bedrock, use boto3’s `Config`:
+The AWS Bedrock provider uses boto3’s built-in retry mechanisms instead of `httpx2`. To configure retries for Bedrock, use boto3’s `Config`:
 
 ```
 from botocore.config import Config

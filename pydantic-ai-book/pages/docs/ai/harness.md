@@ -5,7 +5,7 @@ description: 'Your agent''s favorite harness, built on Pydantic AI: 30+ capabili
   and complete agents assembled from them, from a coding agent to your own custom
   stack.'
 resource: https://pydantic.dev/docs/ai/harness
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Pydantic AI Harness
@@ -26,7 +26,7 @@ result = agent.run_sync('Find out why tests/test_parser.py fails and fix the bug
 print(result.output)
 #> Found it: `parse()` returned None on empty input instead of raising. Fixed in src/parser.py; tests pass now.
 ```
-That’s a complete [coding agent](/docs/ai/harness/coder/): [workspace-rooted file access](/docs/ai/harness/filesystem/), [allowlisted shell](/docs/ai/harness/shell/), [repo orientation](/docs/ai/harness/repo-context/), [planning](/docs/ai/harness/planning/), a read-only [explorer sub-agent](/docs/ai/harness/subagents/), and [context management](/docs/ai/harness/compaction/) that survives long sessions, and it runs anywhere a Pydantic AI agent runs. [`agent.to_cli_sync()`](/docs/ai/cli/) opens it as a chat in your terminal, [`agent.to_web()`](/docs/ai/web/) in the browser, and [`Coder`](/docs/ai/harness/coder/)’s exported [`coder_agent`](/docs/ai/harness/coder/#api-reference) runs without writing a file at all, combined with [`clai`](/docs/ai/cli/) (the Pydantic AI CLI) and [`uvx`](https://docs.astral.sh/uv/guides/tools/):
+That’s a complete [coding agent](/docs/ai/harness/coder/): [workspace-rooted file access](/docs/ai/harness/filesystem/), [allowlisted shell](/docs/ai/harness/shell/), [repo orientation](/docs/ai/harness/repo-context/), [planning](/docs/ai/harness/planning/), a read-only [explorer sub-agent](/docs/ai/harness/subagents/), and [context management](/docs/ai/harness/compaction/) that survives long sessions, and it runs anywhere a Pydantic AI agent runs. [`agent.to_cli_sync()`](/docs/ai/integrations/cli/) opens it as a chat in your terminal, [`agent.to_web()`](/docs/ai/guides/web/) in the browser, and [`Coder`](/docs/ai/harness/coder/)’s exported [`coder_agent`](/docs/ai/harness/coder/#api-reference) runs without writing a file at all, combined with [`clai`](/docs/ai/integrations/cli/) (the Pydantic AI CLI) and [`uvx`](https://docs.astral.sh/uv/guides/tools/):
 
 Every model works: swap the string for [any provider’s](/docs/ai/models/overview/). Need more? Add capabilities to the list; here’s the same coder on `gpt-5.6-sol`, with web search and cross-session memory:
 
@@ -136,7 +136,10 @@ Finding and reading things on the open web.
 | [X Search](/docs/ai/capabilities/x-search/) | Core | Search X; native on xAI, subagent fallback elsewhere | 
 | [Exa Search](/docs/ai/harness/exa-search/) | Harness | Web research via [Exa](https://exa.ai) : excerpted search, full-page reads, opt-in cited deep search | 
 | [Exa Agent](/docs/ai/harness/exa-search/) | Harness | Delegate open-ended research to the Exa Agent API | 
+| [You.com Search](/docs/ai/harness/youdotcom/) | Harness | Web search and page reads via [You.com](https://you.com) : query-relevant excerpts or full-page markdown | 
+| [You.com Research](/docs/ai/harness/youdotcom/) | Harness | Cited answers and multi-step research via the You.com Answer, Research, and Finance Research APIs | 
 | [Browser Use](/docs/ai/harness/browser-use/) | Harness | Hand web tasks to an autonomous [browser-use](https://github.com/browser-use/browser-use) agent driving a real browser | 
+| [Playwright Browser](/docs/ai/harness/playwright/) | Harness | Drive a real Chromium page yourself: navigate, click, type, read, and inspect what the page did | 
 
 How the agent thinks and divides the work.
 
@@ -174,6 +177,7 @@ Bounding what the agent may do, and keeping it on-instructions.
 | Capability | Package | What it does | 
 |---|---|---|
 | [Guardrails](/docs/ai/harness/guardrails/) | Harness | Validate/block/redact user input, tool calls, tool results, and output, including secret masking and parallel async guards | 
+| [Prompt Injection Defender](/docs/ai/harness/prompt-injection-defender/) | Harness | Classify local tool results for indirect prompt injection and optionally withhold high-risk results | 
 | [Spend Limits](/docs/ai/harness/spend/) | Harness | Cross-window USD/token budgets and per-response cost tracking, per model and per tenant | 
 | [Tool approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) | Core | Flag tool calls that need human approval before they run | 
 | [Handle Deferred Tool Calls](/docs/ai/capabilities/handle-deferred-tool-calls/) | Core | Resolve approval-deferred tool calls programmatically | 
@@ -195,13 +199,13 @@ Outside the loop: how runs persist, survive failures, and get observed and confi
 
 Core also ships loop-customization capabilities for production servers: [Select Model](/docs/ai/capabilities/select-model/), [Resolve Model ID](/docs/ai/capabilities/resolve-model-id/), [Prepare Tools / Prepare Output Tools](/docs/ai/capabilities/prepare-tools/), [Prefix Tools](/docs/ai/capabilities/prefix-tools/), [Set Tool Metadata](/docs/ai/capabilities/set-tool-metadata/), [Include Tool Return Schemas](/docs/ai/capabilities/include-tool-return-schemas/), [Process History](/docs/ai/capabilities/process-history/), [Process Event Stream](/docs/ai/capabilities/process-event-stream/), [Reinject System Prompt](/docs/ai/capabilities/reinject-system-prompt/), and [Raise Content Filter Error](/docs/ai/capabilities/raise-content-filter-error/).
 
-And the agent plugs into any interface: [ACP](/docs/ai/harness/acp/) *(experimental, Harness)* serves it to editors like Zed over the [Agent Client Protocol](https://agentclientprotocol.com), and core ships the [web chat UI](/docs/ai/web/), [CLI](/docs/ai/cli/), [frontend adapters](/docs/ai/ui/overview/) (AG-UI, Vercel AI), and [realtime voice](/docs/ai/realtime/overview/).
+And the agent plugs into any interface: [ACP](/docs/ai/harness/acp/) *(experimental, Harness)* serves it to editors like Zed over the [Agent Client Protocol](https://agentclientprotocol.com), and core ships the [web chat UI](/docs/ai/guides/web/), [CLI](/docs/ai/integrations/cli/), [frontend adapters](/docs/ai/integrations/ui/overview/) (AG-UI, Vercel AI), and [realtime voice](/docs/ai/realtime/overview/).
 
 Community packages extend the same capability system further; see [third-party capabilities](/docs/ai/capabilities/third-party/).
 
 “Harness” is the field’s term for everything around the model that turns it into an agent: the loop, the tools, the context management. Reach for this package when your agent should *do* more than core’s lean harness covers: touch files, run code, browse, remember, delegate, or stay coherent through hours-long runs. The boundary between the packages is mechanical, not a maturity tier: core ships the capabilities that require model or framework support (provider-native tools like [image generation](/docs/ai/capabilities/image-generation/), provider APIs like [compaction](/docs/ai/capabilities/compaction/), deep loop integration like [tool search](/docs/ai/capabilities/tool-search/), and fundamentals like [thinking](/docs/ai/capabilities/thinking/), [MCP](/docs/ai/capabilities/mcp/), and [web search](/docs/ai/capabilities/web-search/)) and the Harness ships everything else, as a separate package so capabilities can iterate at the speed the field moves while Pydantic AI itself stays lean.
 
-This installs [`pydantic-ai-slim`](/docs/ai/install/) with it, so it works on its own; you don’t need to install Pydantic AI separately. Model providers and the CLI come via extras that pass through to Pydantic AI: `pydantic-ai-harness[anthropic]`, `[cli]`. Some capabilities need their own extra for optional dependencies; each capability’s page gives its exact install line. Requires Python 3.10+.
+This installs [`pydantic-ai-slim`](/docs/ai/overview/install/) with it, so it works on its own; you don’t need to install Pydantic AI separately. Model providers and the CLI come via extras that pass through to Pydantic AI: `pydantic-ai-harness[anthropic]`, `[cli]`. Some capabilities need their own extra for optional dependencies; each capability’s page gives its exact install line. Requires Python 3.10+.
 
 New to Pydantic AI itself? Start with [its docs](/docs/ai/): the agent you mount these capabilities on is defined there.
 

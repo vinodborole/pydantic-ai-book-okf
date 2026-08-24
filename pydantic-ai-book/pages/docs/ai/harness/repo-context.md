@@ -4,7 +4,7 @@ title: Repo Context | Pydantic Docs
 description: Discover and load a repo's accumulated coding-assistant context engineering
   -- instruction files, skills, sub-agents, and hooks.
 resource: https://pydantic.dev/docs/ai/harness/repo-context
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Repo Context
@@ -115,9 +115,18 @@ agent = Agent(
     capabilities=[RepoContext(workspace_dir=Path('.'), home_dir=Path.home())],
 )
 ```
-Root directories the inventory tool scans, relative to `workspace_dir`.
+The deepest directory the agent works in. The walk-up and asset scan are anchored here.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('.claude', '.agents', '.codex', '.grok')`
+**Type:** `Path`
+
+The shallowest directory to stop the walk-up at, inclusive. `None` (the
+default) scans only `workspace_dir` — no walk-up.
+
+**Type:** `Path` | `None`**Default:** `None`
+
+Instruction filenames to look for, in within-directory precedence order.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('CLAUDE.md', 'AGENTS.md')`
 
 Strategy 1: load instruction files into the system prompt.
 
@@ -127,53 +136,30 @@ Strategy 2: expose the asset-inventory tool.
 
 **Type:** `bool`**Default:** `True`
 
-Instruction filenames to look for, in within-directory precedence order.
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('CLAUDE.md', 'AGENTS.md')`
-
-The shallowest directory to stop the walk-up at, inclusive. `None` (the
-default) scans only `workspace_dir` — no walk-up.
-
-**Type:** `Path` | `None`**Default:** `None`
-
 Name of the inventory tool exposed to the model.
 
 **Type:** `str`**Default:** `'inventory_agent_context'`
-
-For Strategy 3: append a one-line `pointer`, or inline the file `contents`.
-
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘pointer’, ‘contents’] **Default:** `'pointer'`
 
 Strategy 3: surface a directory’s instruction file when the model lists or reads that directory. Off by default — it couples to the list/read tools.
 
 **Type:** `bool`**Default:** `False`
 
-The tool argument key holding the listed/read path.
+For Strategy 3: append a one-line `pointer`, or inline the file `contents`.
 
-**Type:** `str`**Default:** `'path'`
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘pointer’, ‘contents’] **Default:** `'pointer'`
 
 Tool names that trigger Strategy 3. Override to match the host’s list/read
 tools (e.g. `frozenset({'list_dir', 'read_file'})`).
 
 **Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset({'list_directory', 'read_file'})`
 
-The deepest directory the agent works in. The walk-up and asset scan are anchored here.
+The tool argument key holding the listed/read path.
 
-**Type:** `Path`
+**Type:** `str`**Default:** `'path'`
 
-`@async`
+Root directories the inventory tool scans, relative to `workspace_dir`.
 
-```
-def after_tool_execute(
-    ctx: RunContext[AgentDepsT],
-    *,
-    call: ToolCallPart,
-    tool_def: ToolDefinition,
-    args: dict[str, Any],
-    result: Any,
-) -> Any
-```
-Strategy 3: append a directory’s instruction file to a list/read result.
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('.claude', '.agents', '.codex', '.grok')`
 
 `@async`
 
@@ -191,19 +177,33 @@ Static, cache-stable instructions: loaded files plus the inventory hint.
 
 `AgentInstructions`[`AgentDepsT`] | `None`
 
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Serialization name for agent-spec support.
-
 ```
 def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 The asset-inventory toolset, or `None` when the tool is disabled.
 
 [`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+`@async`
+
+```
+def after_tool_execute(
+    ctx: RunContext[AgentDepsT],
+    *,
+    call: ToolCallPart,
+    tool_def: ToolDefinition,
+    args: dict[str, Any],
+    result: Any,
+) -> Any
+```
+Strategy 3: append a directory’s instruction file to a list/read result.
+
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Serialization name for agent-spec support.
 
 **Bases:** `BaseModel`
 

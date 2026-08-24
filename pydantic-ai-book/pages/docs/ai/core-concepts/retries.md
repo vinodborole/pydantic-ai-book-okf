@@ -2,7 +2,7 @@
 type: Web Page
 title: Retries | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/retries
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Retries
@@ -11,7 +11,7 @@ timestamp: '2026-08-17T07:03:21.217446+00:00'
 
 | Layer | What it re-attempts | Configured with | What it adds to message history | 
 |---|---|---|---|
-| [Transport](#transport-retries) | The same HTTP request to the provider | [`AsyncTenacityTransport`](/docs/ai/api/pydantic-ai/retries/#pydantic_ai.retries.AsyncTenacityTransport) on your HTTP client | Nothing — the agent never sees the attempts | 
+| [Transport](#transport-retries) | The same HTTP request to the provider | [`AsyncHTTPX2TenacityTransport`](/docs/ai/api/pydantic-ai/retries/#pydantic_ai.retries.AsyncHTTPX2TenacityTransport) on your HTTP client | Nothing — the agent never sees the attempts | 
 | [Model fallback](#model-fallback-is-not-a-retry) | The same request against a *different* model | [`FallbackModel`](/docs/ai/api/models/fallback/#pydantic_ai.models.fallback.FallbackModel) | Only the winning response | 
 | [Tool](#tool-retries) | One tool call, by asking the model to correct it | `retries={'tools': N}` and per-tool limits | A [`RetryPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.RetryPromptPart) in place of the tool’s result | 
 | [Output](#output-retries) | The model’s final answer, by asking it to correct it | `retries={'output': N}` and[`ToolOutput(max_retries=N)`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput.max_retries) | A `RetryPromptPart` — see[below](#output-retries) for where it lands | 
@@ -21,7 +21,7 @@ Only the last three are “agent retries” — they cost a model round trip eac
 
 Transport retries live below the model client: a failed HTTP request is re-sent without the agent ever knowing. Nothing retries at this layer unless you install a retrying transport on the HTTP client you pass to the provider, and you decide which errors qualify.
 
-This is the right layer for rate limits, connection resets, and 5xx responses. See [HTTP Request Retries](/docs/ai/models/http-request-retries/) for the transports, the `Retry-After`-aware wait strategy, and per-provider notes — including AWS Bedrock, which retries through boto3 rather than httpx.
+This is the right layer for rate limits, connection resets, and 5xx responses. See [HTTP Request Retries](/docs/ai/models/http-request-retries/) for the transports, the `Retry-After`-aware wait strategy, and per-provider notes — including AWS Bedrock, which retries through boto3 rather than `httpx2`.
 
 When you build your own backoff outside a transport, [`ModelHTTPError.retry_after`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelHTTPError.retry_after) gives you the provider’s `Retry-After` header already parsed into seconds.
 

@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent web research tools backed by the Exa searc
   API -- search with relevant excerpts and optional synthesized text summaries, full-page
   retrieval, opt-in deep search, and deferred Exa agent runs.
 resource: https://pydantic.dev/docs/ai/harness/exa-search
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Exa Search
@@ -340,26 +340,26 @@ agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[ExaSearch()])
 Authentication comes from the `EXA_API_KEY` environment variable by
 default; pass `client` to configure it explicitly.
 
-Exa client to use; when `None`, an `exa_py.AsyncExa` is built from `EXA_API_KEY`.
+Number of results `web_search` returns per query (1 to 100, the Exa API range).
 
-Any object satisfying the `ExaClient` protocol works: use it to pass an API
-key explicitly, point at a different base URL, or substitute a fake in tests.
+**Type:** `int`**Default:** `5`
 
-**Type:** `ExaClient` | `None`**Default:** `None`
+Maximum characters of page text `get_page` returns (1 to 10,000, the Exa API range).
 
-Search results never come from these domains (denylist).
+One character of headroom above the cap is requested from Exa so local truncation can detect a longer page and append a truncation marker. At the API ceiling of 10,000 no headroom exists, so the marker cannot fire there.
 
-Applies to `web_search` and `deep_search`. Mutually exclusive with
-`include_domains`.
+**Type:** `int`**Default:** `10000`
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+Have `web_search` also return a synthesized text summary above the results. Off by default.
 
-Custom research guidance for the system prompt.
+When enabled, each `web_search` call requests Exa’s plain-text output
+schema, so the response carries a short summary synthesized from the
+results in addition to the result list. Pass a string to describe the
+desired summary format (it is sent as the schema’s `description`), or
+`True` for an unconstrained summary. The tool’s return shape is unchanged:
+the summary is prepended as a `Summary:` line when Exa returns one.
 
-Leave as `None` for the default guidance (which adapts to
-`include_deep_search`), or set `''` to contribute no instructions at all.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
 
 Also expose the `deep_search` tool. Off by default.
 
@@ -378,31 +378,49 @@ Applies to `web_search` and `deep_search`. Mutually exclusive with
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-Maximum characters of page text `get_page` returns (1 to 10,000, the Exa API range).
+Search results never come from these domains (denylist).
 
-One character of headroom above the cap is requested from Exa so local truncation can detect a longer page and append a truncation marker. At the API ceiling of 10,000 no headroom exists, so the marker cannot fire there.
+Applies to `web_search` and `deep_search`. Mutually exclusive with
+`include_domains`.
 
-**Type:** `int`**Default:** `10000`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-Number of results `web_search` returns per query (1 to 100, the Exa API range).
+Custom research guidance for the system prompt.
 
-**Type:** `int`**Default:** `5`
+Leave as `None` for the default guidance (which adapts to
+`include_deep_search`), or set `''` to contribute no instructions at all.
 
-Have `web_search` also return a synthesized text summary above the results. Off by default.
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-When enabled, each `web_search` call requests Exa’s plain-text output
-schema, so the response carries a short summary synthesized from the
-results in addition to the result list. Pass a string to describe the
-desired summary format (it is sent as the schema’s `description`), or
-`True` for an unconstrained summary. The tool’s return shape is unchanged:
-the summary is prepended as a `Summary:` line when Exa returns one.
+Exa client to use; when `None`, an `exa_py.AsyncExa` is built from `EXA_API_KEY`.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
+Any object satisfying the `ExaClient` protocol works: use it to pass an API
+key explicitly, point at a different base URL, or substitute a fake in tests.
+
+**Type:** `ExaClient` | `None`**Default:** `None`
 
 ```
 def __post_init__() -> None
 ```
 Validate configuration against the Exa API’s documented bounds.
+
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Static research guidance: search wide, read the promising pages in full, cite URLs.
+
+When `include_deep_search` is set, the default guidance also covers
+when to escalate to `deep_search`. A non-`None` `guidance` replaces the
+default; `''` disables instructions entirely.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
+
+```
+def get_toolset() -> ExaSearchToolset[AgentDepsT]
+```
+Build the toolset providing `web_search`, `get_page`, and the optional `deep_search` tool.
+
+`ExaSearchToolset`[`AgentDepsT`]
 
 `@classmethod`
 
@@ -425,24 +443,6 @@ The `client` field is not spec-serializable, so spec-loaded instances
 always build the default `exa_py.AsyncExa` from `EXA_API_KEY`.
 
 `ExaSearch`[`AgentDepsT`]
-
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Static research guidance: search wide, read the promising pages in full, cite URLs.
-
-When `include_deep_search` is set, the default guidance also covers
-when to escalate to `deep_search`. A non-`None` `guidance` replaces the
-default; `''` disables instructions entirely.
-
-`AgentInstructions`[`AgentDepsT`] | `None`
-
-```
-def get_toolset() -> ExaSearchToolset[AgentDepsT]
-```
-Build the toolset providing `web_search`, `get_page`, and the optional `deep_search` tool.
-
-`ExaSearchToolset`[`AgentDepsT`]
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 
@@ -477,6 +477,24 @@ suits durable workers that outlive a single process.
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘inline’, ‘external’] **Default:** `'inline'`
 
+Structured output schema for the Exa agent’s result. `None` returns prose.
+
+Accepts a Pydantic model class or a JSON-schema-style dict. A model class is forwarded to the API and a completed run’s structured output is validated against it (a mismatch surfaces as a retry). The dict form skips client-side validation and is the serializable shape used by agent specs.
+
+**Type:** [`type`](https://docs.python.org/3/glossary.html#term-type)[`BaseModel`] | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
+
+System prompt forwarded to the Exa agent run; `None` uses the API default.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Milliseconds between polls while resolving a run inline.
+
+**Type:** `int`**Default:** `1000`
+
+Milliseconds to wait for a run to finish when resolving inline.
+
+**Type:** `int`**Default:** `3600000`
+
 Custom delegation guidance for the system prompt.
 
 Leave as `None` for the default guidance, or set `''` to contribute no
@@ -484,54 +502,12 @@ instructions at all.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Structured output schema for the Exa agent’s result. `None` returns prose.
-
-Accepts a Pydantic model class or a JSON-schema-style dict. A model class is forwarded to the API and a completed run’s structured output is validated against it (a mismatch surfaces as a retry). The dict form skips client-side validation and is the serializable shape used by agent specs.
-
-**Type:** [`type`](https://docs.python.org/3/glossary.html#term-type)[`BaseModel`] | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
-
-Milliseconds between polls while resolving a run inline.
-
-**Type:** `int`**Default:** `1000`
-
 Exa Agent runs client; when `None`, `exa_py.AsyncExa().agent.runs` is built from `EXA_API_KEY`.
 
 Any object satisfying the `ExaAgentRuns` protocol works: use it to pass an
 API key explicitly or substitute a fake in tests.
 
 **Type:** `ExaAgentRuns` | `None`**Default:** `None`
-
-System prompt forwarded to the Exa agent run; `None` uses the API default.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Milliseconds to wait for a run to finish when resolving inline.
-
-**Type:** `int`**Default:** `3600000`
-
-`@classmethod`
-
-```
-def from_spec(
-    cls,
-    *,
-    effort: AgentEffort | None = None,
-    execution: Literal['inline', 'external'] = 'inline',
-    output_schema: dict[str, object] | None = None,
-    system_prompt: str | None = None,
-    poll_interval: int = 1000,
-    timeout_ms: int = 3600000,
-    guidance: str | None = None,
-) -> ExaAgent[AgentDepsT]
-```
-Construct the capability from serializable spec options.
-
-The `runs` field is not spec-serializable, so spec-loaded instances
-always build the default client from `EXA_API_KEY`. `output_schema`
-takes the JSON-schema dict form here; Pydantic model classes are only
-available when constructing the capability in Python.
-
-`ExaAgent`[`AgentDepsT`]
 
 ```
 def get_instructions() -> AgentInstructions[AgentDepsT] | None
@@ -569,6 +545,30 @@ resolve; the Exa run ID is available in
 Calls are claimed by the instance token in the deferred-call metadata
 rather than by tool name, so tool renaming or prefixing wrappers (e.g.
 `PrefixTools`) do not break inline resolution.
+
+`@classmethod`
+
+```
+def from_spec(
+    cls,
+    *,
+    effort: AgentEffort | None = None,
+    execution: Literal['inline', 'external'] = 'inline',
+    output_schema: dict[str, object] | None = None,
+    system_prompt: str | None = None,
+    poll_interval: int = 1000,
+    timeout_ms: int = 3600000,
+    guidance: str | None = None,
+) -> ExaAgent[AgentDepsT]
+```
+Construct the capability from serializable spec options.
+
+The `runs` field is not spec-serializable, so spec-loaded instances
+always build the default client from `EXA_API_KEY`. `output_schema`
+takes the JSON-schema dict form here; Pydantic model classes are only
+available when constructing the capability in Python.
+
+`ExaAgent`[`AgentDepsT`]
 
 ```
 def agent_run_result(

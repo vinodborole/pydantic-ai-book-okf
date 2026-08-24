@@ -2,7 +2,7 @@
 type: Web Page
 title: xAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/xai
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # xAI
@@ -103,6 +103,12 @@ The `XSearch` capability accepts:
 - **`include_output`** (default:`False` ): include the raw X search results on the[`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) . Without this, the model uses the search results internally but only returns its text summary; enabling it gives programmatic access to the searched posts, sources, and metadata.
 
 As an alternative to the capability, you can pass the lower-level [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) directly via `capabilities=[NativeTool(XSearchTool(...))]` — see the [X Search Tool documentation](/docs/ai/tools-toolsets/native-tools/#x-search-tool) — or enable raw output globally via the `XaiModelSettings.xai_include_x_search_output`[model setting](/docs/ai/core-concepts/agent/#model-run-settings).
+
+When you include a document in a user prompt, xAI automatically makes its `attachment_search` tool available on [supported agentic models](https://docs.x.ai/developers/files). If the model uses the tool, Pydantic AI exposes its lifecycle alongside the model’s response. xAI limits each file to [48 MB](https://docs.x.ai/developers/files#limitations). See [document input](/docs/ai/core-concepts/input/#document-input) for supported input forms.
+
+The [`NativeToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolCallPart) and [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) have a `tool_name` of `'attachment_search'`, and the call’s `provider_details['function_name']` holds xAI’s own name for the operation it ran (for example `'pdf_browse'`). Set [`XaiModelSettings.xai_include_attachment_search_output`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_include_attachment_search_output) to `True` to ask xAI to include the browsed content on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart). It defaults to `False`, so the option is not sent unless you enable it.
+
+Attachment search applies to files attached directly to a conversation. To search persistent xAI collections instead, use [`FileSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.FileSearchTool).
 
 Grok 4.3 supports `reasoning_effort` values of `'none'`, `'low'`, `'medium'`, and `'high'`. You can configure it directly with [`XaiModelSettings.xai_reasoning_effort`](/docs/ai/api/models/xai/#pydantic_ai.models.xai.XaiModelSettings.xai_reasoning_effort), or use the cross-provider [`ModelSettings.thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
 

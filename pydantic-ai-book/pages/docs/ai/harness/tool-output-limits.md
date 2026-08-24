@@ -4,7 +4,7 @@ title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Tool Output Limits
@@ -118,6 +118,27 @@ estimated tokens (the same ~4-chars-per-token heuristic as [compaction](/docs/ai
 character operation regardless of the threshold unit. Set `strip_ansi=True` to strip ANSI
 escape sequences from text returns before measuring and reducing.
 
+A spilled structured return is stored as compact JSON: one long line. `read_tool_result`
+pages by line, so page 1 returns the whole payload and page 2 is empty. Setting `serializer`
+stores the value in a layout with real lines instead:
+
+```
+from pydantic_ai_harness.tool_output_limits import ToolOutputLimits, indented_json, json_lines
+ToolOutputLimits(serializer=indented_json)  # one field per line
+ToolOutputLimits(serializer=json_lines)  # one record per line
+```
+Use `json_lines` for tools that return lists of records: line N is record N, so page offsets
+and `pattern` matches line up with whole records. Anything that is not a list-like sequence
+falls back to `indented_json` — including a list wrapped in a dict, so return the list
+directly for per-record paging. Use `indented_json` for everything else.
+
+Any `(value) -> str` callable works too, but prefer the presets: they escape the Unicode
+line separators (U+0085/U+2028/U+2029) that would otherwise knock read-back offsets off the
+line grid. The serialized text is also what gets measured, so an indented layout can cross
+a size band that compact JSON would not. Strings and binary returns are never serialized,
+returns below the smallest band pass through untouched, and a serializer that raises or
+returns non-text warns and falls back to compact JSON rather than losing the tool output.
+
 Spilled payloads go through the narrow `OverflowStore` protocol. The default `LocalFileStore`
 writes one file per `(run_id, tool_call_id, retry)` under a stable root directory and keeps it
 after the run, so a later `read_tool_result` — in this run or a subsequent agent/run — can
@@ -165,9 +186,10 @@ for path in root.rglob('*'):
     if path.is_file() and path.stat().st_mtime < cutoff:
         path.unlink(missing_ok=True)
 ```
-A `Summarize` call is a real request to the model, so its full usage — tokens and the
-request itself — folds into the run’s `ctx.usage`, exactly like `SummarizingCompaction`. No
-token caps are imposed on the summary call. A `UsageLimits` request limit will see it.
+A built-in `Summarize` call is a real request to the model, so its full usage — tokens and the
+request itself — folds into the run’s `ctx.usage`, exactly like `SummarizingCompaction`. Its nested
+run receives the parent limits unchanged except that a finite request limit reserves one request for
+the pending parent request.
 
 By default `Summarize` inherits the running agent’s model (`ctx.model`). Pass a model id or
 instance to `Summarize(model=...)` to override, or a `summarize` callable to bypass the
@@ -220,13 +242,21 @@ Ordered size bands. The first band whose `over` threshold is met wins.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`] **Default:** `field(default_factory=_default_bands)`
 
+Per-tool band lists that replace `bands` for the named tools.
+
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
+
+Which tools this capability touches. Non-matching tools always pass through.
+
+**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `'all'`
+
 Measure band thresholds in estimated tokens instead of characters.
 
 **Type:** `bool`**Default:** `False`
 
-Per-tool band lists that replace `bands` for the named tools.
+Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
 
 Backend for spilled payloads. Defaults to a `LocalFileStore`.
 
@@ -240,13 +270,21 @@ Prompt template for `Summarize`. Must contain `{tool_name}` and `{output}`.
 
 **Type:** `str`**Default:** `_DEFAULT_SUMMARY_PROMPT`
 
-Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
+Render a structured (non-string, non-binary) return to the text that is measured,
+previewed, spilled, and read back. When unset, structured returns render as compact
+JSON, which puts the whole value on one line; the `indented_json` and `json_lines`
+presets make large spills pageable by line through `read_tool_result`. A return that
+stays under every band threshold passes through as the original object, so the
+serialized text is only model-visible once a band triggers.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** `Serializer` | `None`**Default:** `None`
 
-Which tools this capability touches. Non-matching tools always pass through.
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Register the `read_tool_result` tool for reading spilled payloads on demand.
 
-**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `'all'`
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 `@async`
 
@@ -261,13 +299,6 @@ def after_tool_execute(
 ) -> Any
 ```
 Reduce the tool result — both `return_value` and model-visible `content`.
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Register the `read_tool_result` tool for reading spilled payloads on demand.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 # Citations
 

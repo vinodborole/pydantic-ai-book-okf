@@ -4,7 +4,7 @@ title: Pydantic AI Docs | Pydantic Docs
 description: Give an agent a tool that locates and returns Pydantic AI documentation
   on demand instead of preloading it into the system prompt.
 resource: https://pydantic.dev/docs/ai/harness/pydantic-ai-docs
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Pydantic AI Docs
@@ -97,15 +97,15 @@ agent = Agent(
     capabilities=[PydanticAIDocs(local_docs_path=Path('~/pydantic/ai/base/docs').expanduser())],
 )
 ```
-If `True`, each returned doc is memoized in-process for the capability’s
-lifetime, so a topic is read or fetched at most once.
-
-**Type:** `bool`**Default:** `True`
-
 Local pyai docs checkout to read first. When `None`, falls back to the
 `PYDANTIC_AI_HARNESS_DOCS_PATH` env var, then to the remote source.
 
 **Type:** `Path` | `None`**Default:** `None`
+
+If `True`, each returned doc is memoized in-process for the capability’s
+lifetime, so a topic is read or fetched at most once.
+
+**Type:** `bool`**Default:** `True`
 
 ```
 def get_instructions() -> AgentInstructions[AgentDepsT] | None
@@ -114,19 +114,19 @@ Static, cache-stable guidance on using the docs tool.
 
 `AgentInstructions`[`AgentDepsT`] | `None`
 
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Serialization name for agent-spec support.
-
 ```
 def get_toolset() -> AgentToolset[AgentDepsT] | None
 ```
 Toolset providing `read_pyai_docs` over the resolved local path and shared cache.
 
 [`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Serialization name for agent-spec support.
 
 # Citations
 

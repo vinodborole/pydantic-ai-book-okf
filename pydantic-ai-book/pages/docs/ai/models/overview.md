@@ -2,7 +2,7 @@
 type: Web Page
 title: Model Providers | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Model Providers
@@ -133,6 +133,14 @@ When a provider returns a 4xx or 5xx response, Pydantic AI raises a
 **response headers** via the [`headers`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelHTTPError.headers)
 attribute (a `dict[str, str]` with lowercase keys, or `None` for providers that don’t
 surface headers, such as gRPC-based providers).
+
+When [OpenAI](/docs/ai/models/openai/), [Anthropic](/docs/ai/models/anthropic/), the [Google Gemini API](/docs/ai/models/google/),
+[Amazon Bedrock](/docs/ai/models/bedrock/), or [Groq](/docs/ai/models/groq/) reports that a requested model identifier is
+unavailable, Pydantic AI adds a close known match to the error message when one exists. The
+suggestion is also available as
+[`suggested_model_id`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelHTTPError.suggested_model_id). This is
+best-effort guidance after the provider rejects a request, not local validation: unknown model
+identifiers remain valid so custom deployments and newly released models continue to work.
 
 The motivating use case is propagating the `Retry-After` header from a 429 response to a
 caller’s own HTTP client.  A convenience property

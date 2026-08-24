@@ -2,7 +2,7 @@
 type: Web Page
 title: Snowflake Cortex | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/snowflake
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Snowflake Cortex
@@ -47,10 +47,10 @@ model = SnowflakeModel(
 agent = Agent(model)
 ...
 ```
-You can also customize the [`SnowflakeProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.snowflake.SnowflakeProvider) with a custom `base_url` (e.g. when connecting through [private connectivity](https://docs.snowflake.com/en/user-guide/private-snowflake-service)) or `httpx.AsyncClient`:
+You can also customize the [`SnowflakeProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.snowflake.SnowflakeProvider) with a custom `base_url` (e.g. when connecting through [private connectivity](https://docs.snowflake.com/en/user-guide/private-snowflake-service)) or `httpx2.AsyncClient`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.snowflake import SnowflakeModel
 from pydantic_ai.providers.snowflake import SnowflakeProvider

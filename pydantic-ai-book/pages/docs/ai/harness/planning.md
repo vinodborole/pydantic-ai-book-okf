@@ -4,7 +4,7 @@ title: Planning | Pydantic Docs
 description: Give an agent a structured, self-updating task list -- with a cache-safe
   live reminder, optional persistence, subtasks, dependencies, and events.
 resource: https://pydantic.dev/docs/ai/harness/planning
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Planning
@@ -168,18 +168,6 @@ from pydantic_ai import Agent
 from pydantic_ai_harness.planning import Planning
 agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[Planning()])
 ```
-TTL for the cache breakpoint placed after the stable plan-reminder opening tag.
-
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
-
-Optional per-tool description overrides, keyed by tool name. Unknown names raise `ValueError`.
-
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
-Add the subtask/dependency tools and the `blocked` status when true.
-
-**Type:** `bool`**Default:** `False`
-
 Static planning guidance for the system prompt. Cache-stable.
 
 Three states, so opting out is something you do on purpose rather than by accident:
@@ -195,9 +183,9 @@ ask for the default explicitly, and would turn a config that resolves to
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Surface the current plan as a cache-safe tail reminder each turn.
+TTL for the cache breakpoint placed after the stable plan-reminder opening tag.
 
-**Type:** `bool`**Default:** `True`
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
 
 Storage backend. `None` keeps a fresh in-memory plan per run (the original
 ephemeral behaviour). Pass a store to persist the plan across runs.
@@ -207,6 +195,14 @@ ephemeral behaviour). Pass a store to persist the plan across runs.
 Optional per-run store resolver, e.g. `lambda ctx: ctx.deps.plan_store`.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], `PlanStore`] | `None`**Default:** `None`
+
+Add the subtask/dependency tools and the `blocked` status when true.
+
+**Type:** `bool`**Default:** `False`
+
+Surface the current plan as a cache-safe tail reminder each turn.
+
+**Type:** `bool`**Default:** `True`
 
 Optional allowlist of tool names to register; `None` registers all of them.
 
@@ -220,6 +216,10 @@ trimming within a group is better paired with a `guidance` string of your own.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
+Optional per-tool description overrides, keyed by tool name. Unknown names raise `ValueError`.
+
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
 `@async`
 
 ```
@@ -228,6 +228,44 @@ def for_run(ctx: RunContext[AgentDepsT]) -> Planning[AgentDepsT]
 Return a clone with this run’s store resolved and cached (per-run isolation).
 
 `Planning`[`AgentDepsT`]
+
+```
+def resolve_store(ctx: RunContext[AgentDepsT]) -> PlanStore
+```
+Return the cached run store, or resolve one for direct toolset use.
+
+`PlanStore`
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Provide the `planning` toolset over this run’s resolved store.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Provide static, cache-stable guidance on using the planning tools.
+
+A custom `guidance` string is used verbatim. The default is assembled from
+the tools actually registered — the granular sentence is dropped when
+`tools` excludes them all, and the subtask/dependency workflow is added
+under `enable_subtasks` — so the model is not told about tools it lacks.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
+
+`@async`
+
+```
+def wrap_model_request(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    handler: WrapModelRequestHandler,
+) -> ModelResponse
+```
+Append the current plan as an ephemeral tail reminder with a cache breakpoint.
 
 `@classmethod`
 
@@ -249,50 +287,12 @@ Construct a `Planning` capability from serializable options.
 
 `Planning`[`AgentDepsT`]
 
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Provide static, cache-stable guidance on using the planning tools.
-
-A custom `guidance` string is used verbatim. The default is assembled from
-the tools actually registered — the granular sentence is dropped when
-`tools` excludes them all, and the subtask/dependency workflow is added
-under `enable_subtasks` — so the model is not told about tools it lacks.
-
-`AgentInstructions`[`AgentDepsT`] | `None`
-
 `@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None
 ```
 Serialization name for agent-spec support.
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Provide the `planning` toolset over this run’s resolved store.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
-
-```
-def resolve_store(ctx: RunContext[AgentDepsT]) -> PlanStore
-```
-Return the cached run store, or resolve one for direct toolset use.
-
-`PlanStore`
-
-`@async`
-
-```
-def wrap_model_request(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    handler: WrapModelRequestHandler,
-) -> ModelResponse
-```
-Append the current plan as an ephemeral tail reminder with a cache breakpoint.
 
 # Citations
 

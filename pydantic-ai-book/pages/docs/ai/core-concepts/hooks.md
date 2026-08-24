@@ -2,7 +2,7 @@
 type: Web Page
 title: Hooks | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/hooks
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Hooks
@@ -29,7 +29,7 @@ Multiple hooks can be registered for the same event — they fire in registratio
 
 You can also pass hook functions directly to the [`Hooks`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks) constructor:
 
-Both sync and async hook functions are accepted. Sync functions are automatically wrapped for async execution.
+Both sync and async hook functions are accepted. Sync functions are run in a thread pool, so a slow one won’t hold up the rest of the run.
 
 [`Hooks`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks) is a capability, so it can be loaded on demand just like any other capability. This is useful for optional, user-requested behavior such as verbose request logging:
 

@@ -4,7 +4,7 @@ title: Step Persistence | Pydantic Docs
 description: Record what an agent did at each boundary, save continuable snapshots
   to resume or fork from, and track tool side effects across crashes.
 resource: https://pydantic.dev/docs/ai/harness/step-persistence
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Step Persistence
@@ -408,24 +408,14 @@ Use `continue_run(store, run_id=...)` / `fork_run(store, run_id=...)`
 to load a prior snapshot, then pass the result to
 `Agent.run(..., message_history=...)`.
 
+Backend that records events, snapshots, and tool effects.
+
+**Type:** `StepStore` **Default:** `field(default_factory=InMemoryStepStore)`
+
 Logical agent name (e.g. `code_librarian`, `reproducer`).
 
 Used as a stable prefix for the auto-derived `run_id` so store
 inspection shows readable IDs like `code_librarian-a3b2`.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Free-form metadata stored on the `RunRecord` and on each event.
-
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=_empty_metadata)`
-
-Run that spawned this one.
-
-Auto-inferred from the enclosing `StepPersistence` `wrap_run` scope —
-when an orchestrator’s tool synchronously calls a delegate’s
-`Agent.run(...)`, the delegate picks up the orchestrator’s `run_id`
-here without manual threading. Set explicitly to override (e.g. for
-cross-process delegation where `ContextVar`s do not propagate).
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
@@ -450,9 +440,157 @@ yields distinct ids. Recommended default for delegate capabilities.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Backend that records events, snapshots, and tool effects.
+Run that spawned this one.
 
-**Type:** `StepStore` **Default:** `field(default_factory=InMemoryStepStore)`
+Auto-inferred from the enclosing `StepPersistence` `wrap_run` scope —
+when an orchestrator’s tool synchronously calls a delegate’s
+`Agent.run(...)`, the delegate picks up the orchestrator’s `run_id`
+here without manual threading. Set explicitly to override (e.g. for
+cross-process delegation where `ContextVar`s do not propagate).
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Free-form metadata stored on the `RunRecord` and on each event.
+
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=_empty_metadata)`
+
+`@classmethod`
+
+```
+def from_spec(cls, *args: Any, **kwargs: Any) -> StepPersistence[Any]
+```
+Construct from a serialised spec.
+
+Supports `backend='memory'` (default), `backend='file'` (with
+`directory`), or `backend='sqlite'` (with `database`). Raises
+`ValueError` for any other `backend` value — silently falling
+back to in-memory storage would turn a typo into accidental
+non-durability.
+
+`max_snapshots_per_run` (default `None`, unbounded) is forwarded to
+the constructed store to bound per-run snapshot growth.
+
+`StepPersistence`[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```
+def compaction_transcript_handle() -> str | None
+```
+Retrieval handle to this run’s transcript, for compaction receipts.
+
+Satisfies the compaction `TranscriptHandleProvider` protocol structurally (no import
+coupling). A compaction strategy discovers this capability via `RunContext.capabilities`
+and records its run id. Returns `None` before `for_run` has materialised the id.
+
+`@async`
+
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
+```
+Materialise `run_id` and `parent_run_id` for this `Agent.run` call.
+
+Reads the contextvar set by any enclosing `StepPersistence.wrap_run`
+before the local run overwrites it, so a delegate’s `parent_run_id`
+ends up pointing at its orchestrator’s `run_id`.
+
+A separate `ContextVar` is needed because pydantic_ai’s own
+cross-run signals (`RUN_ID_BAGGAGE_KEY` via OTel baggage,
+`RunContext.run_id`, and `_CURRENT_RUN_CONTEXT`) are single-slot:
+the inner `Instrumentation.wrap_run` overwrites them before any
+nested capability sees the parent. The harness-local contextvar
+lets us snapshot the parent here, *before* the local `wrap_run`
+rebinds it.
+
+`AbstractCapability`[`AgentDepsT`]
+
+`@async`
+
+```
+def wrap_run(
+    ctx: RunContext[AgentDepsT],
+    *,
+    handler: WrapRunHandler,
+) -> AgentRunResult[Any]
+```
+Push this run’s id onto the contextvar so nested delegates can read it.
+
+`@async`
+
+```
+def before_run(ctx: RunContext[AgentDepsT]) -> None
+```
+Register run lineage and emit `run_started`.
+
+When the caller pinned an explicit `run_id`, reject reuse — the
+tool-effect ledger keys on `(run_id, tool_call_id)` and providers
+reuse deterministic tool-call ids, so a second `Agent.run` with
+the same explicit `run_id` would silently collide. The auto-derived
+cases cannot trigger this check because each call materialises a
+fresh id in `for_run`.
+
+`@async`
+
+```
+def after_run(
+    ctx: RunContext[AgentDepsT],
+    *,
+    result: AgentRunResult[Any],
+) -> AgentRunResult[Any]
+```
+Emit `run_completed`, saving a final snapshot only as a fallback.
+
+When a terminal `CallToolsNode` already saved the final history via
+`after_node_run` it carries the correct `step_index`, whereas by
+`after_run` `ctx.run_step` is reset to 0 — so re-saving would both
+duplicate the tail and stamp a misleading `step_index`. We save only
+when the run ended past the newest boundary snapshot.
+
+That covers a run which reached no provider-valid boundary at all, and
+`Agent.run_stream`, which ends through `SetFinalResult` rather than a
+terminal `CallToolsNode` and appends its closing response after the last
+boundary — leaving `after_run` the only hook that sees the full run.
+
+`@async`
+
+```
+def on_run_error(
+    ctx: RunContext[AgentDepsT],
+    *,
+    error: BaseException,
+) -> AgentRunResult[Any]
+```
+Persist the live at-failure history as the run’s last resume point, then emit `run_failed`.
+
+The single error-path save site: reads the list reference stashed by
+`after_node_run` (see `_stash_live_history`), whose content at this
+point is the full history the run had built when it failed — including
+a failing model request’s payload and any partial tool returns captured
+by the graph during unwind. Nothing is compared against the store:
+the live history is by definition the newest state, so an earlier
+boundary snapshot is simply superseded, and a history a sticky
+processor trimmed is persisted as trimmed — exactly what the next
+request would have sent.
+
+The history is saved whenever it contains a model response (a bare
+prompt equals restarting the run), classified `complete` when every
+tool call is resolved and `interrupted` otherwise. Interrupted
+snapshots stay off the default `latest_snapshot` read path.
+
+`@async`
+
+```
+def on_model_request_error(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    error: Exception,
+) -> ModelResponse
+```
+Emit `model_request_failed` and re-raise.
+
+No snapshot is saved here: the failing request’s payload already sits
+in the live history (the graph appends the request before sending), so
+`on_run_error`’s save covers it. A failure the model layer recovers
+from (retry, fallback) needs no rescue at all.
 
 `@async`
 
@@ -490,144 +628,6 @@ history the error path later reads, duplicating it once the graph
 appends the request itself.
 
 `NodeResult`[`AgentDepsT`]
-
-`@async`
-
-```
-def after_run(
-    ctx: RunContext[AgentDepsT],
-    *,
-    result: AgentRunResult[Any],
-) -> AgentRunResult[Any]
-```
-Emit `run_completed`, saving a final snapshot only as a fallback.
-
-When a terminal `CallToolsNode` already saved the final history via
-`after_node_run` it carries the correct `step_index`, whereas by
-`after_run` `ctx.run_step` is reset to 0 — so re-saving would both
-duplicate the tail and stamp a misleading `step_index`. We save only
-when the run ended past the newest boundary snapshot.
-
-That covers a run which reached no provider-valid boundary at all, and
-`Agent.run_stream`, which ends through `SetFinalResult` rather than a
-terminal `CallToolsNode` and appends its closing response after the last
-boundary — leaving `after_run` the only hook that sees the full run.
-
-`@async`
-
-```
-def before_run(ctx: RunContext[AgentDepsT]) -> None
-```
-Register run lineage and emit `run_started`.
-
-When the caller pinned an explicit `run_id`, reject reuse — the
-tool-effect ledger keys on `(run_id, tool_call_id)` and providers
-reuse deterministic tool-call ids, so a second `Agent.run` with
-the same explicit `run_id` would silently collide. The auto-derived
-cases cannot trigger this check because each call materialises a
-fresh id in `for_run`.
-
-```
-def compaction_transcript_handle() -> str | None
-```
-Retrieval handle to this run’s transcript, for compaction receipts.
-
-Satisfies the compaction `TranscriptHandleProvider` protocol structurally (no import
-coupling). A compaction strategy discovers this capability via `RunContext.capabilities`
-and records its run id. Returns `None` before `for_run` has materialised the id.
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
-```
-Materialise `run_id` and `parent_run_id` for this `Agent.run` call.
-
-Reads the contextvar set by any enclosing `StepPersistence.wrap_run`
-before the local run overwrites it, so a delegate’s `parent_run_id`
-ends up pointing at its orchestrator’s `run_id`.
-
-A separate `ContextVar` is needed because pydantic_ai’s own
-cross-run signals (`RUN_ID_BAGGAGE_KEY` via OTel baggage,
-`RunContext.run_id`, and `_CURRENT_RUN_CONTEXT`) are single-slot:
-the inner `Instrumentation.wrap_run` overwrites them before any
-nested capability sees the parent. The harness-local contextvar
-lets us snapshot the parent here, *before* the local `wrap_run`
-rebinds it.
-
-`AbstractCapability`[`AgentDepsT`]
-
-`@classmethod`
-
-```
-def from_spec(cls, *args: Any, **kwargs: Any) -> StepPersistence[Any]
-```
-Construct from a serialised spec.
-
-Supports `backend='memory'` (default), `backend='file'` (with
-`directory`), or `backend='sqlite'` (with `database`). Raises
-`ValueError` for any other `backend` value — silently falling
-back to in-memory storage would turn a typo into accidental
-non-durability.
-
-`max_snapshots_per_run` (default `None`, unbounded) is forwarded to
-the constructed store to bound per-run snapshot growth.
-
-`StepPersistence`[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
-`@async`
-
-```
-def on_model_request_error(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    error: Exception,
-) -> ModelResponse
-```
-Emit `model_request_failed` and re-raise.
-
-No snapshot is saved here: the failing request’s payload already sits
-in the live history (the graph appends the request before sending), so
-`on_run_error`’s save covers it. A failure the model layer recovers
-from (retry, fallback) needs no rescue at all.
-
-`@async`
-
-```
-def on_run_error(
-    ctx: RunContext[AgentDepsT],
-    *,
-    error: BaseException,
-) -> AgentRunResult[Any]
-```
-Persist the live at-failure history as the run’s last resume point, then emit `run_failed`.
-
-The single error-path save site: reads the list reference stashed by
-`after_node_run` (see `_stash_live_history`), whose content at this
-point is the full history the run had built when it failed — including
-a failing model request’s payload and any partial tool returns captured
-by the graph during unwind. Nothing is compared against the store:
-the live history is by definition the newest state, so an earlier
-boundary snapshot is simply superseded, and a history a sticky
-processor trimmed is persisted as trimmed — exactly what the next
-request would have sent.
-
-The history is saved whenever it contains a model response (a bare
-prompt equals restarting the run), classified `complete` when every
-tool call is resolved and `interrupted` otherwise. Interrupted
-snapshots stay off the default `latest_snapshot` read path.
-
-`@async`
-
-```
-def wrap_run(
-    ctx: RunContext[AgentDepsT],
-    *,
-    handler: WrapRunHandler,
-) -> AgentRunResult[Any]
-```
-Push this run’s id onto the contextvar so nested delegates can read it.
 
 # Citations
 

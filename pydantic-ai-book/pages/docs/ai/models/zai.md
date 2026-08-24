@@ -2,7 +2,7 @@
 type: Web Page
 title: Z.AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/zai
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Z.AI
@@ -60,10 +60,10 @@ agent = Agent(
 ```
 See the [Z.AI thinking mode documentation](https://docs.z.ai/guides/capabilities/thinking-mode#preserved-thinking) for more details.
 
-You can provide a custom [`Provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) via the `provider` argument. In the simplest case, pass [`ZaiProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.zai.ZaiProvider) with just an API key. If you also want to customize the underlying `httpx.AsyncClient`, pass it when constructing the provider:
+You can provide a custom [`Provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) via the `provider` argument. In the simplest case, pass [`ZaiProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.zai.ZaiProvider) with just an API key. If you also want to customize the underlying `httpx2.AsyncClient`, pass it when constructing the provider:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.zai import ZaiModel
 from pydantic_ai.providers.zai import ZaiProvider

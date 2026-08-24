@@ -2,7 +2,7 @@
 type: Web Page
 title: Crusoe | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/crusoe
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Crusoe
@@ -45,10 +45,10 @@ model = CrusoeModel('zai/GLM-5.2', provider=CrusoeProvider(api_key='your-api-key
 agent = Agent(model)
 ...
 ```
-You can also customize the `CrusoeProvider` with a custom `httpx.AsyncClient`:
+You can also customize the `CrusoeProvider` with a custom `httpx2.AsyncClient`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.crusoe import CrusoeModel
 from pydantic_ai.providers.crusoe import CrusoeProvider

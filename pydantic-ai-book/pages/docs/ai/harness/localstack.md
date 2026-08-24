@@ -4,7 +4,7 @@ title: LocalStack | Pydantic Docs
 description: Give a Pydantic AI agent access to an emulated AWS environment through
   the AWS CLI, with an optional Docker-managed LocalStack container lifecycle.
 resource: https://pydantic.dev/docs/ai/harness/localstack
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # LocalStack
@@ -179,38 +179,6 @@ agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[LocalStack()])
 result = agent.run_sync('Create an S3 bucket called reports and list all buckets.')
 print(result.output)
 ```
-AWS access key id. LocalStack accepts any value; defaults to its `test` convention.
-
-**Type:** `str`**Default:** `'test'`
-
-If non-empty, only these AWS services may be used (allowlist), e.g. `['s3', 'dynamodb']`.
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
-Path or name of the AWS CLI executable (e.g. `aws` or `awslocal`).
-
-**Type:** `str`**Default:** `'aws'`
-
-Environment variables passed to the managed container, e.g. `{'DEBUG': '1'}`.
-
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(dict[str, str]))`
-
-Optional name for the managed container. Leave None to let Docker assign one.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
-
-Default timeout in seconds for AWS CLI commands and the health check.
-
-**Type:** `float`**Default:** `60.0`
-
-These AWS services are always rejected (denylist).
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
-Path or name of the Docker executable used to manage the container.
-
-**Type:** `str`**Default:** `'docker'`
-
 Base URL of the running LocalStack instance.
 
 Defaults to LocalStack’s `localhost.localstack.cloud` domain (which resolves to
@@ -218,17 +186,37 @@ Defaults to LocalStack’s `localhost.localstack.cloud` domain (which resolves t
 
 **Type:** `str`**Default:** `'http://localhost.localstack.cloud:4566'`
 
-Host address Docker publishes the LocalStack edge port on.
+AWS region passed to the CLI and exported to the environment.
 
-**Type:** `str`**Default:** `'127.0.0.1'`
+**Type:** `str`**Default:** `'us-east-1'`
 
-Docker image to run when `manage_container` is True.
+AWS access key id. LocalStack accepts any value; defaults to its `test` convention.
 
-**Type:** `str`**Default:** `'localstack/localstack'`
+**Type:** `str`**Default:** `'test'`
 
-If True, add instructions telling the model how to use the emulated environment.
+AWS secret access key. LocalStack accepts any value; defaults to its `test` convention.
 
-**Type:** `bool`**Default:** `True`
+**Type:** `str`**Default:** `'test'`
+
+If non-empty, only these AWS services may be used (allowlist), e.g. `['s3', 'dynamodb']`.
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+These AWS services are always rejected (denylist).
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+Default timeout in seconds for AWS CLI commands and the health check.
+
+**Type:** `float`**Default:** `60.0`
+
+Maximum characters of output returned to the model. Must be positive.
+
+**Type:** `int`**Default:** `50000`
+
+Path or name of the AWS CLI executable (e.g. `aws` or `awslocal`).
+
+**Type:** `str`**Default:** `'aws'`
 
 If True, start a LocalStack Docker container for each run and stop it when the run ends.
 
@@ -237,29 +225,41 @@ instance you started separately at `endpoint_url`.
 
 **Type:** `bool`**Default:** `False`
 
-Maximum characters of output returned to the model. Must be positive.
+Docker image to run when `manage_container` is True.
 
-**Type:** `int`**Default:** `50000`
+**Type:** `str`**Default:** `'localstack/localstack'`
 
-If True, mount `/var/run/docker.sock` into the managed container for Docker-backed services like Lambda.
+Host address Docker publishes the LocalStack edge port on.
 
-**Type:** `bool`**Default:** `False`
-
-AWS region passed to the CLI and exported to the environment.
-
-**Type:** `str`**Default:** `'us-east-1'`
-
-AWS secret access key. LocalStack accepts any value; defaults to its `test` convention.
-
-**Type:** `str`**Default:** `'test'`
+**Type:** `str`**Default:** `'127.0.0.1'`
 
 Optional host/container port range for services that expose their own ports, e.g. `4510-4559`.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
+If True, mount `/var/run/docker.sock` into the managed container for Docker-backed services like Lambda.
+
+**Type:** `bool`**Default:** `False`
+
+Optional name for the managed container. Leave None to let Docker assign one.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+
+Environment variables passed to the managed container, e.g. `{'DEBUG': '1'}`.
+
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(dict[str, str]))`
+
+Path or name of the Docker executable used to manage the container.
+
+**Type:** `str`**Default:** `'docker'`
+
 Seconds to wait for the managed container to become ready before failing.
 
 **Type:** `float`**Default:** `120.0`
+
+If True, add instructions telling the model how to use the emulated environment.
+
+**Type:** `bool`**Default:** `True`
 
 ```
 def get_instructions() -> str | None
@@ -282,6 +282,34 @@ instance with the endpoint, region, and credentials injected, while
 `localstack_health` reports which emulated services are available.
 
 Commands are executed as an argument vector (no shell), so shell operators and redirection in the command string have no effect.
+
+`@async`
+
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> AbstractToolset[AgentDepsT]
+```
+Return a fresh instance per run so a managed container is isolated and torn down.
+
+`get_toolset` builds one shared instance at agent construction. When this
+toolset manages a Docker container it holds per-run lifecycle state, so each
+run gets its own instance (and its own container) that `__aexit__` can stop.
+
+[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`]
+
+`@async`
+
+```
+def call_tool(
+    name: str,
+    tool_args: dict[str, Any],
+    ctx: RunContext[AgentDepsT],
+    tool: ToolsetTool[AgentDepsT],
+) -> Any
+```
+Enforce the model-visible output cap at the tool dispatch seam.
+
+Only `str` results are capped; a future tool returning rich content
+(e.g. `ToolReturn`) needs this seam extended.
 
 `@async`
 
@@ -319,34 +347,6 @@ Maximum seconds to wait (default: the configured timeout).
 `@async`
 
 ```
-def call_tool(
-    name: str,
-    tool_args: dict[str, Any],
-    ctx: RunContext[AgentDepsT],
-    tool: ToolsetTool[AgentDepsT],
-) -> Any
-```
-Enforce the model-visible output cap at the tool dispatch seam.
-
-Only `str` results are capped; a future tool returning rich content
-(e.g. `ToolReturn`) needs this seam extended.
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> AbstractToolset[AgentDepsT]
-```
-Return a fresh instance per run so a managed container is isolated and torn down.
-
-`get_toolset` builds one shared instance at agent construction. When this
-toolset manages a Docker container it holds per-run lifecycle state, so each
-run gets its own instance (and its own container) that `__aexit__` can stop.
-
-[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`]
-
-`@async`
-
-```
 def localstack_health() -> str
 ```
 Report the health and availability of the emulated AWS services.
@@ -366,8 +366,6 @@ with `--rm`, so stopping also removes it.
 async with LocalStackContainer() as localstack:
     ...  # talk to localstack.endpoint_url
 ```
-The running container’s id, or None when it is not running.
-
 URL of the container’s edge endpoint.
 
 For the default loopback publish addresses (`127.0.0.1` and the
@@ -378,6 +376,8 @@ supports the subdomain-style hosts some AWS SDKs need. For any other
 `localhost.localstack.cloud` does not resolve there.
 
 **Type:** `str`
+
+The running container’s id, or None when it is not running.
 
 `@async`
 

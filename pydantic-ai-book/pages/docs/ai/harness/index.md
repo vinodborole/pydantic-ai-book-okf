@@ -18,6 +18,8 @@
 - [Memory | Pydantic Docs](/pages/docs/ai/harness/memory.md)
 - [Modal Sandbox | Pydantic Docs](/pages/docs/ai/harness/modal-sandbox.md)
 - [Planning | Pydantic Docs](/pages/docs/ai/harness/planning.md)
+- [Playwright Browser | Pydantic Docs](/pages/docs/ai/harness/playwright.md)
+- [Prompt Injection Defender | Pydantic Docs](/pages/docs/ai/harness/prompt-injection-defender.md)
 - [Pydantic AI Docs | Pydantic Docs](/pages/docs/ai/harness/pydantic-ai-docs.md)
 - [Repo Context | Pydantic Docs](/pages/docs/ai/harness/repo-context.md)
 - [Researcher | Pydantic Docs](/pages/docs/ai/harness/researcher.md)
@@ -30,3 +32,4 @@
 - [System Reminders | Pydantic Docs](/pages/docs/ai/harness/system-reminders.md)
 - [Tool Output Limits | Pydantic Docs](/pages/docs/ai/harness/tool-output-limits.md)
 - [Warn On Cache Busts | Pydantic Docs](/pages/docs/ai/harness/warn-on-cache-busts.md)
+- [You.com | Pydantic Docs](/pages/docs/ai/harness/youdotcom.md)

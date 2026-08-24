@@ -2,7 +2,7 @@
 type: Web Page
 title: Building Custom Capabilities | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/custom
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Building Custom Capabilities
@@ -309,7 +309,7 @@ When constraints are declared, [`CombinedCapability`](/docs/ai/api/pydantic-ai/c
 
 [`Hooks`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Hooks) supports ordering via the `ordering` parameter, so you can declare ordering constraints without subclassing:
 
-Capabilities don’t have direct access to each other. To share state between capabilities during a run, use a [`contextvars.ContextVar`](https://docs.python.org/3/library/contextvars.html#contextvars.ContextVar): one capability sets it (e.g. in `wrap_run` or `before_run`), and another reads it from its hooks. The order of capabilities in the `capabilities` list matters — the writer must come before the reader so its `before_*` hook runs first.
+Capabilities don’t have direct access to each other. To share state between capabilities during a run, use a [`contextvars.ContextVar`](https://docs.python.org/3/library/contextvars.html#contextvars.ContextVar) set from an async function: one capability sets it (e.g. in `wrap_run` or `before_run`), and another reads it from its hooks. The order of capabilities in the `capabilities` list matters — the writer must come before the reader so its `before_*` hook runs first. A sync [`Hooks`](/docs/ai/core-concepts/hooks/) function can’t be the writer: it runs on a separate thread, so values it sets are not visible to the rest of the run.
 
 Test custom capabilities the same way you [test agents](/docs/ai/guides/testing/) — using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) or [`FunctionModel`](/docs/ai/api/models/function/#pydantic_ai.models.function.FunctionModel). Create an agent with your capability and assert on the run result, messages, or any observable side effects of your hooks.
 

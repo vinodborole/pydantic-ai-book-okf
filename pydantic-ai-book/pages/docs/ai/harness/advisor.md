@@ -4,7 +4,7 @@ title: Advisor | Pydantic Docs
 description: Let an executor model consult a separate advisor model through a provider-native
   tool or a local Pydantic AI fallback.
 resource: https://pydantic.dev/docs/ai/harness/advisor
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Advisor
@@ -119,6 +119,34 @@ agent = Agent(
     capabilities=[Advisor('anthropic:claude-opus-4-8')],
 )
 ```
+The model to consult.
+
+Accepts the same model names and model instances as `Agent`. In `auto`
+mode, model instances use local execution so their provider configuration
+is preserved.
+
+**Type:** `ModelSelection` **Default:** `model`
+
+How advisor consultations are executed.
+
+`auto` uses a native advisor only for an explicit same-provider model name.
+`native` requires a provider-native advisor, and `local` always runs a
+separate Pydantic AI agent.
+
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘native’, ‘local’] **Default:** `mode`
+
+Maximum consultations in one executor model request.
+
+The limit resets on the next executor request. OpenRouter’s native advisor does not honor this option, so setting it selects the local fallback there.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_uses`
+
+Maximum output tokens for each advisor consultation.
+
+Values below 1024 are rejected so the setting remains valid on every native and local execution path.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_tokens`
+
 Anthropic-native advisor prompt caching.
 
 This is an opportunistic optimization. OpenRouter and the local fallback do not provide an equivalent cache control.
@@ -130,34 +158,6 @@ Whether local consultations receive the executor’s completed message history.
 Native execution keeps the provider’s transcript behavior unchanged.
 
 **Type:** `bool`**Default:** `forward_history`
-
-Maximum output tokens for each advisor consultation.
-
-Values below 1024 are rejected so the setting remains valid on every native and local execution path.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_tokens`
-
-Maximum consultations in one executor model request.
-
-The limit resets on the next executor request. OpenRouter’s native advisor does not honor this option, so setting it selects the local fallback there.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_uses`
-
-How advisor consultations are executed.
-
-`auto` uses a native advisor only for an explicit same-provider model name.
-`native` requires a provider-native advisor, and `local` always runs a
-separate Pydantic AI agent.
-
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’, ‘native’, ‘local’] **Default:** `mode`
-
-The model to consult.
-
-Accepts the same model names and model instances as `Agent`. In `auto`
-mode, model instances use local execution so their provider configuration
-is preserved.
-
-**Type:** `ModelSelection` **Default:** `model`
 
 ```
 def __init__(
@@ -173,6 +173,15 @@ def __init__(
 `@async`
 
 ```
+def for_run(ctx: RunContext[AgentDepsT]) -> Advisor[AgentDepsT]
+```
+Return a fresh capability with local usage isolated to this run.
+
+`Advisor`[`AgentDepsT`]
+
+`@async`
+
+```
 def after_model_request(
     ctx: RunContext[AgentDepsT],
     *,
@@ -181,15 +190,6 @@ def after_model_request(
 ) -> ModelResponse
 ```
 Reset the local consultation allowance for each executor response.
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> Advisor[AgentDepsT]
-```
-Return a fresh capability with local usage isolated to this run.
-
-`Advisor`[`AgentDepsT`]
 
 # Citations
 

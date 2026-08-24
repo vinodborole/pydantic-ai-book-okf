@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Shell
@@ -90,11 +90,11 @@ By default a spawned command inherits the agent process’s full environment. In
 
 | Field | Effect | 
 |---|---|
-| `env` | Explicit environment that replaces inheritance entirely. The subprocess sees exactly these variables and nothing else. | 
+| `env` | Explicit environment that replaces inheritance for the subprocess’s own environment. | 
 | `denied_env_patterns` | Glob patterns ( `fnmatch` ) for variable names stripped from the base environment. Mirrors`denied_commands` . | 
 
-`env` is a hard boundary for inherited environment variables: set it and inherited secrets cannot reach the
-subprocess at all (you supply `PATH` and anything else the command needs).
+`env` prevents inherited variables from appearing in the subprocess’s own
+environment (you supply `PATH` and anything else the command needs).
 `denied_env_patterns` is a denylist over the inherited environment — lighter to
 configure when you only need to drop a few known-sensitive names. The two
 compose: when both are set, patterns also filter the explicit `env`. Leaving
@@ -120,14 +120,14 @@ credentials, so it is opt-in.
 
 `env` is enforced at spawn, not applied as a post-hoc filter on a running
 process: the subprocess starts with exactly the resolved environment (your
-`env`, minus anything `denied_env_patterns` removes from it). That makes it a
-real boundary for inherited environment variables, unlike the best-effort command denylist. It is not a full
-security boundary: a command running under the same OS identity can still read
-host files — use OS-level isolation for that. The flip side is that a
-pattern broad enough to strip `PATH` or `HOME`, or an `env` that omits them, can
-break command resolution. External commands may still run via the shell’s
-built-in default `PATH` on some systems, but don’t rely on it — set `PATH`
-explicitly when you replace the environment.
+`env`, minus anything `denied_env_patterns` removes from it). Neither control is
+a security boundary. A command running under the same OS identity may still
+read the parent process’s environment through system interfaces such as Linux
+procfs, as well as other host files. Use OS-level isolation when commands are
+untrusted. The flip side is that a pattern broad enough to strip `PATH` or
+`HOME`, or an `env` that omits them, can break command resolution. External
+commands may still run via the shell’s built-in default `PATH` on some systems,
+but don’t rely on it — set `PATH` explicitly when you replace the environment.
 
 `start_command` writes stdout/stderr to temp files and returns a short ID. Use
 `check_command(command_id)` to poll and `stop_command(command_id)` to terminate
@@ -216,27 +216,49 @@ Shell command execution for agents.
 Commands execute in a subprocess rooted at `cwd`. Use `allowed_commands`
 or `denied_commands` to control what the agent can invoke.
 
-If True, allow interactive commands (vi, nano, ssh, etc.). Blocked by default.
-
-**Type:** `bool`**Default:** `False`
-
-If non-empty, only these command names may be executed (allowlist).
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
 Working directory for command execution.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
-Default timeout in seconds for command execution.
+If non-empty, only these command names may be executed (allowlist).
 
-**Type:** `float`**Default:** `30.0`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 These command names are always rejected (denylist).
 
 Defaults to blocking destructive commands (rm, dd, shutdown, etc.). Set to an empty list to disable.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `_DEFAULT_DENIED_COMMANDS`
+
+Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
+
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+
+Default timeout in seconds for command execution.
+
+**Type:** `float`**Default:** `30.0`
+
+Maximum characters of output returned to the model. Must be positive.
+
+**Type:** `int`**Default:** `50000`
+
+If True, track cd commands and adjust the working directory for subsequent calls.
+
+**Type:** `bool`**Default:** `False`
+
+If True, allow interactive commands (vi, nano, ssh, etc.). Blocked by default.
+
+**Type:** `bool`**Default:** `False`
+
+Explicit environment for spawned subprocesses, replacing inheritance.
+
+When `None` (default) the subprocess inherits the parent environment. Set
+this to a fixed mapping to start subprocesses with exactly these variables
+in its own environment. This is not a security boundary: a command running
+as the same OS user may read secrets from the parent process through system
+interfaces such as Linux procfs. Use OS-level isolation for untrusted commands.
+
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
 Glob patterns for environment variable names to strip before spawning.
 
@@ -248,27 +270,6 @@ when both are set, so patterns filter an explicit `env` too. See
 `LLM_API_KEY_ENV_PATTERNS` for a ready-made provider-credential denylist.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
-Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
-
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
-
-Explicit environment for spawned subprocesses, replacing inheritance.
-
-When `None` (default) the subprocess inherits the parent environment. Set
-this to a fixed mapping to start subprocesses with exactly these variables
-and nothing else — a hard boundary that keeps host secrets (LLM API keys,
-tokens) out of commands the agent runs.
-
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
-Maximum characters of output returned to the model. Must be positive.
-
-**Type:** `int`**Default:** `50000`
-
-If True, track cd commands and adjust the working directory for subsequent calls.
-
-**Type:** `bool`**Default:** `False`
 
 ```
 def __post_init__() -> None

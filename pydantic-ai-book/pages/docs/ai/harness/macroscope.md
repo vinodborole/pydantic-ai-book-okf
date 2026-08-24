@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent the same local Macroscope code review its 
   plugins run -- streamed findings parsed into structured issues the agent validates
   and fixes with its own tools.
 resource: https://pydantic.dev/docs/ai/harness/macroscope
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Macroscope
@@ -124,6 +124,10 @@ Repository directory the review runs in.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
+Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
+
+**Type:** `float`**Default:** `600.0`
+
 Custom review guidance for the system prompt.
 
 Leave as `None` for the default validate-then-fix guidance, or set `''` to
@@ -131,9 +135,12 @@ contribute no instructions at all.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
+```
+def get_toolset() -> MacroscopeToolset[AgentDepsT]
+```
+Build the toolset that provides the `run_macroscope_review` tool.
 
-**Type:** `float`**Default:** `600.0`
+`MacroscopeToolset`[`AgentDepsT`]
 
 ```
 def get_instructions() -> str | None
@@ -142,13 +149,6 @@ Static validate-then-fix guidance.
 
 A non-`None` `guidance` replaces the default; `''` disables
 instructions entirely.
-
-```
-def get_toolset() -> MacroscopeToolset[AgentDepsT]
-```
-Build the toolset that provides the `run_macroscope_review` tool.
-
-`MacroscopeToolset`[`AgentDepsT`]
 
 **Bases:** `BaseModel`
 

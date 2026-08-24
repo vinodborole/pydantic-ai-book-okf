@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenRouter | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openrouter
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # OpenRouter
@@ -153,9 +153,13 @@ Pass the prompt list to `agent.run_sync(prompt)`. Everything before the `CachePo
 
 OpenRouter supports web search through its [Beta server tool](https://openrouter.ai/docs/guides/features/server-tools/web-search). Enable it with [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool). The model decides whether to search and may make zero or multiple searches for a request.
 
+Before Pydantic AI v2.30.0, [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool) enabled OpenRouter’s `web` plugin, which searched on every request and billed a flat fee for each one, whether or not the question needed the web. If you want that always-on grounding, OpenRouter’s plugin is deprecated but still reachable by passing it yourself:
+
 You can configure search context, approximate user location, domain filters, and a limit on searches with [`WebSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.WebSearchTool):
 
 Pydantic AI surfaces the per-request web-search count under `ModelResponse.provider_details``'server_tool_use'`.
+
+When OpenRouter runs the search itself rather than delegating to the downstream provider’s own search, it attaches the sources it used to the message as `url_citation` annotations. Pydantic AI surfaces them verbatim under `ModelResponse.provider_details``['annotations']`, each carrying the result’s `url`, `title` and the excerpt that was given to the model:
 
 # Citations
 

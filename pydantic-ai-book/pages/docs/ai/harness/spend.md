@@ -5,7 +5,7 @@ description: Track what an agent costs and refuse the next request once a budget
   spent, with windows longer than a run, per-tenant scopes, and a counter shared across
   worker processes.
 resource: https://pydantic.dev/docs/ai/harness/spend
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Spend
@@ -230,19 +230,21 @@ Windows to accumulate against, and which of them can refuse a request.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Budget`[`AgentDepsT`]] **Default:** `()`
 
-Supplies the time that day and month windows are derived from.
+Where counters live. The default holds them for the lifetime of the process.
 
-It does not reach a default-constructed `store`, which keeps its own `utc_now` for
-expiry. Both remain absolute instants, so a custom clock buckets on one and expires on
-the other; pass the same callable to the store when that matters.
+**Type:** `SpendStore` **Default:** `field(default_factory=InMemorySpendStore)`
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[], [`datetime`](https://docs.python.org/3/library/datetime.html#module-datetime)] **Default:** `utc_now`
+Prices a response before the registry is consulted.
 
-Offer the agent a `get_spend` tool.
+Returning `None` falls through to `genai-prices`. This is the way to charge
+a self-hosted model, or a negotiated rate the public registry does not know.
 
-Off by default: a tool costs schema tokens on every request, and most applications want the number on a screen rather than in the model’s context.
+An amount must be finite and not negative. Anything else fails the run with
+`UserError`, after the response’s tokens and request count have been recorded:
+a credit would move a budget away from its ceiling, and a NaN or an infinity
+is a broken pricing function rather than a price.
 
-**Type:** `bool`**Default:** `False`
+**Type:** `PriceFunc` | `None`**Default:** `None`
 
 Called with a `SpendSnapshot` after each response. May be sync or async.
 
@@ -257,21 +259,19 @@ still holds for a model the registry does not know.
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘zero’, ‘raise’] **Default:** `'zero'`
 
-Prices a response before the registry is consulted.
+Offer the agent a `get_spend` tool.
 
-Returning `None` falls through to `genai-prices`. This is the way to charge
-a self-hosted model, or a negotiated rate the public registry does not know.
+Off by default: a tool costs schema tokens on every request, and most applications want the number on a screen rather than in the model’s context.
 
-An amount must be finite and not negative. Anything else fails the run with
-`UserError`, after the response’s tokens and request count have been recorded:
-a credit would move a budget away from its ceiling, and a NaN or an infinity
-is a broken pricing function rather than a price.
+**Type:** `bool`**Default:** `False`
 
-**Type:** `PriceFunc` | `None`**Default:** `None`
+Supplies the time that day and month windows are derived from.
 
-Where counters live. The default holds them for the lifetime of the process.
+It does not reach a default-constructed `store`, which keeps its own `utc_now` for
+expiry. Both remain absolute instants, so a custom clock buckets on one and expires on
+the other; pass the same callable to the store when that matters.
 
-**Type:** `SpendStore` **Default:** `field(default_factory=InMemorySpendStore)`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[], [`datetime`](https://docs.python.org/3/library/datetime.html#module-datetime)] **Default:** `utc_now`
 
 ```
 def __post_init__() -> None
@@ -280,6 +280,39 @@ Reject an `on_unpriced` that arrived as plain data and is not one of the two pol
 
 Anything other than `'raise'` behaves as `'zero'`, so a typo in a spec
 would quietly turn unpriced responses free instead of failing the run.
+
+`@classmethod`
+
+```
+def get_serialization_name(cls) -> str | None
+```
+Serialization name for agent-spec support.
+
+```
+def get_ordering() -> CapabilityOrdering
+```
+Sit innermost, so the accrual is the first thing to happen to a billed response.
+
+Innermost puts this capability’s `wrap_model_request` closest to the provider call,
+so every other capability’s wrapper — and every capability’s
+`after_model_request` — runs outside the accrual and cannot reject a response the
+counter has not already seen.
+
+This orders against non-innermost capabilities only. Innermost members are not
+ordered among themselves, and the one listed later nests further in, so another
+innermost capability (`TemporalDurability`, `InputGuardrail`) placed after this one
+still wraps inside it and can reject a billed response before it is counted. List
+`SpendLimits` last among innermost capabilities where that matters; closing it
+outright is [https://github.com/pydantic/pydantic-ai-harness/issues/534](https://github.com/pydantic/pydantic-ai-harness/issues/534).
+
+`CapabilityOrdering`
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Offer `get_spend` when `expose_tools` is set.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
 
 `@async`
 
@@ -290,6 +323,57 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Refuse the request if any budget with a ceiling is already spent.
+
+`@async`
+
+```
+def wrap_model_request(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    handler: WrapModelRequestHandler,
+) -> ModelResponse
+```
+Price what the provider returned and add it to every window, before anything can reject it.
+
+The accrual belongs here rather than in `after_model_request` because
+`after_model_request` runs outside this chain, once the whole chain has returned.
+A capability whose own `wrap_model_request` awaits the response and then raises
+`ModelRetry` sends the run straight to a fresh request, and the response it
+rejected — generated, billed, and kept in history — is never counted. Ordering
+cannot close that: the rejecting wrapper does not have to be innermost, and one
+listed *before* this capability still nests outside it.
+
+Wrapping is also why a request the provider never saw is not charged for.
+`SkipModelRequest` from an earlier `before_model_request` reaches
+`after_model_request` with a response the run never paid for; it does not reach
+`handler`, so nothing accrues here.
+
+`@async`
+
+```
+def status(
+    ctx: RunContext[AgentDepsT] | None = None,
+    *,
+    scope: str | None = None,
+) -> tuple[BudgetStatus, ...]
+```
+Where each budget stands.
+
+Inside a run, pass `ctx` and every budget resolves. Without one — the
+reading a cost display wants, and the check to make before starting a
+durable workflow whose hooks cannot reach a shared store — budgets on a
+`run` or `conversation` window are omitted, since those periods have no
+meaning outside a run, and a budget declaring a `scope` is omitted
+unless `scope` names the partition to read, since its callable has no
+run context to resolve against.
+
+Reach for [`exhausted`](/docs/ai/harness/spend/#pydantic_ai_harness.spend.SpendLimits.exhausted) when the
+answer gates something: `any(s.exhausted for s in ...)` over a tuple that happens to
+be empty is a brake that reads as enforcement and inspects nothing, and a `SpendLimits`
+whose budgets are all scoped returns exactly that tuple.
+
+[`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[`BudgetStatus`, …]
 
 `@async`
 
@@ -340,90 +424,6 @@ so it costs nothing there.
 
 `SpendLimits`[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-```
-def get_ordering() -> CapabilityOrdering
-```
-Sit innermost, so the accrual is the first thing to happen to a billed response.
-
-Innermost puts this capability’s `wrap_model_request` closest to the provider call,
-so every other capability’s wrapper — and every capability’s
-`after_model_request` — runs outside the accrual and cannot reject a response the
-counter has not already seen.
-
-This orders against non-innermost capabilities only. Innermost members are not
-ordered among themselves, and the one listed later nests further in, so another
-innermost capability (`TemporalDurability`, `InputGuardrail`) placed after this one
-still wraps inside it and can reject a billed response before it is counted. List
-`SpendLimits` last among innermost capabilities where that matters; closing it
-outright is [https://github.com/pydantic/pydantic-ai-harness/issues/534](https://github.com/pydantic/pydantic-ai-harness/issues/534).
-
-`CapabilityOrdering`
-
-`@classmethod`
-
-```
-def get_serialization_name(cls) -> str | None
-```
-Serialization name for agent-spec support.
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Offer `get_spend` when `expose_tools` is set.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
-
-`@async`
-
-```
-def status(
-    ctx: RunContext[AgentDepsT] | None = None,
-    *,
-    scope: str | None = None,
-) -> tuple[BudgetStatus, ...]
-```
-Where each budget stands.
-
-Inside a run, pass `ctx` and every budget resolves. Without one — the
-reading a cost display wants, and the check to make before starting a
-durable workflow whose hooks cannot reach a shared store — budgets on a
-`run` or `conversation` window are omitted, since those periods have no
-meaning outside a run, and a budget declaring a `scope` is omitted
-unless `scope` names the partition to read, since its callable has no
-run context to resolve against.
-
-Reach for [`exhausted`](/docs/ai/harness/spend/#pydantic_ai_harness.spend.SpendLimits.exhausted) when the
-answer gates something: `any(s.exhausted for s in ...)` over a tuple that happens to
-be empty is a brake that reads as enforcement and inspects nothing, and a `SpendLimits`
-whose budgets are all scoped returns exactly that tuple.
-
-[`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[`BudgetStatus`, …]
-
-`@async`
-
-```
-def wrap_model_request(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    handler: WrapModelRequestHandler,
-) -> ModelResponse
-```
-Price what the provider returned and add it to every window, before anything can reject it.
-
-The accrual belongs here rather than in `after_model_request` because
-`after_model_request` runs outside this chain, once the whole chain has returned.
-A capability whose own `wrap_model_request` awaits the response and then raises
-`ModelRetry` sends the run straight to a fresh request, and the response it
-rejected — generated, billed, and kept in history — is never counted. Ordering
-cannot close that: the rejecting wrapper does not have to be innermost, and one
-listed *before* this capability still nests outside it.
-
-Wrapping is also why a request the provider never saw is not charged for.
-`SkipModelRequest` from an earlier `before_model_request` reaches
-`after_model_request` with a response the run never paid for; it does not reach
-`handler`, so nothing accrues here.
-
 **Bases:** `Generic[AgentDepsT]`
 
 One spend window: what it limits, over what period, for whom.
@@ -444,9 +444,25 @@ Budget(usd=Decimal('100'), window='day')
 Budget(usd=Decimal('10'), window='day', scope=lambda ctx: ctx.deps.tenant_id)
 Budget(window='month', name='accounting')  # counts, never blocks
 ```
-Whether this budget can refuse a request, rather than only counting.
+Ceiling in US dollars. `None` means this budget does not limit spend.
 
-**Type:** `bool`
+**Type:** `Decimal` | `None`**Default:** `None`
+
+Ceiling in total tokens. `None` means this budget does not limit tokens.
+
+**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+
+The period the ceiling applies to.
+
+**Type:** `Window` **Default:** `'day'`
+
+Partitions the counter — per tenant, per user, per agent. `None` counts globally.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+
+Fraction of the ceiling past which `BudgetStatus.warning` is set. Never blocks.
+
+**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `None`
 
 Distinguishes budgets sharing a window and scope. Part of the store key.
 
@@ -463,29 +479,13 @@ cleaned up some other way, or a `timedelta` to pick the horizon outright.
 
 **Type:** `timedelta` | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘window default’, ‘forever’] **Default:** `'window default'`
 
-Partitions the counter — per tenant, per user, per agent. `None` counts globally.
+Whether this budget can refuse a request, rather than only counting.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
-
-Ceiling in total tokens. `None` means this budget does not limit tokens.
-
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** `bool`
 
 How long a store may keep this window’s counter after its last write.
 
 **Type:** `timedelta` | `None`
-
-Ceiling in US dollars. `None` means this budget does not limit spend.
-
-**Type:** `Decimal` | `None`**Default:** `None`
-
-Fraction of the ceiling past which `BudgetStatus.warning` is set. Never blocks.
-
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `None`
-
-The period the ceiling applies to.
-
-**Type:** `Window` **Default:** `'day'`
 
 ```
 def __post_init__() -> None
@@ -502,15 +502,7 @@ later.
 
 What one model response cost, and where every budget stands after it.
 
-One entry per configured budget, in the order they were declared.
-
-**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[`BudgetStatus`, …]
-
 The model that produced the response, or `None` if it reported none.
-
-Whether `usd` is a real price or a stand-in zero.
-
-**Type:** `bool`
 
 The response’s usage verbatim, including cache reads, writes, and audio.
 
@@ -519,6 +511,14 @@ The response’s usage verbatim, including cache reads, writes, and audio.
 What this response cost. Zero when it could not be priced.
 
 **Type:** `Decimal`
+
+Whether `usd` is a real price or a stand-in zero.
+
+**Type:** `bool`
+
+One entry per configured budget, in the order they were declared.
+
+**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[`BudgetStatus`, …]
 
 A budget and how much of it is left.
 
@@ -529,45 +529,45 @@ Unparameterised because this is a reading: the dependency type only types
 
 **Type:** `Budget`[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-Whether a further request would be refused.
-
-**Type:** `bool`
-
 The store key it accumulates under. Useful for debugging a scope or window.
 
 **Type:** `str`
-
-`None` when the budget sets no token limit.
-
-`None` when the budget sets no USD limit.
-
-**Type:** `Decimal` | `None`
 
 What the budget’s current window has accumulated.
 
 **Type:** `Spent`
 
+`None` when the budget sets no USD limit.
+
+**Type:** `Decimal` | `None`
+
+`None` when the budget sets no token limit.
+
 Whether spend has crossed `Budget.warn_at`. Always `False` without one.
+
+**Type:** `bool`
+
+Whether a further request would be refused.
 
 **Type:** `bool`
 
 Everything one window has accumulated so far.
 
-Model requests recorded against this window.
+Priced cost. Requests with no resolvable price contribute nothing here.
+
+**Type:** `Decimal` **Default:** `Decimal(0)`
+
+Total tokens, counted whether or not the request could be priced.
 
 **Type:** `int`**Default:** `0`
 
-Total tokens, counted whether or not the request could be priced.
+Model requests recorded against this window.
 
 **Type:** `int`**Default:** `0`
 
 How many of `requests` had no resolvable price, so `usd` understates them.
 
 **Type:** `int`**Default:** `0`
-
-Priced cost. Requests with no resolvable price contribute nothing here.
-
-**Type:** `Decimal` **Default:** `Decimal(0)`
 
 **Bases:** `Protocol`
 
@@ -583,6 +583,15 @@ method for it.
 `@async`
 
 ```
+def get(key: str) -> Spent
+```
+What `key` has accumulated. A key that was never written reads as zero.
+
+`Spent`
+
+`@async`
+
+```
 def add(
     key: str,
     *,
@@ -594,15 +603,6 @@ def add(
 ) -> Spent
 ```
 Add to `key` and return the result. `ttl` is how long the key may be kept.
-
-`Spent`
-
-`@async`
-
-```
-def get(key: str) -> Spent
-```
-What `key` has accumulated. A key that was never written reads as zero.
 
 `Spent`
 
@@ -639,6 +639,20 @@ Defining `__len__` makes an empty store falsy, so write `if store is not None`.
 `@async`
 
 ```
+def get(key: str) -> Spent
+```
+What `key` has accumulated, treating an expired key as absent.
+
+Under the lock, because `_live` deletes the key it finds expired: unlocked, that
+`del` races the `_sweep` iteration inside `add` (`RuntimeError: dictionary changed size during iteration`) and a second concurrent reader (`KeyError`). Reachable
+whenever the guard is shared across threads — `run_sync` from a pool, a sync
+endpoint — and any key is read past its horizon.
+
+`Spent`
+
+`@async`
+
+```
 def add(
     key: str,
     *,
@@ -656,20 +670,6 @@ cannot interleave halfway through it. The lock covers the case that is
 not free: `run_sync` called from a thread pool, or a free-threaded
 interpreter, where a read-modify-write loses updates in the direction
 that under-counts spend.
-
-`Spent`
-
-`@async`
-
-```
-def get(key: str) -> Spent
-```
-What `key` has accumulated, treating an expired key as absent.
-
-Under the lock, because `_live` deletes the key it finds expired: unlocked, that
-`del` races the `_sweep` iteration inside `add` (`RuntimeError: dictionary changed size during iteration`) and a second concurrent reader (`KeyError`). Reachable
-whenever the guard is shared across threads — `run_sync` from a pool, a sync
-endpoint — and any key is read past its horizon.
 
 `Spent`
 
@@ -691,6 +691,15 @@ Any client exposing `hgetall` and `eval`.
 Namespace for the keys, so a shared Redis stays tidy.
 
 **Type:** `str`**Default:** `'pydantic-ai-harness:spend'`
+
+`@async`
+
+```
+def get(key: str) -> Spent
+```
+What `key` has accumulated. An absent hash reads as zero.
+
+`Spent`
 
 `@async`
 
@@ -722,15 +731,6 @@ One window, because the key is one window. A response counting against a day and
 a month budget is two calls, so a failure between them leaves the day counted and
 the month not; see `SpendLimits.wrap_model_request` and
 [https://github.com/pydantic/pydantic-ai-harness/issues/536](https://github.com/pydantic/pydantic-ai-harness/issues/536).
-
-`Spent`
-
-`@async`
-
-```
-def get(key: str) -> Spent
-```
-What `key` has accumulated. An absent hash reads as zero.
 
 `Spent`
 

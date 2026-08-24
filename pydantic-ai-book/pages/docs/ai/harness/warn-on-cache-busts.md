@@ -4,7 +4,7 @@ title: Warn On Cache Busts | Pydantic Docs
 description: Warn when a run's prompt-cache hit collapses between model requests,
   so a moved prefix or an expired cache surfaces instead of silently re-charging tokens.
 resource: https://pydantic.dev/docs/ai/harness/warn-on-cache-busts
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Warn On Cache Busts
@@ -99,12 +99,6 @@ The monitor is silent when caching is off or unreported (`cache_read_tokens` sta
 it never fires spuriously in tests that don’t exercise caching. Silencing and dev/CI
 escalation both go through the stdlib `warnings` filters — see `CacheBustWarning`.
 
-Assumed provider cache TTL, in seconds (Anthropic’s default is 300, refreshed on each hit).
-
-Message-only: when the gap since the previous request for the same model exceeds this, the warning notes that the collapse may be a provider-side cache expiry rather than a moved prefix. It does not change whether a warning fires. Lower it for providers with a shorter cache lifetime.
-
-**Type:** `float`**Default:** `300.0`
-
 Warn when a request reads back less than this fraction of the established prefix.
 
 Conservative by default (0.5): only a drop below half the previously-cached prefix counts as a collapse, so ordinary provider rounding or a partial cache miss does not fire. Raise it toward 1.0 to warn on smaller regressions. Must be greater than 0.0 (a ratio of 0.0 could never warn, so it is rejected rather than treated as a silent disable switch).
@@ -118,6 +112,21 @@ noisy or zero, so small prefixes are ignored to avoid false positives.
 
 **Type:** `int`**Default:** `1024`
 
+Assumed provider cache TTL, in seconds (Anthropic’s default is 300, refreshed on each hit).
+
+Message-only: when the gap since the previous request for the same model exceeds this, the warning notes that the collapse may be a provider-side cache expiry rather than a moved prefix. It does not change whether a warning fires. Lower it for providers with a shorter cache lifetime.
+
+**Type:** `float`**Default:** `300.0`
+
+`@async`
+
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
+```
+Give this run a fresh per-key state (marks, timing, step) so each run is judged alone.
+
+`AbstractCapability`[`AgentDepsT`]
+
 `@async`
 
 ```
@@ -129,15 +138,6 @@ def after_model_request(
 ) -> ModelResponse
 ```
 Compare this response’s cache read against the established prefix for its model, then update it.
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> AbstractCapability[AgentDepsT]
-```
-Give this run a fresh per-key state (marks, timing, step) so each run is judged alone.
-
-`AbstractCapability`[`AgentDepsT`]
 
 **Bases:** `UserWarning`
 

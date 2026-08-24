@@ -4,7 +4,7 @@ title: Managed Prompt | Pydantic Docs
 description: Back a Pydantic AI agent's instructions with a Logfire-managed prompt
   so you can version, label, and roll it out without redeploying.
 resource: https://pydantic.dev/docs/ai/harness/managed-prompt
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Managed Prompt
@@ -218,10 +218,7 @@ backing variable, so sharing a prompt across several agents just works. Pass an 
 when you want to use a variable you defined yourself (for example a `template_var`, or one
 registered for [`variables_push`](https://logfire.pydantic.dev/docs/api/logfire/#logfire.Logfire.variables_push)).
 
-Attributes for condition-based targeting rules, or a callable that derives them
-from the [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext).
-
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
+The managed prompt name (declared as the variable `prompt__<name>`), or a pre-built `logfire.Variable`.
 
 Code-default prompt text. Required when `name` is a prompt name; ignored when `name` is a `Variable`.
 
@@ -232,28 +229,6 @@ When `None`, the targeting rules on the managed variable select the label.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Logfire instance to resolve the variable on. When `None`, the global default instance
-(the one backing the module-level `logfire.var`) is used. Ignored when
-`name` is a `Variable`.
-
-**Type:** `Logfire` | `None`**Default:** `None`
-
-The managed prompt name (declared as the variable `prompt__<name>`), or a pre-built `logfire.Variable`.
-
-When `True`, render the resolved prompt as a Handlebars template against the agent’s
-`deps` (the same mechanism as [`TemplateStr`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr)); `{{field}}` is
-filled from `deps`. Requires `pydantic-handlebars` (install `pydantic-ai-slim[spec]`).
-Defaults to `False`, so the resolved prompt is used verbatim.
-
-**Type:** `bool`**Default:** `False`
-
-The prompt resolution for the active run, or `None` outside a run.
-
-Exposes the full `ResolvedVariable` (`value`, `label`,
-`version`, `reason`, …) so callers can inspect which prompt version is in play.
-
-**Type:** `ResolvedVariable`[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`
-
 Stable key that seeds Logfire’s deterministic rollout assignment — the same key always
 lands in the same percentage bucket, so a given user keeps the same label across runs.
 Accepts a static value or a callable that derives it from the
@@ -262,12 +237,30 @@ targeting context and then the active trace id.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
 
-```
-def get_instructions() -> Callable[[RunContext[AgentDepsT]], str | None]
-```
-Provide the resolved prompt to the agent’s system prompt.
+Attributes for condition-based targeting rules, or a callable that derives them
+from the [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext).
 
-[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
+
+When `True`, render the resolved prompt as a Handlebars template against the agent’s
+`deps` (the same mechanism as [`TemplateStr`](/docs/ai/api/pydantic-ai/template/#pydantic_ai.template.TemplateStr)); `{{field}}` is
+filled from `deps`. Requires `pydantic-handlebars` (install `pydantic-ai-slim[spec]`).
+Defaults to `False`, so the resolved prompt is used verbatim.
+
+**Type:** `bool`**Default:** `False`
+
+Logfire instance to resolve the variable on. When `None`, the global default instance
+(the one backing the module-level `logfire.var`) is used. Ignored when
+`name` is a `Variable`.
+
+**Type:** `Logfire` | `None`**Default:** `None`
+
+The prompt resolution for the active run, or `None` outside a run.
+
+Exposes the full `ResolvedVariable` (`value`, `label`,
+`version`, `reason`, …) so callers can inspect which prompt version is in play.
+
+**Type:** `ResolvedVariable`[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`
 
 ```
 def get_ordering() -> CapabilityOrdering
@@ -275,6 +268,13 @@ def get_ordering() -> CapabilityOrdering
 Run outermost so the prompt’s baggage envelops the whole run, including the run span.
 
 `CapabilityOrdering`
+
+```
+def get_instructions() -> Callable[[RunContext[AgentDepsT]], str | None]
+```
+Provide the resolved prompt to the agent’s system prompt.
+
+[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
 
 `@async`
 

@@ -4,7 +4,7 @@ title: StackOne | Pydantic Docs
 description: Let a Pydantic AI agent use actions from one of the user's linked business
   applications through StackOne.
 resource: https://pydantic.dev/docs/ai/harness/stackone
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # StackOne
@@ -142,10 +142,13 @@ The linked account to act on (one account is one provider connection).
 
 **Type:** `str`
 
-`fnmatch` globs over full tool names (case-insensitive), e.g. `['*_list_*']`.
-Giving `actions` switches the default `tool_mode` to `individual`, where the globs apply.
+Stable capability and toolset ID. Override it when one agent uses several StackOne accounts.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `()`
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_ID`
+
+Routing description used when the capability is loaded on demand.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_DESCRIPTION`
 
 StackOne API key. Defaults to the `STACKONE_API_KEY` environment variable.
 
@@ -155,19 +158,17 @@ HTTPS StackOne API host. Point at a regional or staging host if needed.
 
 **Type:** `str`**Default:** `STACKONE_BASE_URL`
 
-Replacement for the default `{base_url}/mcp` connection. URL values must use HTTPS;
-prebuilt clients keep their own transport, auth, and account selection, so `account_id`
-is not applied to them.
+`fnmatch` globs over full tool names (case-insensitive), e.g. `['*_list_*']`.
+Giving `actions` switches the default `tool_mode` to `individual`, where the globs apply.
 
-**Type:** `MCPToolsetClient` | `None`**Default:** `field(default=None, repr=False)`
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `()`
 
-Routing description used when the capability is loaded on demand.
+`individual` registers one tool per enabled action; `search_execute` registers two
+server-side meta-tools (search the catalog, execute an action by id) whose prompt
+footprint stays constant however large the catalog is. `None` picks `search_execute`,
+or `individual` when `actions` are given.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_DESCRIPTION`
-
-Stable capability and toolset ID. Override it when one agent uses several StackOne accounts.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_ID`
+**Type:** `ToolMode` | `None`**Default:** `None`
 
 Inject StackOne usage instructions into the system prompt.
 
@@ -178,12 +179,23 @@ Metadata merged onto every tool, available to tool-selection machinery such as
 
 **Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
-`individual` registers one tool per enabled action; `search_execute` registers two
-server-side meta-tools (search the catalog, execute an action by id) whose prompt
-footprint stays constant however large the catalog is. `None` picks `search_execute`,
-or `individual` when `actions` are given.
+Replacement for the default `{base_url}/mcp` connection. URL values must use HTTPS;
+prebuilt clients keep their own transport, auth, and account selection, so `account_id`
+is not applied to them.
 
-**Type:** `ToolMode` | `None`**Default:** `None`
+**Type:** `MCPToolsetClient` | `None`**Default:** `field(default=None, repr=False)`
+
+```
+def get_toolset() -> StackOneToolset[AgentDepsT]
+```
+Build the StackOne toolset.
+
+`StackOneToolset`[`AgentDepsT`]
+
+```
+def get_instructions() -> str | None
+```
+StackOne usage guidance; the underlying MCP toolset provides none itself.
 
 `@classmethod`
 
@@ -207,24 +219,12 @@ Construct from serializable options, excluding the runtime-only `client`.
 
 `StackOne`[`AgentDepsT`]
 
-```
-def get_instructions() -> str | None
-```
-StackOne usage guidance; the underlying MCP toolset provides none itself.
-
 `@classmethod`
 
 ```
 def get_serialization_name(cls) -> str
 ```
 Return the agent-spec capability name.
-
-```
-def get_toolset() -> StackOneToolset[AgentDepsT]
-```
-Build the StackOne toolset.
-
-`StackOneToolset`[`AgentDepsT`]
 
 **Bases:** `MCPToolset[AgentDepsT]`
 

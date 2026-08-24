@@ -2,7 +2,7 @@
 type: Web Page
 title: Timeouts | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/timeouts
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Timeouts
@@ -15,7 +15,7 @@ Each knob below bounds a different unit of work. None of them bounds the wall-cl
 |---|---|---|
 | A single model request | `timeout` on[`ModelSettings`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) | The provider client raises; the run fails unless a [`FallbackModel`](/docs/ai/models/overview/#fallback-model) or a[transport retry](/docs/ai/models/http-request-retries/) handles it | 
 | A function tool call | `Agent(tool_timeout=...)` , or`timeout=` on an individual tool — see[Tool Timeout](/docs/ai/tools-toolsets/tools-advanced/#tool-timeout) | The model receives a retry prompt `'Timed out after N seconds.'` , consuming that tool’s[retry budget](/docs/ai/core-concepts/retries/#tool-retries) . A`def` tool is not actually stopped: the deadline is enforced around the await, so the worker thread runs to completion | 
-| A [hook](/docs/ai/core-concepts/hooks/) function | `timeout=` on the`@hooks.on.*` decorator | [`HookTimeoutError`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.HookTimeoutError) , which is an[`AgentRunError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.AgentRunError) and aborts the run | 
+| A [hook](/docs/ai/core-concepts/hooks/) function | `timeout=` on the`@hooks.on.*` decorator | [`HookTimeoutError`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.HookTimeoutError) , which is an[`AgentRunError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.AgentRunError) and aborts the run. Like a`def` tool, a`def` hook is not actually stopped: the worker thread runs to completion | 
 | Connecting to an MCP server | `MCPToolset(init_timeout=...)` , default`5` seconds | The connection and `initialize` handshake fail | 
 | A single MCP request | `MCPToolset(read_timeout=...)` , default`300` seconds | The request fails; under the default [`tool_error_behavior='retry'`](/docs/ai/mcp/client/#tool-errors) the model sees it as a retryable tool error | 
 | Opening a [realtime session](/docs/ai/realtime/overview/) | `handshake_timeout` on[`RealtimeModelSettings`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeModelSettings) , default`30` seconds — OpenAI, Azure OpenAI, and xAI | Opening the session raises [`RealtimeError`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeError) . On a reconnect it consumes a[`ReconnectPolicy`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.ReconnectPolicy) attempt instead | 

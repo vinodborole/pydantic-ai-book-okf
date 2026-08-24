@@ -4,7 +4,7 @@ title: FileSystem | Pydantic Docs
 description: Give a Pydantic AI agent sandboxed, glob-filtered file access scoped
   to a single directory tree, with symlink-safe containment checks.
 resource: https://pydantic.dev/docs/ai/harness/filesystem
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # FileSystem
@@ -50,15 +50,22 @@ the root you give it.
 | `edit_file` | Exact-string replacement; `old_text` must match exactly once. Optional`expected_hash` . | 
 | `list_directory` | List a directory’s entries with type indicators and sizes. | 
 | `search_files` | Regex search over file contents, optionally narrowed by an `include_glob` . | 
-| `find_files` | Glob search over file names (e.g. `*.py` ,`**/*.json` ). The pattern must be relative to the searched directory. | 
+| `find_files` | Glob search over file names (e.g. `*.py` ,`**/*.json` ). The pattern is relative to`path` ; absolute patterns are rejected. | 
 | `create_directory` | Create a directory and any missing parents. | 
 | `file_info` | Metadata for a file or directory (size, type, line count, hash, symlink target). | 
 
 Tool errors the model can correct — a missing file, a denied path, a stale
-edit — are surfaced as
+edit, a directory that collides with an existing file, an invalid glob pattern,
+a path name rejected by Windows, a path name the filesystem cannot encode, an
+over-long path name, a symlink loop — are surfaced as
 [`ModelRetry`](/docs/ai/core-concepts/agent/#reflection-and-self-correction),
 so the agent gets the error message back and can adjust rather than aborting
-the run.
+the run. Failures the model can do nothing about, such as a full or read-only
+disk, still abort.
+
+When an OS error supplies a filename, `FileSystem` reports it relative to
+`root_dir`; paths outside `root_dir` become `<outside-workspace>`. `file_info`
+applies the same rule to absolute symlink targets.
 
 - **Containment.** Paths resolve relative to`root_dir` ; anything resolving
 outside — via`..` , an absolute path, or a symlink — is rejected. Symlinks
@@ -72,6 +79,11 @@ resolution and I/O, the path read can differ from the path checked.
 binary bytes into the model context.
 - **Optimistic concurrency.**`write_file` /`edit_file` accept an`expected_hash` so an agent operating on a stale read is told to re-read
 rather than silently overwriting newer content.
+- **Regular write targets.**`write_file` rejects an existing target that is
+not a regular file. On POSIX, it opens the final target descriptor in
+non-blocking mode and checks that descriptor’s type before truncating, so a
+FIFO at the final component cannot stall the tool even if it is swapped into
+place during the write.
 
 Three independent glob lists control access. Patterns are matched with
 `fnmatch`, whose `*` spans `/`, so `*.py` matches `src/main.py` and you rarely
@@ -161,6 +173,10 @@ File system access scoped to a root directory.
 All paths are resolved relative to `root_dir`. Traversal above the root
 is rejected. Symlinks are resolved before authorization.
 
+Root directory for all file operations. Defaults to the current directory.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
+
 If non-empty, only paths matching at least one glob pattern are accessible.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
@@ -169,22 +185,6 @@ Paths matching any of these glob patterns are rejected.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
-Maximum number of matches returned by `find_files`.
-
-**Type:** `int`**Default:** `1000`
-
-Maximum number of entries returned by `list_directory`.
-
-**Type:** `int`**Default:** `1000`
-
-Maximum number of lines returned by a single `read_file` call.
-
-**Type:** `int`**Default:** `2000`
-
-Maximum number of matches returned by `search_files`.
-
-**Type:** `int`**Default:** `1000`
-
 Paths matching these patterns are read-only (writes are rejected).
 
 Defaults to protecting `.git/`, `.env`, key files, and secrets.
@@ -192,13 +192,25 @@ Set to an empty list to disable protection.
 
 **Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(lambda: list(_DEFAULT_PROTECTED)))`
 
+Maximum number of lines returned by a single `read_file` call.
+
+**Type:** `int`**Default:** `2000`
+
+Maximum number of entries returned by `list_directory`.
+
+**Type:** `int`**Default:** `1000`
+
+Maximum number of matches returned by `search_files`.
+
+**Type:** `int`**Default:** `1000`
+
+Maximum number of matches returned by `find_files`.
+
+**Type:** `int`**Default:** `1000`
+
 Whether to expose only the tools in `READ_ONLY_TOOL_NAMES`.
 
 **Type:** `bool`**Default:** `False`
-
-Root directory for all file operations. Defaults to the current directory.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
 
 ```
 def get_toolset() -> FileSystemToolset[AgentDepsT] | FilteredToolset[AgentDepsT]

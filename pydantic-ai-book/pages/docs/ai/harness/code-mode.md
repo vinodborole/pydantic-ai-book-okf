@@ -4,7 +4,7 @@ title: Code Mode | Pydantic Docs
 description: Wrap an agent's tools into a single sandboxed run_code tool so the model
   orchestrates many calls in one Python program instead of many round-trips.
 resource: https://pydantic.dev/docs/ai/harness/code-mode
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Code Mode
@@ -55,7 +55,7 @@ tokyo_c = round((tokyo['temp_f'] - 32) * 5 / 9, 1)
 ```
 Both weather lookups run in parallel and the conversions run inside Monty, all within one `run_code` call.
 
-By default, `CodeMode(tools='all')` sandboxes every eligible regular tool. Framework control tools, undiscovered deferred tools, native fallbacks, and other code-execution tools remain native. The `tools` field is a Pydantic AI `ToolSelector`, so you can control which eligible tools go through the sandbox. Tools that match the selector become callables inside `run_code`; non-matching tools stay visible to the model as regular tool calls.
+By default, `CodeMode(tools='all')` sandboxes every eligible regular tool. Framework control tools, undiscovered deferred tools, native fallbacks, and other code-execution tools remain native. Shell surfaces count as code-execution tools: `Shell`’s `run_command` and `start_command`, and `ModalSandbox`’s `run_command`, sit beside `run_code` rather than inside it, so the model never has to quote a shell command inside a generated Python string. `CapabilityCreation`’s `author_capability` stays native for the same reason: its argument is a complete Python module. Their non-command tools (`read_file`, `check_command`, and so on) are folded into `run_code` like any other tool. The `tools` field is a Pydantic AI `ToolSelector`, so you can control which eligible tools go through the sandbox. Tools that match the selector become callables inside `run_code`; non-matching tools stay visible to the model as regular tool calls.
 
 ```
 from pydantic_ai_harness import CodeMode
@@ -126,6 +126,50 @@ Reserve `print()` for supplementary logging: printed text is surfaced separately
 
 Printed output is limited to 10 MiB. Exceeding the limit makes `run_code` return a model retry.
 
+Sandbox execution is bounded by `resource_limits`, which defaults to 30 seconds of execution time
+and a 256 MiB heap. What this guarantees is a per-snippet ceiling: no single `run_code` snippet runs
+longer than `max_duration_secs` of sandbox time, which is what stops a runaway loop. Time spent
+awaiting a nested tool is excluded from that timer.
+
+It is not a run-wide CPU budget, and it cannot be relied on as one. Monty applies the limits per
+sandbox session, so consecutive `run_code` calls draw down one shared allowance and each new session
+starts with a full one. Sessions are replaced by `restart: true` and by the failures that reset the
+REPL: a worker crash, a type error, a host-side failure, and a syntax error before any code has run.
+Each of those renews the allowance without the model asking for a restart. An ordinary exception
+inside a snippet is not one of them.
+
+Once a session’s allowance is spent, every later `run_code` call fails on arrival, including
+snippets that would cost almost nothing, because they reuse the same session. Rewriting the code
+does not help. `restart: true` is what recovers it, at the cost of the REPL state that session was
+holding, so any variables, imports, and definitions have to be recreated. `run_code` says as much
+in the retry it returns, and that retry also reports the nested calls the snippet already made, so
+restarting does not throw away the only record of them. The behaviour is worth knowing when
+choosing `max_duration_secs`: set it low and a long agent run will spend it on ordinary work and
+pay a restart to continue.
+
+Nested tool calls are bounded separately by `max_tool_calls`, which defaults to 100 per `run_code`
+call. The budget is reserved before each call is scheduled, so a snippet cannot dispatch more work
+than it allows. A call past the budget fails at its call site inside the sandbox. A snippet that
+catches the error keeps the results of the calls that already completed and can return them. A
+snippet that lets it propagate gets a model retry reporting how many nested calls started,
+followed by per-call detail: what each was called with, and whether it returned, raised, or was
+denied. Calls that raised are included rather than filtered out, since a tool can apply a change
+before failing. That detail is bounded — arguments and results are previewed, and the list stops
+at a size cap and says how many entries it left out — so a large payload cannot inflate the
+retry. The reported total stays exact whether or not the list was cut, which is what tells the
+model some calls are missing from what it can see. The list is context for the model, not a guard:
+nothing stops it from calling those tools again, so treat it as informing the next attempt rather
+than preventing a repeat.
+
+Override them with `resource_limits={'max_duration_secs': 10, 'max_memory': 134_217_728}` and
+`max_tool_calls=25`. Pass `resource_limits='unlimited'` only when another execution boundary
+supplies equivalent limits.
+
+When `CodeMode` runs inside a Temporal workflow, it disables `max_duration_secs`, including an
+explicit override. `run_code` is replayed in workflow code, so measuring elapsed time there could
+make replay choose a different path from the recorded workflow. The memory cap still applies. Put
+time-bounded work behind a Temporal activity instead.
+
 State persists between `run_code` calls within the same agent run — variables, imports, and function definitions carry over. Pass `restart: true` in the tool call to reset state. If a worker crash or host-side execution failure invalidates the session, `run_code` returns a model retry that reports the reset; the next snippet must recreate any required state.
 
 Install both integrations:
@@ -160,7 +204,7 @@ workflow schedules and cause a `NondeterminismError`. Put external reads, writes
 other side effects in wrapped tools so Temporal records them as activities. Replay may not flag
 changed arguments when the same activity remains at the same history position, so replay validation
 is not a substitute for this boundary. Temporal activity timeouts apply to nested tools, not pure
-computation inside `run_code`, so keep sandbox loops bounded.
+computation inside `run_code`; move time-bounded computation behind an activity.
 
 Nested tool calls inside `run_code` produce their own spans when instrumented with [Logfire](https://pydantic.dev/logfire) or any OpenTelemetry backend — the easiest way to understand what code mode actually did, since each `run_code` span fans out into the tool calls the model issued from inside the sandbox. See the [Pydantic AI Logfire docs](/docs/ai/integrations/logfire/) for setup.
 
@@ -312,6 +356,42 @@ OS handlers can expose other host resources.
 from pydantic_monty import MountDir
 agent = Agent('openai:gpt-5', capabilities=[CodeMode(mount=MountDir(virtual_path='/work', host_path='/tmp/agent-work'))])
 ```
+Which wrapped tools should be sandboxed inside `run_code`.
+
+- `'all'` (default): every eligible regular tool the agent has is sandboxed.
+- `Sequence[str]` : only tools whose names are listed are sandboxed.
+- Callable `(ctx, tool_def) -> bool | Awaitable[bool]` : tools where the
+callable returns`True` are sandboxed; the rest stay as native tool calls.
+
+**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `field(default='all')`
+
+Maximum number of retries for the `run_code` tool (syntax errors count as retries).
+
+**Type:** `int`**Default:** `3`
+
+Maximum nested tool calls dispatched by one `run_code` invocation.
+
+Budget is reserved before each call is scheduled, so a snippet cannot allocate host tasks beyond this many. Calls past the budget are refused at the sandbox call site.
+
+**Type:** `int`**Default:** `100`
+
+Give sandboxed code environment variables, the clock, and file I/O through a handler you provide; unset, they are unavailable.
+
+**Type:** `CodeModeOS` | `None`**Default:** `None`
+
+Host directories to expose to sandboxed `pathlib` code; each mount’s `mode` controls whether writes reach the host.
+
+**Type:** `CodeModeMount` | `None`**Default:** `None`
+
+Sandbox execution limits, applied per Monty session.
+
+`None` applies a 30-second execution and 256 MiB heap backstop. The guarantee is per snippet:
+no single `run_code` snippet runs longer than `max_duration_secs`. It is not a run-wide budget,
+since consecutive calls share one session allowance and any reset of the session (`restart: true`, a crash, a type error, a host-side failure) starts a fresh one. `'unlimited'` removes
+both caps.
+
+**Type:** `CodeModeResourceLimits` | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘unlimited’] | `None`**Default:** `None`
+
 Keep the `run_code` tool definition cache-stable as the sandboxed toolset grows.
 
 By default the signatures of all sandboxed tools are rendered into `run_code`’s
@@ -341,40 +421,30 @@ keeps the system prompt shorter and is the better choice.
 
 **Type:** `bool`**Default:** `False`
 
-Maximum number of retries for the `run_code` tool (syntax errors count as retries).
+```
+def get_ordering() -> CapabilityOrdering
+```
+CodeMode wraps around ToolSearch so that search_tools stays native.
 
-**Type:** `int`**Default:** `3`
-
-Host directories to expose to sandboxed `pathlib` code; each mount’s `mode` controls whether writes reach the host.
-
-**Type:** `CodeModeMount` | `None`**Default:** `None`
-
-Give sandboxed code environment variables, the clock, and file I/O through a handler you provide; unset, they are unavailable.
-
-**Type:** `CodeModeOS` | `None`**Default:** `None`
-
-Which wrapped tools should be sandboxed inside `run_code`.
-
-- `'all'` (default): every eligible regular tool the agent has is sandboxed.
-- `Sequence[str]` : only tools whose names are listed are sandboxed.
-- Callable `(ctx, tool_def) -> bool | Awaitable[bool]` : tools where the
-callable returns`True` are sandboxed; the rest stay as native tool calls.
-
-**Type:** `ToolSelector`[`AgentDepsT`] **Default:** `field(default='all')`
+`CapabilityOrdering`
 
 `@async`
 
 ```
-def after_model_request(
-    ctx: RunContext[AgentDepsT],
-    *,
-    request_context: ModelRequestContext,
-    response: ModelResponse,
-) -> ModelResponse
+def for_run(ctx: RunContext[AgentDepsT]) -> CodeMode[AgentDepsT]
 ```
-Announce newly-discovered tools from a native (server-side) tool-search return.
+Return a fresh instance so concurrent runs don’t share `_announced_tools`.
 
-Only active with `dynamic_catalog=True`.
+`CodeMode`[`AgentDepsT`]
+
+```
+def get_wrapper_toolset(
+    toolset: AbstractToolset[AgentDepsT],
+) -> AbstractToolset[AgentDepsT] | None
+```
+Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
+
+[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
 
 `@async`
 
@@ -398,27 +468,16 @@ execute result).
 `@async`
 
 ```
-def for_run(ctx: RunContext[AgentDepsT]) -> CodeMode[AgentDepsT]
+def after_model_request(
+    ctx: RunContext[AgentDepsT],
+    *,
+    request_context: ModelRequestContext,
+    response: ModelResponse,
+) -> ModelResponse
 ```
-Return a fresh instance so concurrent runs don’t share `_announced_tools`.
+Announce newly-discovered tools from a native (server-side) tool-search return.
 
-`CodeMode`[`AgentDepsT`]
-
-```
-def get_ordering() -> CapabilityOrdering
-```
-CodeMode wraps around ToolSearch so that search_tools stays native.
-
-`CapabilityOrdering`
-
-```
-def get_wrapper_toolset(
-    toolset: AbstractToolset[AgentDepsT],
-) -> AbstractToolset[AgentDepsT] | None
-```
-Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
-
-[`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
+Only active with `dynamic_catalog=True`.
 
 # Citations
 

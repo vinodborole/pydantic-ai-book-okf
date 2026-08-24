@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # OpenAI
@@ -354,7 +354,7 @@ agent = Agent(model)
 You can also customize any provider with a custom `http_client`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.deepseek import DeepSeekProvider
@@ -368,6 +368,8 @@ model = OpenAIChatModel(
 agent = Agent(model)
 ...
 ```
+OpenAI-compatible providers also accept a legacy `httpx.AsyncClient` during Pydantic AI v2, but emit a deprecation warning. Use `httpx2.AsyncClient` for new code; legacy HTTPX client support will be removed in Pydantic AI v3.
+
 As an alternative to the Chat Completions API shown above, DeepSeek also serves an OpenAI-compatible [Responses API](#responses-api-features), [currently for the `deepseek-v4-flash` model only](https://api-docs.deepseek.com/guides/responses_api). Use it by pairing [`OpenAIResponsesModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) with [`DeepSeekProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.deepseek.DeepSeekProvider):
 
 ```

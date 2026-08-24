@@ -4,7 +4,7 @@ title: Memory | Pydantic Docs
 description: Persistent, namespaced agent notebooks with bounded prompt injection,
   on-demand search, and concurrency-safe stores.
 resource: https://pydantic.dev/docs/ai/harness/memory
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Memory
@@ -214,13 +214,17 @@ can then be wrapped by those integrations. DBOS does not currently wrap an
 ordinary `FunctionToolset` as a durable step, so this capability’s tools are
 not DBOS-durable without an application-provided DBOS step wrapper.
 
+Storage backend. The default persists only for the process lifetime.
+
+**Type:** `MemoryStore` **Default:** `field(default_factory=InMemoryStore)`
+
+Optional per-run store resolver. Resolver failures always propagate.
+
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], `MemoryStore`] | `None`**Default:** `None`
+
 Storage segment that isolates memory within a namespace. Part of the scope key only; never rendered into the model-facing memory block.
 
 **Type:** `str`**Default:** `'main'`
-
-Override injected usage guidance; `''` disables guidance.
-
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
 Markdown heading for rendered guidance and the injected memory block,
 rendered as `## {heading}` when set. The default is empty: the block already
@@ -230,13 +234,17 @@ instance when several `Memory` capabilities share one agent (for example
 
 **Type:** `str`**Default:** `field(default='', kw_only=True)`
 
+Static or per-run tenant namespace, never exposed as a tool argument.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `''`
+
 Inject stored memory when true; otherwise inject static tool guidance only.
 
 **Type:** `bool`**Default:** `True`
 
-Whether store failures during automatic injection are ignored or raised.
+Approximate total token ceiling for the complete injected memory section.
 
-**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘ignore’, ‘raise’] **Default:** `'ignore'`
+**Type:** `int`**Default:** `2000`
 
 Maximum number of `MEMORY.md` content lines considered for injection.
 
@@ -246,33 +254,57 @@ Per-file character boundary for backend reads, search, and writes.
 
 **Type:** `int`**Default:** `65536`
 
-Maximum files scanned by one search.
+Maximum matches returned by one search.
 
-**Type:** `int`**Default:** `1000`
+**Type:** `int`**Default:** `10`
 
 Maximum combined snippet characters returned by one search.
 
 **Type:** `int`**Default:** `4000`
 
-Maximum matches returned by one search.
+Maximum files scanned by one search.
 
-**Type:** `int`**Default:** `10`
+**Type:** `int`**Default:** `1000`
 
-Approximate total token ceiling for the complete injected memory section.
+Override injected usage guidance; `''` disables guidance.
 
-**Type:** `int`**Default:** `2000`
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
-Static or per-run tenant namespace, never exposed as a tool argument.
+Whether store failures during automatic injection are ignored or raised.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `''`
+**Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘ignore’, ‘raise’] **Default:** `'ignore'`
 
-Storage backend. The default persists only for the process lifetime.
+`@async`
 
-**Type:** `MemoryStore` **Default:** `field(default_factory=InMemoryStore)`
+```
+def for_run(ctx: RunContext[AgentDepsT]) -> Memory[AgentDepsT]
+```
+Return a clone with scope resolution isolated to this run.
 
-Optional per-run store resolver. Resolver failures always propagate.
+`Memory`[`AgentDepsT`]
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], `MemoryStore`] | `None`**Default:** `None`
+```
+def resolve_scope(ctx: RunContext[AgentDepsT]) -> tuple[MemoryStore, str]
+```
+Return the cached run scope, or resolve one for direct toolset use.
+
+```
+def get_toolset() -> AgentToolset[AgentDepsT] | None
+```
+Provide the stable `memory` toolset.
+
+[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
+
+```
+def get_instructions() -> AgentInstructions[AgentDepsT] | None
+```
+Provide trusted static guidance about using memory.
+
+Stored memory is added separately as user-role context by
+`before_model_request` so model-written content is not placed in the
+instruction channel.
+
+`AgentInstructions`[`AgentDepsT`] | `None`
 
 `@async`
 
@@ -283,15 +315,6 @@ def before_model_request(
 ) -> ModelRequestContext
 ```
 Add a bounded memory snapshot to only the current user request.
-
-`@async`
-
-```
-def for_run(ctx: RunContext[AgentDepsT]) -> Memory[AgentDepsT]
-```
-Return a clone with scope resolution isolated to this run.
-
-`Memory`[`AgentDepsT`]
 
 `@classmethod`
 
@@ -320,35 +343,12 @@ Construct a memory capability from serializable options.
 
 `Memory`[`AgentDepsT`]
 
-```
-def get_instructions() -> AgentInstructions[AgentDepsT] | None
-```
-Provide trusted static guidance about using memory.
-
-Stored memory is added separately as user-role context by
-`before_model_request` so model-written content is not placed in the
-instruction channel.
-
-`AgentInstructions`[`AgentDepsT`] | `None`
-
 `@classmethod`
 
 ```
 def get_serialization_name(cls) -> str | None
 ```
 Return the name used by custom capability specs.
-
-```
-def get_toolset() -> AgentToolset[AgentDepsT] | None
-```
-Provide the stable `memory` toolset.
-
-[`AgentToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AgentToolset)[`AgentDepsT`] | `None`
-
-```
-def resolve_scope(ctx: RunContext[AgentDepsT]) -> tuple[MemoryStore, str]
-```
-Return the cached run scope, or resolve one for direct toolset use.
 
 **Bases:** `FunctionToolset[AgentDepsT]`
 
@@ -357,63 +357,6 @@ Scoped read/write/delete/search tools with CAS and durable idempotency.
 The stable `memory` ID lets Temporal and Prefect wrap this static toolset.
 DBOS does not currently turn an ordinary `FunctionToolset` into a durable
 step, so applications requiring DBOS durability must provide that wrapper.
-
-`@async`
-
-```
-def delete_memory(ctx: RunContext[AgentDepsT], file: str) -> MemoryDeleteResult
-```
-Delete a non-main memory file that is no longer useful.
-
-`MEMORY.md` cannot be deleted; remove or correct its text with
-`write_memory` instead.
-
-`MemoryDeleteResult`
-
-**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
-
-Framework-provided run context.
-
-**`file`** : `str`
-
-Memory filename to delete.
-
-`@async`
-
-```
-def read_memory(ctx: RunContext[AgentDepsT], file: str) -> str
-```
-Read a bounded prefix of one memory file.
-
-Memory may be stale background context, so verify volatile facts before relying on them.
-
-**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
-
-Framework-provided run context.
-
-**`file`** : `str`
-
-Memory filename returned by injection or search.
-
-`@async`
-
-```
-def search_memory(ctx: RunContext[AgentDepsT], query: str) -> MemorySearchResponse
-```
-Search memory files in the current tenant and agent scope.
-
-Results contain bounded snippets; call `read_memory` when a larger
-bounded excerpt is relevant.
-
-`MemorySearchResponse`
-
-**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
-
-Framework-provided run context.
-
-**`query`** : `str`
-
-Terms to find in memory filenames and content.
 
 `@async`
 
@@ -448,6 +391,63 @@ Text to append, or replacement text for `old_text`.
 Memory filename; defaults to `MEMORY.md`.
 
 Exact passage to replace, which must occur once.
+
+`@async`
+
+```
+def read_memory(ctx: RunContext[AgentDepsT], file: str) -> str
+```
+Read a bounded prefix of one memory file.
+
+Memory may be stale background context, so verify volatile facts before relying on them.
+
+**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
+
+Framework-provided run context.
+
+**`file`** : `str`
+
+Memory filename returned by injection or search.
+
+`@async`
+
+```
+def delete_memory(ctx: RunContext[AgentDepsT], file: str) -> MemoryDeleteResult
+```
+Delete a non-main memory file that is no longer useful.
+
+`MEMORY.md` cannot be deleted; remove or correct its text with
+`write_memory` instead.
+
+`MemoryDeleteResult`
+
+**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
+
+Framework-provided run context.
+
+**`file`** : `str`
+
+Memory filename to delete.
+
+`@async`
+
+```
+def search_memory(ctx: RunContext[AgentDepsT], query: str) -> MemorySearchResponse
+```
+Search memory files in the current tenant and agent scope.
+
+Results contain bounded snippets; call `read_memory` when a larger
+bounded excerpt is relevant.
+
+`MemorySearchResponse`
+
+**`ctx`** : [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`] 
+
+Framework-provided run context.
+
+**`query`** : `str`
+
+Terms to find in memory filenames and content.
 
 # Citations
 

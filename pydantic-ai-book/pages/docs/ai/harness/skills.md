@@ -3,7 +3,7 @@ type: Web Page
 title: Skills | Pydantic Docs
 description: Load Agent Skill instructions as on-demand Pydantic AI capabilities.
 resource: https://pydantic.dev/docs/ai/harness/skills
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-08-24T07:05:59.791507+00:00'
 ---
 
 # Skills
@@ -238,13 +238,13 @@ Skill-library paths scanned during construction.
 
 **Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path`, …] **Default:** `self._normalize_directories(directories)`
 
-Exact skill names to omit from the deferred capability catalog.
-
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `self._normalize_selection('exclude', exclude) if exclude is not None else frozenset()`
-
 Exact skill names to expose, or `None` to expose all discovered skills.
 
 **Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `self._normalize_selection('include', include) if include is not None else None`
+
+Exact skill names to omit from the deferred capability catalog.
+
+**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `self._normalize_selection('exclude', exclude) if exclude is not None else frozenset()`
 
 ```
 def __init__(
