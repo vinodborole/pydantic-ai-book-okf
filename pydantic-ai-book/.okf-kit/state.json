@@ -2,7 +2,7 @@
   "generator": "okf-kit",
   "okf_version": "0.1",
   "root_url": "https://pydantic.dev/docs/ai/overview",
-  "updated_at": "2026-08-24T07:05:59.977690+00:00",
+  "updated_at": "2026-08-31T13:11:06.707390+00:00",
   "config": {
     "max_depth": 3,
     "max_pages": 90,
@@ -190,7 +190,7 @@
       "path": "pages/docs/ai/harness/compaction.md",
       "url": "https://pydantic.dev/docs/ai/harness/compaction",
       "title": "Compaction | Pydantic Docs",
-      "hash": "99929b3ff46cfee83918df0a41549b9202ee4bbf35e3c5f2d8f1f06c5e308bb0"
+      "hash": "fa1de2b12fba8ee34f16ea5a7d49b274402107f3493bbb56c87607c13d43d369"
     },
     {
       "path": "pages/docs/ai/harness/conversation-search.md",
@@ -298,7 +298,7 @@
       "path": "pages/docs/ai/harness/shell.md",
       "url": "https://pydantic.dev/docs/ai/harness/shell",
       "title": "Shell | Pydantic Docs",
-      "hash": "d96362df781f7aff3ac851e7e03065f83ed070bced8d6758fbac7cdf9dc3bc09"
+      "hash": "c7648ae2041a744211dc1b5dfad83be20f87f9cdd9c412a57a56dc3e56945cae"
     },
     {
       "path": "pages/docs/ai/harness/skills.md",
@@ -310,7 +310,7 @@
       "path": "pages/docs/ai/harness/spend.md",
       "url": "https://pydantic.dev/docs/ai/harness/spend",
       "title": "Spend | Pydantic Docs",
-      "hash": "f9cf12a853231a9d7f71b4ea426c2cf8322ac9856300a9e910b0f4090abe0a75"
+      "hash": "d2265a3bac387f1540458692ab8c579be03a8c68c2b73970a666b97d10cd62c3"
     },
     {
       "path": "pages/docs/ai/harness/stackone.md",
@@ -2640,10 +2640,10 @@
     ]
   ],
   "last_sync": {
-    "synced_at": "2026-08-24T07:05:59.940859+00:00",
-    "added": 3,
-    "changed": 47,
-    "removed": 3,
+    "synced_at": "2026-08-31T13:11:06.653511+00:00",
+    "added": 0,
+    "changed": 3,
+    "removed": 0,
     "pages": 90
   }
 }

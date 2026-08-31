@@ -4,7 +4,7 @@ title: Compaction | Pydantic Docs
 description: A menu of strategies -- clear, dedupe, trim, or summarize -- for keeping
   an agent's conversation history within the model's context window.
 resource: https://pydantic.dev/docs/ai/harness/compaction
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-08-31T13:11:06.648371+00:00'
 ---
 
 # Compaction
@@ -273,7 +273,7 @@ agent = Agent(
     ],
 )
 ```
-`model` accepts a model name or a `Model`; when left `None` it inherits the running agent’s model. Its nested summary run inherits the parent usage limits and reserves one request from a finite request limit for the pending parent request. By default `incremental=True` updates the newest existing summary as an anchor. This changes the summary-call prompt from earlier releases; set `incremental=False` to retain the prior regeneration behavior.
+`model` accepts a model name or a `Model`; when left `None` it inherits the running agent’s model. Its nested summary run inherits the parent usage limits and reserves one request from a finite request limit for the pending parent request. Pass `model_settings` to give the dedicated summary call settings that differ from defaults carried by that model; the supplied settings merge over the model defaults without mutating the model or the settings dictionary. By default `incremental=True` updates the newest existing summary as an anchor. This changes the summary-call prompt from earlier releases; set `incremental=False` to retain the prior regeneration behavior.
 
 Both prompt surfaces of the summary request are fields: `summary_prompt` is the user-turn template (it must contain a `{messages}` placeholder), and `instructions` sets the internal agent’s static instructions, which Pydantic AI sends in the request’s system prompt. Override `instructions` when the summarizer endpoint requires a fixed leading instruction.
 
@@ -807,6 +807,13 @@ that as the run’s model, so the two differ only where a capability replaced
 `ModelRequestContext.model`; set this explicitly to pin the summarizer regardless.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Model` | `None`**Default:** `None`
+
+Settings for the dedicated summary model call.
+
+These merge over defaults carried by `model`, allowing the summary call to use a
+policy that differs from the running agent without mutating the model.
+
+**Type:** [`ModelSettings`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Trigger compaction when message count exceeds this value.
 

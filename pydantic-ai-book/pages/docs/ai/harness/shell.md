@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-08-31T13:11:06.648371+00:00'
 ---
 
 # Shell
@@ -84,7 +84,14 @@ denylist. Pass `denied_commands=[]` to disable command-name filtering.
 
 A denied command surfaces to the model as a
 [`ModelRetry`](/docs/ai/tools-toolsets/tools-advanced/#tool-retries), not a hard error:
-the run continues and the model can pick an allowed command instead.
+the run continues and the model can pick an allowed command instead. So does
+every other failure the model can act on: a working directory an earlier command
+deleted or replaced with a file, and a command the operating system refuses to
+spawn because it holds a NUL byte or contains a character the operating system
+cannot encode. Failures
+the model can do nothing about still abort the run: a host that cannot allocate
+a process, an argument or environment that exceeds the platform’s combined
+size limit, and an invalid character in an application-supplied `env`.
 
 By default a spawned command inherits the agent process’s full environment. In a sandbox that holds LLM API keys, tokens, or other secrets, a command the model writes can read them. Two fields control what the subprocess sees:
 
