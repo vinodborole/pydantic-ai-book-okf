@@ -2,14 +2,14 @@
 type: Web Page
 title: Dependencies | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/dependencies
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Dependencies
 
 Pydantic AI uses a dependency injection system to provide data and services to your agent’s [system prompts](/docs/ai/core-concepts/agent/#system-prompts), [tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions).
 
-Matching Pydantic AI’s design philosophy, our dependency system tries to use existing best practice in Python development rather than inventing esoteric “magic”, this should make dependencies type-safe, understandable, easier to test, and ultimately easier to deploy in production.
+Pydantic AI’s dependency system follows established Python practices, making dependencies type-safe, understandable, easy to test, and easy to deploy in production.
 
 Dependencies can be any python type. While in simple cases you might be able to pass a single object as a dependency (e.g. an HTTP connection), [dataclasses](https://docs.python.org/3/library/dataclasses.html#module-dataclasses) are generally a convenient container when your dependencies included multiple objects.
 
@@ -23,7 +23,7 @@ Pass the dataclass type to the `deps_type` argument of the [`Agent` constructor]
 
 When running the agent, pass an instance of the dataclass to the `deps` parameter.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Dependencies are accessed through the [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) type, this should be the first parameter of system prompt functions etc.
 
@@ -31,11 +31,11 @@ Dependencies are accessed through the [`RunContext`](/docs/ai/api/pydantic-ai/to
 
 [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) is parameterized with the type of the dependencies, if this type is incorrect, static type checkers will raise an error.
 
-Access dependencies through the [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps) attribute.
+Access the HTTP client through the [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps) attribute.
 
-Access dependencies through the [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps) attribute.
+Access the API key through the same attribute.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 In addition to [`.deps`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.deps), [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) provides access to the running agent via [`.agent`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.agent), which is useful when [tools](/docs/ai/tools-toolsets/tools/), [hooks](/docs/ai/core-concepts/hooks/), or [capabilities](/docs/ai/capabilities/overview/) need to read agent properties like [`name`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.name) or [`output_type`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.output_type). The [`.realtime`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.realtime) property identifies realtime sessions without requiring a model type check, and [`.realtime_session`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.realtime_session) exposes the live [`RealtimeSession`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeSession) to tools and hooks once it is connected.
 
@@ -43,9 +43,9 @@ Dependency fields can also be referenced in instructions and descriptions via [t
 
 [System prompt functions](/docs/ai/core-concepts/agent/#system-prompts), [function tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions) are all run in the async context of an agent run.
 
-If these functions are not coroutines (e.g. `async def`) they are called with
-[`run_in_executor`](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.run_in_executor) in a thread pool. It’s therefore marginally preferable
-to use `async` methods where dependencies perform IO, although synchronous dependencies should work fine too.
+If these functions are synchronous, defined with `def` rather than `async def`, Pydantic AI calls them with
+[`run_in_executor`](https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.run_in_executor) in a thread pool. Prefer `async` functions when dependencies
+perform I/O, although synchronous dependencies also work.
 
 Here’s the same example as above, but with a synchronous dependency:
 
@@ -53,7 +53,7 @@ Here we use a synchronous `httpx.Client` instead of an asynchronous `httpx.Async
 
 To match the synchronous dependency, the system prompt function is now a plain function, not a coroutine.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 As well as system prompts, dependencies can be used in [tools](/docs/ai/tools-toolsets/tools/) and [output validators](/docs/ai/core-concepts/output/#output-validator-functions).
 
@@ -61,7 +61,7 @@ To pass `RunContext` to a tool, use the [`tool`](/docs/ai/api/pydantic-ai/agent/
 
 `RunContext` may optionally be passed to a [`output_validator`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.output_validator) function as the first argument.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 When testing agents, it’s useful to be able to customise dependencies.
 

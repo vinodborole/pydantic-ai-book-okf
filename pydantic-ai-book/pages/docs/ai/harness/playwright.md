@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent a real, stateful Chromium browser via asyn
   Playwright -- navigate, click, type, scroll, extract page text, run JavaScript,
   and screenshot JS-heavy or authenticated pages.
 resource: https://pydantic.dev/docs/ai/harness/playwright
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Playwright Browser
@@ -399,6 +399,15 @@ enforcement mode which is what closes it, are tracked in
 [#415](https://github.com/pydantic/pydantic-ai-harness/issues/415).
 
 For untrusted-input scenarios, run the browser in a container or VM with an egress firewall, or front it with a proxy, and pair it with the harness’s tool-approval hooks for consequential actions. Treat these as defense in depth, not a guarantee.
+
+- [Browser automation with Pydantic-AI + Playwright](https://techcommunity.microsoft.com/blog/azuredevcommunityblog/browser-automation-with-pydantic-ai--playwright/4547971) (Microsoft) — this
+capability driving a manual QA pass over a live site, wired to Microsoft
+Foundry models, with the run’s OpenTelemetry traces.
+- [Browser Use](/docs/ai/harness/browser-use/) — the other browser capability. Each runs its
+own browser, so give an agent one or the other.
+- [Playwright for Python](https://playwright.dev/python/) — the automation
+library underneath, and the reference for selector syntax.
+- [Capabilities](/docs/ai/capabilities/overview/)
 
 **Bases:** `AbstractCapability[AgentDepsT]`
 

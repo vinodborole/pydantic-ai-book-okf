@@ -4,7 +4,7 @@ title: Step Persistence | Pydantic Docs
 description: Record what an agent did at each boundary, save continuable snapshots
   to resume or fork from, and track tool side effects across crashes.
 resource: https://pydantic.dev/docs/ai/harness/step-persistence
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Step Persistence
@@ -39,8 +39,14 @@ That is the whole setup. `run_id` is always per-`Agent.run` call, matching pydan
 `run_id` resolution per call:
 
 - **Explicit `run_id='libr-1'`** becomes the id for this one call. This suits single-shot use cases (a deterministic id for testing, replay, debugging, or a one-off scripted run). Reusing one capability instance with the same explicit`run_id` across multiple`.run()` calls raises`ValueError` in`before_run` . The tool-effect ledger is keyed by`(run_id, tool_call_id)` and providers reuse deterministic tool-call ids, so a silent collision would erase the`unknown_after_crash` signal. Use`conversation_id=` for multi-turn grouping instead.
-- **`agent_name` set, `run_id` unset** derives`'{agent_name}-{8-char-hex}'` , freshly materialised in`for_run` per`.run()` call. Reusing one capability instance across runs yields distinct ids (`code_librarian-a3b2` ,`code_librarian-c9d1` , and so on). This is the recommended default for delegate capabilities.
-- **Neither set** falls back to`ctx.run_id` (pydantic_ai’s auto-generated id) per`.run()` call, and to a UUID4 if that is absent.
+- **`agent_name` set, `run_id` unset** derives a path-safe base64url encoding of the complete`(agent_name, ctx.run_id)` pair. The encoding is injective within`FileStepStore` ’s 200-character limit, so replay addresses the same stored run without collisions between distinct accepted context ids. A longer derived id raises`ValueError` before backend selection, including with the memory, SQLite, and Mongo stores.
+- **Neither set** uses`ctx.run_id` unchanged. A missing context run id raises`RuntimeError` because inventing one would disconnect replayed writes.
+
+`StepPersistence` has the stable capability id `step_persistence`, so it can be attached alongside a Pydantic AI durability capability without passing `id=`. Pass an explicit id only when the same agent has more than one `StepPersistence` instance.
+
+Six store boundaries are durable operations: registration identity, run registration, event append, snapshot save, tool-effect start, and tool-effect completion or failure. Every persisted timestamp is read inside one of those operations, so replay uses the journaled value instead of reading the workflow wall clock again. The journaled registration identity makes a retried registration idempotent while a distinct reuse of the same run id still fails.
+
+Events and snapshots written by the capability carry deterministic per-run idempotency keys. Every built-in store suppresses a key it already applied, while records created directly with `idempotency_key=None` retain append behavior. Snapshot keys use a per-run save sequence together with `step_index` and `state`. Replay produces the same sequence, while distinct snapshots at the same step and state retain their write order and newer history.
 
 The orchestrator pattern — one logical agent serving many turns — uses `conversation_id`, not a shared `run_id`:
 
@@ -225,15 +231,16 @@ The helper reads the active `run_id` from the `StepPersistence` `ContextVar` and
   - `run.json` —`RunRecord` (lineage)
   - `events.jsonl` — append-only`StepEvent` s
   - `tool_effects.jsonl` — append-only`ToolEffectRecord` s, scoped to this run
+  - `snapshot-keys.jsonl` — replay-suppression keys retained independently of snapshot pruning
   - `snapshots/{seq}.json` —`ContinuableSnapshot` s, named by a per-run monotonic counter (not`step_index` , which would collide when the same`run_id` is reused across`Agent.run` calls, since`ctx.run_step` resets to 0 each call).
-- `SqliteStepStore(database='runs.db')` — single SQLite file with tables`runs` ,`events` ,`snapshots` ,`tool_effects` , and a sibling`media` table for externalized blobs (see[Persisting media](#persisting-media) below). WAL mode is enabled;`tool_effects` upserts per`(run_id, tool_call_id)` so the latest state wins; snapshots use`AUTOINCREMENT seq` to mirror`FileStepStore._next_snapshot_seq` . Databases created before the snapshot`state` column existed gain it automatically on open (existing rows read as`complete` ). Pass`connection=` instead of`database=` to share a`sqlite3.Connection` with the rest of your application; the connection must be opened with`check_same_thread=False` because hook calls are dispatched onto a worker thread.
-- `MongoStepStore(client= or db_url=, database=...)` — MongoDB collections`runs` ,`events` ,`snapshots` ,`tool_effects` , and`counters` (atomic`$inc` allocates the monotonic`seq` ).`runs._id = run_id` enforces the single-shot`run_id` contract. Needs the`mongodb` extra (`pip install pydantic-ai-harness[mongodb]` , which installs`pymongo>=4.17.0` ); pass a shared`AsyncMongoClient` as`client=` , or a connection string as`db_url=` (the store then owns the client — call`await store.aclose()` to release it). Individual parts at or above`media_threshold_bytes` externalize by default to a`MongoMediaStore` on the same client. That is a per-value offload, not an aggregate cap: a snapshot of many below-threshold parts can still exceed MongoDB’s 16 MiB document limit and fail on insert, so lower the threshold if that is a risk for your workload.
+- `SqliteStepStore(database='runs.db')` — single SQLite file with tables`runs` ,`events` ,`snapshots` ,`snapshot_idempotency_keys` ,`tool_effects` , and a sibling`media` table for externalized blobs (see[Persisting media](#persisting-media) below). WAL mode is enabled;`tool_effects` upserts per`(run_id, tool_call_id)` so the latest state wins; snapshots use`AUTOINCREMENT seq` to mirror`FileStepStore._next_snapshot_seq` . Databases created before the snapshot`state` column existed gain it automatically on open (existing rows read as`complete` ). Pass`connection=` instead of`database=` to share a`sqlite3.Connection` with the rest of your application; the connection must be opened with`check_same_thread=False` because hook calls are dispatched onto a worker thread.
+- `MongoStepStore(client= or db_url=, database=...)` — MongoDB collections`runs` ,`events` ,`snapshots` ,`snapshot_idempotency_keys` ,`tool_effects` , and`counters` (atomic`$inc` allocates the monotonic`seq` ). Run registration uses an atomic insert by`runs._id = run_id` ; duplicate ids raise`ValueError` . Needs the`mongodb` extra (`pip install pydantic-ai-harness[mongodb]` , which installs`pymongo>=4.17.0` ); pass a shared`AsyncMongoClient` as`client=` , or a connection string as`db_url=` (the store then owns the client — call`await store.aclose()` to release it). Individual parts at or above`media_threshold_bytes` externalize by default to a`MongoMediaStore` on the same client. That is a per-value offload, not an aggregate cap: a snapshot of many below-threshold parts can still exceed MongoDB’s 16 MiB document limit and fail on insert, so lower the threshold if that is a risk for your workload.
 
 All implement the same async `StepStore` protocol, so capability hooks never block the event loop on the file/sqlite backends (I/O is dispatched via `anyio.to_thread`); the Mongo backend is natively async.
 
 `FileStepStore` validates `run_id` against `[A-Za-z0-9_.-]{1,200}` (and rejects `..`) to prevent path traversal. Callers passing user-controlled IDs should still sanitise first.
 
-The store issues `createIndex` on its first write, for eight indexes: `conversation_id` and `parent_run_id` (both sparse) plus `started_at` on `runs`; `(run_id, seq)` on `events`; `(run_id, seq)` and `(run_id, state, seq)` on `snapshots`; and a unique `(run_id, tool_call_id)` plus `(run_id, status)` on `tool_effects`. Its default `MongoMediaStore` adds one more, described on the [media page](/docs/ai/harness/media/). Three consequences worth knowing before pointing the store at an existing deployment:
+The store issues `createIndex` on its first write, for ten indexes: `conversation_id` and `parent_run_id` (both sparse) plus `started_at` on `runs`; `(run_id, seq)` and unique keyed `(run_id, idempotency_key)` on `events`; `(run_id, seq)`, unique keyed `(run_id, idempotency_key)`, and `(run_id, state, seq)` on `snapshots`; and a unique `(run_id, tool_call_id)` plus `(run_id, status)` on `tool_effects`. The idempotency indexes include only documents whose key is a string, so `None` retains append behavior. Its default `MongoMediaStore` adds one more, described on the [media page](/docs/ai/harness/media/). Three consequences worth knowing before pointing the store at an existing deployment:
 
 - The connecting user needs the privilege to create indexes. A restricted Atlas role without it fails on the first write, not at construction.
 - The unique index build fails if an existing `tool_effects` collection already holds duplicate`(run_id, tool_call_id)` pairs.
@@ -414,8 +421,8 @@ Backend that records events, snapshots, and tool effects.
 
 Logical agent name (e.g. `code_librarian`, `reproducer`).
 
-Used as a stable prefix for the auto-derived `run_id` so store
-inspection shows readable IDs like `code_librarian-a3b2`.
+Used as a stable prefix for the context-derived `run_id` so store
+inspection identifies both the agent and the durable run.
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
@@ -433,10 +440,10 @@ capability across multiple`.run()` calls with the same explicit`run_id` raises`V
 ledger keys on`(run_id, tool_call_id)` and providers reuse
 deterministic tool-call ids, so a silent collision would erase
 the`unknown_after_crash` signal. Use`conversation_id=` on`Agent.run` for multi-turn grouping.
-2. **`agent_name` set, `run_id` unset** →`{agent_name}-{short-uuid}` ,
-freshly materialised per`.run()` . Reusing the capability instance
-yields distinct ids. Recommended default for delegate capabilities.
-3. **Neither set** →`ctx.run_id` per`.run()` , falling back to UUID4.
+2. **`agent_name` set, `run_id` unset** -> path-safe encoding of both values.
+Reusing the capability instance yields distinct ids because the agent
+graph assigns each run its own id.
+3. **Neither set** ->`ctx.run_id` per`.run()` .
 
 **Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
@@ -520,12 +527,11 @@ def before_run(ctx: RunContext[AgentDepsT]) -> None
 ```
 Register run lineage and emit `run_started`.
 
-When the caller pinned an explicit `run_id`, reject reuse — the
+Reject reuse by a distinct registration — the
 tool-effect ledger keys on `(run_id, tool_call_id)` and providers
 reuse deterministic tool-call ids, so a second `Agent.run` with
-the same explicit `run_id` would silently collide. The auto-derived
-cases cannot trigger this check because each call materialises a
-fresh id in `for_run`.
+the same `run_id` would silently collide. A journaled registration id
+distinguishes a retry of this durable operation from a new run.
 
 `@async`
 

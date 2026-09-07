@@ -2,7 +2,7 @@
 type: Web Page
 title: Installation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/install
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Installation
@@ -17,7 +17,7 @@ To use any other models or integrations, add the relevant extras to your install
 Pydantic AI’s own HTTP requests, and those of providers migrated to [`httpx2`](https://httpx2.pydantic.dev/), verify TLS certificates against the operating system trust store rather than shipping a `certifi` bundle.
 Minimal container images and corporate proxies that rely on a private CA therefore need those certificates installed in the image (for example the `ca-certificates` package, plus your proxy’s root CA).
 Alternatively, pass such a provider an `httpx2.AsyncClient` you configured yourself through its `http_client` argument — see the [provider docs](/docs/ai/models/overview/) for the client each one accepts.
-Providers whose SDKs still use legacy `httpx` (such as Anthropic and Cohere) keep its `certifi`-based verification and take a legacy `httpx.AsyncClient` instead.
+Providers whose SDKs still use legacy `httpx` (such as Groq and Cohere) keep its `certifi`-based verification and take a legacy `httpx.AsyncClient` instead.
 
 Pydantic AI has an excellent (but completely optional) integration with [Pydantic Logfire](https://pydantic.dev/logfire) to help you view and understand agent runs.
 
@@ -59,10 +59,11 @@ For example, if you’re using just [`OpenAIChatModel`](/docs/ai/api/models/open
 - `web-fetch` - installs[Web Fetch Tool](/docs/ai/tools-toolsets/common-tools/#web-fetch-tool) dependency`markdownify`[PyPI ↗](https://pypi.org/project/markdownify)
 - `cli` - installs[CLI](/docs/ai/integrations/cli/) dependencies`rich`[PyPI ↗](https://pypi.org/project/rich) ,`prompt-toolkit`[PyPI ↗](https://pypi.org/project/prompt-toolkit) , and`argcomplete`[PyPI ↗](https://pypi.org/project/argcomplete)
 - `mcp` - installs[MCP](/docs/ai/mcp/client/) dependency`fastmcp-slim[client]`[PyPI ↗](https://pypi.org/project/fastmcp-slim)
+- `mcp-tasks` - installs the[MCP](/docs/ai/mcp/client/) FastMCP 4 tasks extension (`use_task=True` ) dependency`fastmcp-tasks`[PyPI ↗](https://pypi.org/project/fastmcp-tasks)
 - `ui` - installs[UI Event Streams](/docs/ai/integrations/ui/overview/) dependency`starlette`[PyPI ↗](https://pypi.org/project/starlette)
 - `web` - installs[Web UI](/docs/ai/integrations/ui/overview/) dependencies`starlette`[PyPI ↗](https://pypi.org/project/starlette) and`uvicorn`[PyPI ↗](https://pypi.org/project/uvicorn)
 - `ag-ui` - installs[AG-UI Event Stream Protocol](/docs/ai/integrations/ui/ag-ui/) dependencies`ag-ui-protocol`[PyPI ↗](https://pypi.org/project/ag-ui-protocol) and`starlette`[PyPI ↗](https://pypi.org/project/starlette)
-- `retries` - installs[HTTP Retries](/docs/ai/models/http-request-retries/) dependency`tenacity`[PyPI ↗](https://pypi.org/project/tenacity) , plus legacy`httpx`[PyPI ↗](https://pypi.org/project/httpx) support until Pydantic AI v3
+- `retries` - installs[transport retries](/docs/ai/core-concepts/retries/#transport-retries) dependency`tenacity`[PyPI ↗](https://pypi.org/project/tenacity) , plus legacy`httpx`[PyPI ↗](https://pypi.org/project/httpx) support until Pydantic AI v3
 - `temporal` - installs[Temporal Durable Execution](/docs/ai/capabilities/durable_execution/temporal/) dependency`temporalio`[PyPI ↗](https://pypi.org/project/temporalio)
 - `dbos` - installs[DBOS Durable Execution](/docs/ai/capabilities/durable_execution/dbos/) dependency`dbos`[PyPI ↗](https://pypi.org/project/dbos)
 - `prefect` - installs[Prefect Durable Execution](/docs/ai/capabilities/durable_execution/prefect/) dependency`prefect`[PyPI ↗](https://pypi.org/project/prefect)

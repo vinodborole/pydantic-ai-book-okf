@@ -4,7 +4,7 @@ title: Planning | Pydantic Docs
 description: Give an agent a structured, self-updating task list -- with a cache-safe
   live reminder, optional persistence, subtasks, dependencies, and events.
 resource: https://pydantic.dev/docs/ai/harness/planning
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Planning
@@ -114,6 +114,11 @@ Events come from granular tools (`add_task`, `update_task_status`, `add_subtask`
 Addressing steps by mutable integer index (insert/remove/reorder) is error-prone for both the code and the model. `write_plan` restates the whole plan each call, so there are no indices to track. Granular edits (`add_task`, `update_task_status`, `remove_task`) instead reference the stable `id` shown by `read_plan`.
 
 The plan is never injected into the system prompt or instructions. Static usage guidance goes there (cache-stable); only the mutable plan rides the ephemeral tail reminder, which lives solely in the per-request copy and is never persisted. Set `inject=False` to disable it. Pydantic AI maps `CachePoint` for models whose profiles support prompt caching; on other models it is ignored.
+
+With a durable-execution capability attached, the plan read used to build that reminder is a
+journaled capability operation. Replay reuses the recorded plan instead of reading the store again.
+`Planning` carries the stable default `id='planning'`, so durable recovery works without
+configuration.
 
 ```
 from pydantic_ai_harness import Planning

@@ -4,7 +4,7 @@ title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Tool Output Limits
@@ -195,6 +195,16 @@ By default `Summarize` inherits the running agent’s model (`ctx.model`). Pass 
 instance to `Summarize(model=...)` to override, or a `summarize` callable to bypass the
 built-in prompt entirely. The `summary_prompt` template on the capability must contain both
 `{tool_name}` and `{output}` placeholders.
+
+With a durable-execution capability attached, built-in model summarization is a journaled
+capability operation. `ToolOutputLimits` carries the stable default `id='tool_output_limits'`, so
+durable recovery works without configuration.
+
+Two details matter when choosing a band under durability. The text being summarized is part of the
+journaled operation input, so prefer `Spill` over built-in `Summarize` for outputs near the
+engine’s payload limit. And a custom `summarize` callable runs directly rather than as a durable
+operation — arbitrary callables cannot be reconstructed on the worker side — so it may be called
+again on replay.
 
 - Binary returns spill verbatim and are never stringify-truncated; `Truncate` /`Summarize` on binary fall through to`then` .
 - Structured / nested returns spill (or summarize) by preference — truncating JSON produces

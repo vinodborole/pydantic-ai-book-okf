@@ -2,7 +2,7 @@
 type: Web Page
 title: Compaction | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/compaction
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Compaction
@@ -28,7 +28,7 @@ If a run also receives its own server-side history — the [server-side persiste
 
 Even then, a client can replay any compaction item the server’s provider account has ever produced — opaque encrypted state on OpenAI, a plaintext summary on Anthropic. That is equivalent in kind to fabricating plain-text history, which client-transmitted history always permits (see [Trust boundary for client-supplied history](/docs/ai/core-concepts/message-history/#trust-boundary-for-client-supplied-history)), with one difference: the server cannot inspect what an opaque item contains. If that matters for your deployment, keep the history server-side: persist the full message list keyed by conversation, send the client only display data, and pass the stored messages as `message_history` on each run. Don’t trim the stored history around compaction boundaries yourself — each model adapter already omits what its own provider’s compaction replaces, while models from other providers, which ignore a foreign compaction item, still get the full earlier history they need.
 
-To compact on any model, edit the message history yourself with a [history processor](/docs/ai/core-concepts/message-history/#processing-message-history) wrapped as a [`ProcessHistory`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ProcessHistory) capability — this works with every provider. Common patterns:
+To compact on any model, edit the message history yourself with a [history processor](/docs/ai/core-concepts/message-history/#processing-message-history) wrapped as a [`ProcessHistory`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ProcessHistory) capability — this works with every provider. To decide *when* to compact, check [`ctx.context_window_used`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.context_window_used): the fraction of the model’s [`context_window`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.context_window) occupied as of the last response, or `None` when unknown. Common patterns:
 
 - [Keep only recent messages](/docs/ai/core-concepts/message-history/#keep-only-recent-messages) — a zero-cost sliding window over the most recent turns.
 - [Summarize old messages](/docs/ai/core-concepts/message-history/#summarize-old-messages) — use a (cheaper) model to condense older messages into a summary.

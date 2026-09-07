@@ -2,12 +2,12 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Native Tools
 
-Native tools are native tools provided by LLM providers that can be used to enhance your agent’s capabilities. Unlike [common tools](/docs/ai/tools-toolsets/common-tools/), which are custom implementations that Pydantic AI executes, native tools are executed directly by the model provider.
+Native tools are provided and executed by LLM providers, while [common tools](/docs/ai/tools-toolsets/common-tools/) are custom implementations executed by Pydantic AI.
 
 Pydantic AI supports the following native tools:
 
@@ -48,6 +48,8 @@ making it ideal for queries that require up-to-date data.
 
 *(This example is complete, it can be run “as is”)*
 
+With Anthropic, the number of searches is reported as `web_search_requests` in `RequestUsage.details` and included in `RunUsage.cost`.
+
 With OpenAI, you must use their Responses API to access the web search tool.
 
 *(This example is complete, it can be run “as is”)*
@@ -67,7 +69,7 @@ The `WebSearchTool` supports several configuration parameters:
 
 - Per OpenRouter’s documentation, native provider search forwards `max_uses` only to Anthropic; other native providers ignore it.
 
-The [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) allows your agent to search X/Twitter for real-time posts and content. Natively supported by xAI models; usable on other models via the [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability with `fallback_model` set. See the [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search) for more details.
+The [`XSearchTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.XSearchTool) allows your agent to search X/Twitter for real-time posts and content. Natively supported by xAI models; usable on other models via the [`XSearch`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.XSearch) capability with `fallback_subagent_model` set. See the [xAI X Search documentation](https://docs.x.ai/developers/tools/x-search) for more details.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -80,12 +82,13 @@ in a secure environment, making it perfect for computational tasks, data analysi
 
 | Provider | Supported | Notes | 
 |---|---|---|
-| OpenAI | ✅ | To include code execution output on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_code_execution_outputs`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_code_execution_outputs)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . If the code execution generated images, like charts, they will be available on[`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) as[`BinaryImage`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage) objects. The generated image can also be used as[image output](/docs/ai/core-concepts/output/#image-output) for the agent run. | 
+| OpenAI Responses | ✅ | To include code execution output on the [`NativeToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.NativeToolReturnPart) that’s available via[`ModelResponse.native_tool_calls`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.native_tool_calls) , enable the[`OpenAIResponsesModelSettings.openai_include_code_execution_outputs`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings.openai_include_code_execution_outputs)[model setting](/docs/ai/core-concepts/agent/#model-run-settings) . If the code execution generated images, like charts, they will be available on[`ModelResponse.images`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.images) as[`BinaryImage`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage) objects. The generated image can also be used as[image output](/docs/ai/core-concepts/output/#image-output) for the agent run. | 
 |  | ✅ | See [Google tool combinations](#google-tool-combinations) . | 
 | Anthropic | ✅ | Available on compatible Anthropic models. Pydantic AI selects a compatible code execution tool version automatically; see [Anthropic code execution tool version](/docs/ai/models/anthropic/#code-execution-tool-version) to override it. | 
 | xAI | ✅ | Full feature support. | 
 | Groq | ❌ |  | 
 | Bedrock | ✅ | Only available for Nova 2.0 models. | 
+| OpenAI Chat Completions | ❌ | Not supported; use [`OpenAIResponsesModel`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModel) . | 
 | Mistral | ❌ |  | 
 | Cohere | ❌ |  | 
 | HuggingFace | ❌ |  | 

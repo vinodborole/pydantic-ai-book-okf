@@ -2,7 +2,7 @@
 type: Web Page
 title: Model Providers | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Model Providers
@@ -40,6 +40,7 @@ In addition, many providers are compatible with the OpenAI API, and can be used 
 - [SambaNova](/docs/ai/models/openai/#sambanova)
 - [Together AI](/docs/ai/models/openai/#together-ai)
 - [Vercel AI Gateway](/docs/ai/models/openai/#vercel-ai-gateway)
+- [vLLM](/docs/ai/models/openai/#vllm)
 
 Pydantic AI also comes with [`TestModel`](/docs/ai/api/models/test/) and [`FunctionModel`](/docs/ai/api/models/function/)
 for testing and development.
@@ -84,7 +85,9 @@ print(WebSearchTool in profile['supported_native_tools'])
 #> True
 ```
 `model.profile` is usually the fully *resolved* profile: keys from [`DEFAULT_PROFILE`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.DEFAULT_PROFILE) are merged with the provider’s defaults, so direct key access like `profile['supports_tools']` works. If you supply `profile=` as a callable (or otherwise have a partial profile dict), use `profile.get('supports_tools', DEFAULT_PROFILE['supports_tools'])` (after importing `DEFAULT_PROFILE`) to tolerate missing keys.
-Any [`Model`](/docs/ai/api/models/base/#pydantic_ai.models.Model) instance exposes its resolved profile the same way, so the same check works whether the model was selected automatically from a `<provider>:<model>` name or instantiated directly. Don’t confuse this with [Capabilities](/docs/ai/capabilities/overview/), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
+Individual model adapters expose their resolved profile the same way, so the same check works whether the model was selected automatically from a `<provider>:<model>` name or instantiated directly. A [`FallbackModel`](/docs/ai/api/models/fallback/#pydantic_ai.models.fallback.FallbackModel) is different: it has no single profile because its candidate models may have different capabilities. Inspect the profile of each model in `fallback_model.models` instead. Don’t confuse profiles with [Capabilities](/docs/ai/capabilities/overview/), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
+
+The profile also carries the model’s [`context_window`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.context_window): the maximum number of tokens it can handle in a single request, or `None` when unknown. Every model, including a `FallbackModel` and wrappers like [`InstrumentedModel`](/docs/ai/api/models/instrumented/#pydantic_ai.models.instrumented.InstrumentedModel), exposes it as [`model.context_window`](/docs/ai/api/models/base/#pydantic_ai.models.AbstractModel.context_window); a fallback model reports the smallest window among its candidates, so history that fits it fits whichever candidate answers. Inside a run, [`ctx.context_window_used`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.context_window_used) reports the fraction in use, or `None` when it cannot be calculated. See [Compact when the context window fills](/docs/ai/core-concepts/message-history/#compact-when-the-context-window-fills) for an example that handles this case.
 
 When a [`Provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.Provider) creates its own HTTP client (i.e. you don’t pass a custom `http_client`), it owns that client’s lifecycle. Using the [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) as an async context manager ensures the HTTP client is closed cleanly on exit:
 

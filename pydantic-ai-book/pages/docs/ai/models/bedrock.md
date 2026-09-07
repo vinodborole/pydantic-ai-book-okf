@@ -2,7 +2,7 @@
 type: Web Page
 title: Bedrock | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/bedrock
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Bedrock
@@ -48,6 +48,8 @@ agent = Agent(model)
 You can customize the Bedrock Runtime API calls by adding additional parameters, such as [guardrail
 configurations](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) and [performance settings](https://docs.aws.amazon.com/bedrock/latest/userguide/latency-optimized-inference.html). For a complete list of configurable parameters, refer to the
 documentation for [`BedrockModelSettings`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelSettings).
+
+When `trace` is set to `'enabled'` in the guardrail configuration (as in the example above), the guardrail assessment returned by Bedrock is stored verbatim under the `'trace'` key of [`ModelResponse.provider_details`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse.provider_details), e.g. `result.all_messages()[-1].provider_details['trace']`.
 
 Use [`ModelSettings.extra_headers`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.extra_headers) to add HTTP headers to
 `Converse`, `ConverseStream`, and `CountTokens` requests. This is useful for routing requests through an API gateway
@@ -253,6 +255,8 @@ model = BedrockConverseModel(
 )
 agent = Agent(model)
 ```
+These boto3 retries are Bedrock’s provider SDK retry layer — boto3 counts from the other side, so `Config(retries={'max_attempts': N})` allows `1 + N` total attempts — and there is no `httpx2` transport layer beneath boto3, so this is the only retry layer between the agent’s retry budgets and the network. See [Retry multiplication](/docs/ai/core-concepts/retries/#retry-multiplication) for how the layers stack.
+
 Bedrock uses boto3’s built-in retry mechanisms. You can configure retry behavior by passing a custom boto3 client with retry settings:
 
 ```

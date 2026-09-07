@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Output
@@ -70,7 +70,7 @@ You should check the [`RunContext.partial_output`](/docs/ai/api/pydantic-ai/tool
 When streaming, `partial_output` is `True` for each partial output and `False` for the final complete output.
 For all [other run methods](/docs/ai/core-concepts/agent/#running-agents), `partial_output` is always `False` as the function is only called once with the complete output.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Pydantic AI implements three different methods to get a model to output structured data:
 
@@ -185,7 +185,7 @@ You should check the [`RunContext.partial_output`](/docs/ai/api/pydantic-ai/tool
 When streaming, `partial_output` is `True` for each partial output and `False` for the final complete output.
 For all [other run methods](/docs/ai/core-concepts/agent/#running-agents), `partial_output` is always `False` as the validator is only called once with the complete output.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Some models can generate images as part of their response, for example those that support the [Image Generation native tool](/docs/ai/tools-toolsets/native-tools/#image-generation-tool) and OpenAI models using the [Code Execution native tool](/docs/ai/tools-toolsets/native-tools/#code-execution-tool) when told to generate a chart.
 
@@ -221,7 +221,7 @@ The [`Agent.run_stream()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Abs
 
 Each item yield by [`StreamedRunResult.stream_text()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.stream_text) is the complete text response, extended as new data is received.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 The optional `debounce_by` argument of [`stream_text()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.stream_text) controls how long Pydantic AI groups incoming chunks before yielding. The default `0.1` groups chunks for up to 0.1 seconds; pass `None` to yield as soon as each chunk arrives. Debouncing is especially helpful for long structured responses, where it reduces the overhead of validating each chunk as it arrives.
 
@@ -229,17 +229,17 @@ We can also stream text as deltas rather than the entire text in each item:
 
 [`stream_text`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.stream_text) will error if the response is not text.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Here’s an example of streaming a user profile as it’s built:
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 If a structured response takes a long time to appear in your application, make sure you stream validated partial output rather than waiting for the full run to finish. [`stream_output()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.stream_output) yields the accumulated output as the model produces it, with partial validation applied to each snapshot and full validation applied to the final output.
 
 When you also need events from intermediate model requests and tool calls, use [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.iter). Iterate over each `AgentStream` until the model starts producing the final result, then switch to `stream_output()` for validated partial output:
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Each value from `stream_output()` is an accumulated snapshot, not a delta. An incomplete field or list item may be absent until enough data has arrived for it to pass partial validation, so update the rendered value from each snapshot rather than appending every yield.
 
@@ -253,7 +253,7 @@ If you want fine-grained control of validation, you can use the following patter
 
 [`validate_response_output`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.validate_response_output) validates the data, `allow_partial=True` enables pydantic's [`experimental_allow_partial` flag on `TypeAdapter`](https://docs.pydantic.dev/latest/api/pydantic/type_adapter/#pydantic.type_adapter.TypeAdapter.validate_json).
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Sometimes you need to stop a streaming response before it completes: a user clicks “stop generating” in a chat UI, you’ve received enough data to make a decision, or you want to avoid receiving more tokens. [`run_stream()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream) and [`iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter) support explicit cancellation by closing the underlying model stream. [`run_stream_events()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events) is an async context manager, so cleanup runs deterministically when you stop consuming events — leaving the `async with` block cancels the background run task. To stop a non-streaming run, see [Cancelling a Run](/docs/ai/core-concepts/agent/#cancelling-a-run); to bound how long a single step may take, see [Timeouts](/docs/ai/core-concepts/timeouts/).
 
@@ -261,7 +261,7 @@ Sometimes you need to stop a streaming response before it completes: a user clic
 
 Breaking out of the loop leaves the `async with` block, which cancels the background run task and closes the HTTP connection.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 The yielded [`AgentRunEvents`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentRunEvents) handle exposes `cancel()` to cancel the whole run (see [Cancelling a Run](/docs/ai/core-concepts/agent/#cancelling-a-run)); continued iteration then raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled). It also provides `all_messages()`, `new_messages()`, `usage`, and the completed `result`. From inside a tool or `event_stream_handler`, use [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) instead. As a response-level alternative, [`StreamedRunResult.cancel()`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.cancel) from `run_stream()` stops only the current model response.
 
@@ -275,7 +275,7 @@ The `cancelled` property reflects the cancellation state.
 
 The final [`ModelResponse`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse) is marked with `state='interrupted'` so that downstream code can identify incomplete responses.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 If you `break` out of `stream_text()` and then leave the surrounding `async with` block, the stream is cleaned up as the context exits. Use `cancel()` when you want to stop generation immediately instead of only stopping local consumption.
 
@@ -283,7 +283,7 @@ When using [`agent.iter()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Ag
 
 `AgentStream.cancel()` cancels the stream at the model request level.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 To abort the run itself rather than just the current response — and for how cancellation is recorded in message history — see [Cancelling a Run](/docs/ai/core-concepts/agent/#cancelling-a-run).
 

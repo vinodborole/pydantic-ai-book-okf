@@ -2,7 +2,7 @@
 type: Web Page
 title: Advanced Tool Features | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Advanced Tool Features
@@ -15,6 +15,25 @@ Tools can return anything that Pydantic can serialize to JSON, as well as audio,
 
 Some models (e.g. Gemini) natively support semi-structured return values, while some expect text (OpenAI) but seem to be just as good at extracting meaning from the data. If a Python object is returned and the model expects a string, the value will be serialized to JSON.
 
+Whether a file can travel inside the tool result depends on the model **and** the file’s media type:
+
+- **Inside the tool result** , where the API and the media type both allow it: Anthropic and OpenAI Responses for images and documents, Gemini 3 for the types listed in its[`GoogleModelProfile`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.google.GoogleModelProfile) ’s`google_supported_mime_types_in_tool_returns` , and Bedrock for the media kinds a model family supports.
+- **On the user channel** — the same channel the person talking to your agent uploads on — for everything else: OpenAI Chat Completions, Groq, Mistral, xAI, Hugging Face and Gemini 2.5 and earlier accept only text in a tool result, and Gemini 3 and Bedrock fall back here for a media type they can’t carry (audio and video on Gemini 3, or a kind outside a Bedrock family’s set). Anthropic and OpenAI Responses have no fallback: a tool returning audio or video raises`NotImplementedError` rather than sending it.
+- **Nowhere** : Cohere drops a file returned from a tool without an error — see[#7646](https://github.com/pydantic/pydantic-ai/issues/7646) .
+
+To keep the model from reading a tool’s output as something the user attached, a file taking the user channel is framed with the call it came from:
+
+```
+<tool_result tool_name="get_photo" tool_call_id="call_9cQx" file_id="d9a13f">
+[the image]
+</tool_result>
+```
+The tool result itself carries `See file d9a13f.` in place of the file, and each file gets its own tags, so the model can match every file to the call that produced it even when several tools return media in the same step. A failed Gemini tool return is the one exception: its result is Gemini’s native `error` string, which takes no file references, so there the tags alone carry the attribution. Realtime sessions frame tool-produced files the same way. This mirrors how a mid-conversation [`SystemPromptPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.SystemPromptPart) is framed as `<system>...</system>` for a model whose API has no place to put one.
+
+The framing is applied while the request is built and is never stored: the file stays on the [`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) in your message history, so the same history replayed against a model that takes files natively puts them in the tool result with no framing at all.
+
+Because it is ordinary prompt text, the framing tells the model where content came from rather than proving it — see [the trust boundary](/docs/ai/core-concepts/message-history/#trust-boundary-for-client-supplied-history).
+
 For scenarios where you need more control over both the tool’s return value and the content sent to the model, you can use [`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn). This is particularly useful when you want to:
 
 - Separate the structured return value from additional content sent to the model
@@ -26,7 +45,7 @@ Here’s an example of a computer automation tool that captures screenshots and 
 
 - **`return_value`** : The actual return value used in the tool response. This is what gets serialized and sent back to the model as the tool’s result. Can include multimodal content directly (see[Tool Output](#function-tool-output) above).
 - **`tools`** : Names of tools marked with`defer_loading=True` that this call made available. Pydantic AI records them in a[`ToolAvailabilityDeltaPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolAvailabilityDeltaPart) immediately after this call’s[`ToolReturnPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturnPart) , in the same[`ModelRequest`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest) . The names remain revealed when history is resumed, while the current tool definitions still come from the agent.
-- **`content`** : Content sent as a**separate user message** after the tool result. Use this when you explicitly want content to appear outside the tool result, or when combining structured return values with rich content.
+- **`content`** : Content sent as a**separate user message** after the tool result. Use this when you explicitly want content to appear outside the tool result, or when combining structured return values with rich content. It is sent as you wrote it — this is you adding user content deliberately, so it is not framed the way a file the model API couldn’t take is (see[Where a returned file is sent](#tool-return-file-provenance) ).
 - **`metadata`** : Optional metadata that your application can access but is not sent to the LLM. Useful for logging, debugging, or additional processing. Some other AI frameworks call this feature ‘artifacts’.
 
 This separation allows you to provide rich context to the model while maintaining clean, structured return values for your application logic. For multimodal content that should be sent natively in the tool result (when supported by the model), return it directly from the tool function or include it in `return_value` (see [Tool Output](#function-tool-output) above).
@@ -59,7 +78,7 @@ result = agent.run_sync('testing...')
 print(result.output)
 #> {"sum":0}
 ```
-Please note that validation of the tool arguments will not be performed, and this will pass all arguments as keyword arguments.
+Pydantic AI does not validate tool arguments here; it passes them as keyword arguments.
 
 Some providers support a *strict* mode for tool calls that constrains the model so its tool-call arguments always conform to the tool’s JSON schema. Rather than letting the model generate arguments freely and validating them after the fact, the provider restricts generation so that out-of-schema arguments aren’t produced in the first place. This is controlled by the `strict` flag, available on every tool registration mechanism ([`@agent.tool`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool), [`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain), [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool), [`FunctionToolset.add_function`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset.add_function), etc.) and on [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition):
 
@@ -106,7 +125,7 @@ A `prepare` method can be registered via the `prepare` kwarg to any of the tool 
 - [`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain) decorator
 - [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) dataclass
 
-The `prepare` method, should be of type [`ToolPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolPrepareFunc), a function which takes [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a pre-built [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition), and should either return that `ToolDefinition` with or without modifying it, return a new `ToolDefinition`, or return `None` to indicate this tools should not be registered for that step.
+The `prepare` method has type [`ToolPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolPrepareFunc). It receives [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a pre-built [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition). It can return that definition unchanged or modified, return a new definition, or return `None` to omit the tool for that step.
 
 Here’s a simple `prepare` method that only includes the tool if the value of the dependency is `42`.
 
@@ -114,7 +133,7 @@ As with the previous example, we use [`TestModel`](/docs/ai/api/models/test/#pyd
 
 *(This example is complete, it can be run “as is”)*
 
-Here’s a more complex example where we change the description of the `name` parameter to based on the value of `deps`
+The following example changes the `name` parameter’s description based on the value of `deps`.
 
 For the sake of variation, we create this tool using the [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) dataclass.
 
@@ -242,7 +261,7 @@ def my_flaky_tool(query: str) -> str:
 ```
 Both `ValidationError` and `ModelRetry` respect the configured retry limit — set per-tool via [`Tool(max_retries=N)`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) (or `@agent.tool(retries=N)`), per-toolset via [`FunctionToolset(max_retries=N)`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset), or agent-wide via [`Agent(retries={'tools': N})`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__), applied in that order of precedence. The agent-wide default can also be overridden per run via `agent.run(retries={'tools': N})` (and `run_sync`/`run_stream`/`iter`, or for a block of runs via [`agent.override()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.override)); a per-run value replaces the agent-wide default at the bottom of the precedence chain, so explicit per-tool and per-toolset limits still win. A bare `int` at these run-time call sites overrides both budgets (matching construction) — pass a dict such as `retries={'tools': N}` or `retries={'output': N}` to change just one.
 
-Tool retries are tracked **per tool**: every function tool has its own counter, with no global ‘tool call’ budget shared across the run. When a tool raises `ModelRetry` or its arguments fail validation, only that tool’s counter advances. Inside a tool function, [`ctx.max_retries`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.max_retries) reflects that tool’s enforcement limit and [`ctx.retry`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.retry) is that tool’s own counter. When a tool exhausts its counter, the run raises [`UnexpectedModelBehavior`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UnexpectedModelBehavior) with message `'Tool {name!r} exceeded max retries count of {N}. Consider raising the retry limit, or see the docs on tool retries: https://ai.pydantic.dev/tools-advanced/#tool-retries'`. User-provided toolsets inherit the agent-wide tool-retry default — or its per-run override — as their default when no per-toolset value is set.
+Tool retries are tracked **per tool**: every function tool has its own counter, with no global ‘tool call’ budget shared across the run. When a tool raises `ModelRetry` or its arguments fail validation, only that tool’s counter advances. Inside a tool function, [`ctx.max_retries`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.max_retries) reflects that tool’s enforcement limit and [`ctx.retry`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.retry) is that tool’s own counter. When a tool exhausts its counter, the run raises [`UnexpectedModelBehavior`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UnexpectedModelBehavior) with message `'Tool {name!r} exceeded max retries count of {N}. Consider raising the retry limit, or see the docs on tool retries: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced/#tool-retries'`. User-provided toolsets inherit the agent-wide tool-retry default — or its per-run override — as their default when no per-toolset value is set.
 
 Two independent budgets — the **tool** budget (per function/output tool) and the **output** budget (output validation) — each resolve through the same layered precedence. The first layer that sets a value wins; unset layers fall through to the next:
 
@@ -304,7 +323,7 @@ When a timeout occurs, the tool is treated as a retryable failure and the model 
 
 Both settings are enforced by [`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset), which is what backs the agent’s own tools. Tools served by an [MCP server](/docs/ai/mcp/client/), an [external toolset](/docs/ai/tools-toolsets/deferred-tools/), or a custom [`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset) do not read them — bind those deadlines at the server or transport level instead. See [Timeouts](/docs/ai/core-concepts/timeouts/#bounding-how-long-a-step-takes) for how tool timeouts relate to the other deadlines in a run.
 
-A tool can abort the entire run by calling [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) — e.g. when it discovers that further work is pointless, or a stop signal reaches your application while a tool holds the `RunContext`. From outside the run, pass a [`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) to any run method. The run tears down whatever is in flight and raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) to the caller. Tool calls executing [in parallel](#parallel-tool-calls-concurrency) are cancelled and drained, but any that already completed keep their results in the message history, and a tool call that never produced a result is repaired automatically when that history is reused. Both cancellation surfaces require being in the same process as the run, so they do not cross a [durable execution](/docs/ai/capabilities/durable_execution/overview/) serialization boundary such as a Temporal activity.
+A tool can abort the entire run by calling [`RunContext.cancel()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.cancel) — e.g. when it discovers that further work is pointless, or a stop signal reaches your application while a tool holds the `RunContext`. From outside the run, pass a [`CancellationToken`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.CancellationToken) to any run method. The run requests cancellation of whatever is in flight and raises [`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) to the caller. Async tool tasks executing [in parallel](#parallel-tool-calls-concurrency) are cancelled and drained, but Python cannot forcibly stop a synchronous tool’s worker thread; cancellation may wait for the worker or let it finish in the background. Either way, its eventual result is discarded while any side effects remain. Tool calls that already completed keep their results in the message history, and a tool call that never produced a result is repaired automatically when that history is reused. Both cancellation surfaces require being in the same process as the run, so they do not cross a [durable execution](/docs/ai/capabilities/durable_execution/overview/) serialization boundary such as a Temporal activity.
 
 See [Cancelling a Run](/docs/ai/core-concepts/agent/#cancelling-a-run) for the full picture, including cancelling from outside the run and accessing the cancelled run’s state.
 
@@ -327,6 +346,8 @@ Only calls that made it past validation are put in front of a human.
 *(This example is complete, it can be run “as is”)*
 
 The `args_validator` parameter is available on [`@agent.tool`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool), [`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain), [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool), [`Tool.from_schema`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool.from_schema), and [`FunctionToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset). Validators can be sync or async functions.
+
+Under [durable execution](/docs/ai/capabilities/durable_execution/overview/), a tool with an `args_validator` gets a dedicated validation activity, step, or task wherever the engine wraps that toolset. The validator may perform I/O and can retry, fail, or defer the call. Tools without an `args_validator` schedule no extra durable unit.
 
 The validation result is exposed via the `args_valid` field on [`FunctionToolCallEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FunctionToolCallEvent). This reflects all validation — both schema validation and custom `args_validator` validation (if configured): `True` means all validation passed, `False` means validation failed, and `None` means validation was not performed (e.g. tool calls skipped due to the `'early'` end strategy, or deferred tool calls resolved without execution).
 

@@ -2,7 +2,7 @@
 type: Web Page
 title: Pydantic AI Gateway | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/gateway
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Pydantic AI Gateway
@@ -17,16 +17,16 @@ To help you get started with Pydantic AI Gateway, some code examples on the Pyda
 - **Cost Limits** : Set spending limits at project, user, and API key levels with daily, weekly, and monthly caps.
 - **BYOK and managed providers:** Bring your own API keys (BYOK) from LLM providers, or pay for inference directly through the platform.
 - **Multi-provider support:** Access models from OpenAI, Anthropic, Google Vertex, Groq, and AWS Bedrock.*More providers coming soon* .
-- **Routing groups:** Configure[routing groups](#routing-groups) to fail over between providers serving the same model, or load-balance traffic across them by weight.
+- **Gateway endpoints:** Configure[gateway endpoints](#gateway-endpoints) to fail over between providers serving the same model, or load-balance traffic across them by weight.
 - **Backend observability:** Log every request through[Pydantic Logfire](https://pydantic.dev/logfire) or any OpenTelemetry backend (*coming soon* ).
 - **Zero translation** : Unlike traditional AI gateways that translate everything to one common schema,**Pydantic AI Gateway** allows requests to flow through directly in each provider’s native format. This gives you immediate access to new model features as soon as they are released.
 - **Enterprise ready** : Inherits Logfire’s enterprise features — including SSO, custom roles and permissions.
 
-This section contains instructions on how to set up your account and run your app with Pydantic AI Gateway credentials.
+Set up your account and run your app with Pydantic AI Gateway credentials.
 
 1. Sign up at [logfire.pydantic.dev](https://logfire.pydantic.dev/)
 2. Choose a region and create an account.
-3. Activate the gateway in your organizations settings.
+3. Activate the Gateway in your organization’s settings.
 
 Go to your organization’s Gateway settings in Logfire and create an API key.
 
@@ -52,7 +52,7 @@ You can access multiple models with the same API key, as shown in the code snipp
 
 Pass your API key directly using the [`gateway_provider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.gateway.gateway_provider):
 
-To use an alternate provider or routing group, you can specify it in the route parameter:
+To use an alternate provider or gateway endpoint, you can specify it in the `route` parameter:
 
 Before you start, log out of Claude Code using `/logout`.
 
@@ -140,25 +140,25 @@ main().catch((err) => {
   process.exit(1);
 });
 ```
-A **routing group** is a named collection of providers that all serve the same model. Each member has a **priority**, a **weight**, and an **active** flag, and those three values together let a single group express two different routing strategies:
+A **gateway endpoint** routes requests across one or more providers under a single slug. Each assigned provider has a **priority**, a **weight**, and an **active** flag, and those three values together let a single endpoint express two different routing strategies:
 
-- **Failover / fallback** : Assign members different priorities. The Gateway always tries the highest-priority active member first, and only falls through to a lower-priority member when the higher one is unavailable (for example if it is down, rate-limited, or returns an error).
-- **Load balancing** : Assign two or more members the same priority and give each a weight. The Gateway splits traffic across those members in proportion to their weights.
+- **Failover / fallback** : Assign providers different priorities. The Gateway always tries the highest-priority active provider first, and only falls through to a lower-priority provider when the higher one is unavailable (for example if it is down, rate-limited, or returns an error).
+- **Load balancing** : Assign two or more providers the same priority and give each a weight. The Gateway splits traffic across those providers in proportion to their weights.
 
 The two strategies compose: you can have, for example, a top priority tier with two providers load-balanced 70/30, and a second priority tier that only receives traffic when both top-tier providers fail.
 
-Routing groups are managed from your organization’s Gateway settings in Logfire:
+Gateway endpoints are managed from your organization’s Gateway settings in Logfire:
 
-1. Open **Gateway -> Routing Groups** and click**Add Routing Group** .
-2. Give the group a slug (e.g. `anthropic-routing` ) and an optional description.
-3. Open the group’s **Members** page and add one or more providers. For each member set:
-  - **Priority** - higher values are tried first. Use different priorities across members for failover.
-  - **Weight** - load-balancing weight used between members that share the same priority.
-  - **Active** - inactive members are skipped during routing.
+1. Open **Gateway -> Endpoints** and click**New Endpoint** .
+2. Give the endpoint a slug (e.g. `anthropic-routing` ) and an optional description.
+3. Open the endpoint’s **Providers** page and add one or more providers. For each provider set:
+  - **Priority** - higher values are tried first. Use different priorities across providers for failover.
+  - **Weight** - load-balancing weight used between providers that share the same priority.
+  - **Active** - inactive providers are skipped during routing.
 
-Point the Gateway provider at the group via the `route` parameter (the group’s slug):
+Point the Gateway provider at the endpoint via the `route` parameter (the endpoint’s slug):
 
-The slug of the routing group you created in Logfire.
+The slug of the gateway endpoint you created in Logfire.
 
 The gateway needs to know the cost of a request in order to provide spend insights and enforce spending limits.
 

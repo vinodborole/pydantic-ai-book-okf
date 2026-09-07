@@ -2,12 +2,12 @@
 type: Web Page
 title: Common Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/common-tools
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Common Tools
 
-Pydantic AI ships with native tools that can be used to enhance your agent’s capabilities.
+Pydantic AI ships with common tools that extend your agent’s capabilities.
 
 The DuckDuckGo search tool allows you to search the web for information. It is built on top of the
 [DuckDuckGo API](https://github.com/deedy5/ddgs).

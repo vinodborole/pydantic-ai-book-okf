@@ -2,12 +2,12 @@
 type: Web Page
 title: Anthropic | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/anthropic
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Anthropic
 
-To use `AnthropicModel` models, you need to either install `pydantic-ai`, or install `pydantic-ai-slim` with the `anthropic` optional group:
+To use `AnthropicModel`, install either `pydantic-ai` or `pydantic-ai-slim` with the `anthropic` optional group:
 
 To use [Anthropic](https://anthropic.com) through their API, go to [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) to generate an API key.
 
@@ -43,10 +43,10 @@ model = AnthropicModel(
 agent = Agent(model)
 ...
 ```
-You can customize the `AnthropicProvider` with a custom `httpx.AsyncClient`:
+You can customize the `AnthropicProvider` with a custom `httpx2.AsyncClient`:
 
 ```
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic_ai import Agent
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
@@ -58,6 +58,11 @@ model = AnthropicModel(
 agent = Agent(model)
 ...
 ```
+A legacy `httpx.AsyncClient` is not accepted: `anthropic` 1.0 is built on `httpx2` and rejects one at
+client construction.
+
+The `AsyncAnthropic` client that the provider builds also retries failed requests on its own — `max_retries=2` by default, so a request can reach the network up to three times before your code sees an error. Pass `max_retries=0` when you construct the client yourself (for example as `anthropic_client=`) to keep the retry policy in your transport alone. See [Provider SDK retries](/docs/ai/core-concepts/retries/#provider-sdk-retries) for when this layer fires.
+
 You can customize model behavior using [`AnthropicModelSettings`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings):
 
 ```
@@ -129,7 +134,7 @@ See [Anthropic’s Microsoft Foundry documentation](https://platform.claude.com/
 
 Anthropic’s [task budgets](https://platform.claude.com/docs/en/build-with-claude/task-budgets) let you give Claude an advisory token budget for a full agentic loop — including thinking, tool calls, tool results, and output — so the model can pace itself and finish gracefully as the budget is consumed. Configure them with [`AnthropicModelSettings.anthropic_task_budget`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_task_budget), which takes an [`AnthropicTaskBudget`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicTaskBudget) payload and maps to `output_config.task_budget`.
 
-Pydantic AI automatically enables Anthropic’s required `task-budgets-2026-03-13` beta when this setting is present. Support is currently limited to native Anthropic `claude-opus-4-7`, `claude-opus-4-8`, `claude-opus-5`, and `claude-sonnet-5` requests, not Bedrock, Vertex, or Microsoft Foundry Anthropic model IDs.
+Pydantic AI automatically enables Anthropic’s required `task-budgets-2026-03-13` beta when this setting is present. Support is currently limited to native Anthropic `claude-fable-5`, `claude-fable-5-1`, `claude-mythos-5`, `claude-mythos-5-1`, `claude-opus-4-7`, `claude-opus-4-8`, `claude-opus-5`, and `claude-sonnet-5` requests, not Bedrock, Vertex, or Microsoft Foundry Anthropic model IDs.
 
 Task budgets compose with [`anthropic_effort`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_effort): effort tunes per-step reasoning depth, while task budgets cap total work across the loop. Both fields end up under the same `output_config` object.
 
@@ -215,7 +220,7 @@ def search_docs(ctx: RunContext, query: str) -> str:
 result = agent.run_sync('Search for Python best practices')
 print(result.output)
 ```
-When you use `anthropic_cache_instructions` with both static and dynamic [instructions](/docs/ai/core-concepts/agent/#instructions), Pydantic AI automatically places the cache boundary at the optimal point. Static instructions (from `Agent(instructions=...)`) are sorted before dynamic instructions (from `@agent.instructions` functions or [toolsets](/docs/ai/tools-toolsets/toolsets/)), and the cache point is placed after the last static instruction block.
+When you use `anthropic_cache_instructions` with both static and dynamic [instructions](/docs/ai/core-concepts/agent/#instructions), Pydantic AI automatically places the cache boundary at the optimal point. Static instructions (from `Agent(instructions=...)`) are sorted before dynamic instructions (from `@agent.instructions` functions or [toolsets](/docs/ai/tools-toolsets/toolsets/)), and the cache point is placed after the last static instruction part.
 
 This means your stable, static instructions are cached efficiently, while dynamic instructions (which may change between requests) remain outside the cache boundary and don’t cause cache invalidation.
 
@@ -360,7 +365,7 @@ agent = Agent(
 )
 ...
 ```
-Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while [extended thinking](/docs/ai/capabilities/thinking/#anthropic) is enabled — [adaptive thinking](/docs/ai/capabilities/thinking/#adaptive-thinking-effort) is compatible with forcing. **Claude Fable 5** and the **Claude Mythos** models reject a forced tool choice unconditionally — even without thinking — so Pydantic AI marks them with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
+Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while [extended thinking](/docs/ai/capabilities/thinking/#anthropic) is enabled — [adaptive thinking](/docs/ai/capabilities/thinking/#adaptive-thinking-effort) is compatible with forcing. Anthropic documents **Claude Fable 5.1** and **Claude Mythos 5.1** as rejecting a forced tool choice unconditionally, even without thinking, and Pydantic AI marks those two with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
 
 On a model that doesn’t support forcing:
 
@@ -368,6 +373,31 @@ On a model that doesn’t support forcing:
 - A `required` choice that Pydantic AI resolved on your behalf (e.g. from an[output tool](/docs/ai/core-concepts/output/#tool-output) ) falls back softly to`'auto'` . If the resolved choice named a single tool, the available tool list is filtered to that tool while`tool_choice` remains`'auto'` , which invalidates Anthropic’s prompt cache since the cached prefix includes the tool array. The model may therefore answer with text instead of calling it; when an output tool is required, Pydantic AI retries with a prompt to call a tool.
 
 Because [Tool Output](/docs/ai/core-concepts/output/#tool-output) resolves to a forced tool choice, extended thinking is also incompatible with it: a bare structured `output_type` switches to [Native Output](/docs/ai/core-concepts/output/#native-output) (or [Prompted Output](/docs/ai/core-concepts/output/#prompted-output) on models without JSON schema support), and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError). Adaptive thinking keeps Tool Output, except on the models above that reject forcing outright — whenever a thinking setting is configured, those behave as they always have: a bare structured `output_type` switches away from Tool Output, and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError).
+
+**Claude Fable 5.1** binds each thinking block to the conversation prefix that produced it. Replaying message history after that prefix changes fails with a 400 (`The block is bound to a different conversation`), and two ordinary Pydantic AI features change it:
+
+- a [dynamic instructions](/docs/ai/core-concepts/agent/#instructions) function whose text differs between runs, and
+- a [filtered toolset](/docs/ai/tools-toolsets/toolsets/#filtering-tools) that advertises a new tool mid-conversation, unless the tool uses[deferred loading](/docs/ai/tools-toolsets/toolsets/#deferred-loading) .
+
+Both are the same instability that costs you a provider’s prompt cache: a request prefix that changes between turns. The thinking block turns it into a 400 you can see; the cache turns it into a bill you can’t — every request after the change re-sends the whole conversation at uncached rates, silently. Where the prefix can be held stable, that is worth more than handling the rejection.
+
+Anthropic enforces the check for accounts created on or after 31 August 2026. For an older account it records the mismatch but acts on it only if the request sets `thinking.block_binding.prefix_mismatch_behavior`.
+
+**Pydantic AI sets nothing by default**, so an older account keeps replaying its reasoning untouched. Where the check is enforced, the rejected request is retried once with `prefix_mismatch_behavior='drop_block'`: the stale block is dropped, the run continues, and a [`AnthropicStaleThinkingBlockWarning`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicStaleThinkingBlockWarning) explains what happened. **The model no longer sees that turn’s reasoning** — the trade is one turn’s thinking against a failed run. Models marked [`anthropic_binds_thinking_blocks=True`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_binds_thinking_blocks) are the only ones that retry.
+
+Anthropic applies the drop to one request only. Its response records the transformation, so Pydantic AI uses that response history to keep sending `drop_block` for the rest of the affected conversation. This avoids another rejected request on every later turn without storing mutable state on the model or changing an unrelated conversation. The same behavior applies to [`count_tokens()`](/docs/ai/api/models/base/#pydantic_ai.models.Model.count_tokens): token counting retries the first matching rejection once, and later counts carrying the recovery history send the drop immediately. A recovery seen only while counting applies only to later counts, because that endpoint omits server-side tools and can therefore have a different prefix from inference. An explicit `block_binding` still wins for both counting and inference.
+
+The automatic behavior is available through the direct Anthropic API, Pydantic AI Gateway and other `AsyncAnthropic`-compatible proxies, Claude Platform on AWS, legacy Amazon Bedrock, and Google Vertex AI. It is not enabled for the AWS-operated Bedrock Messages API client (`AsyncAnthropicBedrockMantle`), which does not accept Anthropic beta headers, or Microsoft Foundry, where this beta is not currently documented. Explicit settings remain pass-through on every transport.
+
+Anthropic reports every drop, and Pydantic AI surfaces it two ways. Under [instrumentation](/docs/ai/integrations/logfire/) the Pydantic AI model request span carries an `anthropic.input_transformations` event, so a drop is visible in the trace as it happens; an unrelated ambient application span is never modified. On the response it is always recorded in `provider_details`:
+
+To skip the rejected request — and the warning — ask for the drop up front. Pydantic AI sends an explicit `block_binding` as given, with the beta the field requires, and never retries:
+
+To fail loudly instead of losing the reasoning, set `'error'` in the same place. To keep the retry but stop hearing about it, filter the warning:
+
+There is no third behavior: `prefix_mismatch_behavior` is either `'error'` or `'drop_block'`. Passing `None` is how you ask for Anthropic’s account default explicitly, which keeps the block only where the check isn’t enforced.
+
+Models that don’t bind thinking blocks are unaffected *by default*: with no explicit `block_binding`, their requests carry neither the field nor the binding beta, and a 400 from them is never retried. Setting `block_binding` yourself puts both on the wire for any model — the beta follows the field, not the profile flag — and such a request is never retried either. Anthropic documents **Claude Mythos 5.1** as not running this check, so it is not marked either.
 
 Anthropic supports [automatic context compaction](https://docs.anthropic.com/en/docs/build-with-claude/compaction) to manage long conversations. When input tokens exceed a configured threshold, the API automatically generates a summary that replaces older messages while preserving context.
 
@@ -386,6 +416,12 @@ Alternatively, you can configure compaction directly via model settings using [`
 By default, Pydantic AI chooses a compatible Anthropic code execution tool version for the selected model. You can override this with [`AnthropicModelSettings.anthropic_code_execution_tool_version`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_code_execution_tool_version) when you need a specific supported Anthropic tool version:
 
 Pydantic AI raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) if you explicitly select a tool version that the model does not support.
+
+When you continue a run from message history, Pydantic AI automatically reuses the Anthropic code execution container recorded in that history. Anthropic containers expire after 30 days, and a request that refers to an expired container returns an error.
+
+If a request uploads files through [`CodeExecutionTool`](/docs/ai/api/pydantic-ai/native_tools/#pydantic_ai.native_tools.CodeExecutionTool) and Anthropic returns HTTP 500 for a history-derived container, Pydantic AI retries once without the rejected container ID so Anthropic can create a fresh container and receive the uploads. Other errors are raised without this retry. The fresh container does not contain state or files from the expired container.
+
+Set [`anthropic_container`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_container) explicitly when container continuity is required. An explicitly configured container is never replaced automatically; Anthropic’s original error is raised instead.
 
 # Citations
 

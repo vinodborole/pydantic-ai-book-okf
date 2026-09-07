@@ -2,7 +2,7 @@
 type: Web Page
 title: Hooks | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/hooks
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Hooks
@@ -138,7 +138,27 @@ For pure application-level handler registration without other hooks, the dedicat
 | `run_event_stream` | `run_event_stream=` | `wrap_run_event_stream` | 
 | `event` | `event=` | *(per-event convenience)* | 
 
-`run_event_stream` wraps the full event stream as an async generator. `event` is a convenience — it fires for each individual event during a streamed run. Tool and model events flow through this stream, along with framework events such as [`EnqueuedMessagesEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.EnqueuedMessagesEvent) when queued messages enter run history. During a [realtime session](/docs/ai/realtime/capabilities/), both hooks also fire, and realtime-only [`RealtimeEvent`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeEvent) members flow through the same stream:
+`run_event_stream` wraps the full event stream as an async generator. `event` observes individual events at the same dispatch point as capability [`on_event`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.on_event) listeners. Callbacks can be synchronous or asynchronous and return `None`.
+
+Tool and model events flow through this stream, along with framework events such as [`EnqueuedMessagesEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.EnqueuedMessagesEvent) when messages [injected mid-run](/docs/ai/core-concepts/message-history/#injecting-messages-mid-run) with [`ctx.enqueue()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) enter run history, application [custom events](/docs/ai/core-concepts/agent/#custom-events), and the [capability events](/docs/ai/capabilities/overview/#capability-events) published by capabilities. Because an `event` callback belongs to the application rather than to a capability, it is also a place to [emit](/docs/ai/core-concepts/agent/#custom-events) a [`CustomEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent) of your own, which is how you [republish a capability’s internal event](/docs/ai/capabilities/overview/#capability-events) to a frontend. An `event` callback also participates in [immediately dispatched](/docs/ai/capabilities/overview/#reacting-to-events) capability decision events, so application code can set decision fields before the emitter continues. During a [realtime session](/docs/ai/realtime/capabilities/), both hooks fire, and realtime-only [`RealtimeEvent`](/docs/ai/api/pydantic-ai/realtime/#pydantic_ai.realtime.RealtimeEvent) members flow through the same stream.
+
+Pass event classes to filter the callback:
+
+Or use it bare to observe every event, with `event` typed as the full [`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent) union:
+
+Prefer naming the classes. Filtering by type isn’t only about narrowing the `event` argument for the type checker: the classes are what let dispatch skip a capability entirely for events it doesn’t listen to, so in a run with many capabilities a bare callback anywhere in the tree means every event is offered to everything.
+
+Returning a replacement event from `hooks.on.event` is deprecated. Use `hooks.on.run_event_stream` to transform, replace, or filter events.
+
+When events are all you want to observe, [`@agent.on_event`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.on_event) registers a listener straight on the agent, with the same filtering, typing and `timeout=`:
+
+Bare works the same way: `@agent.on_event` on its own sees every event.
+
+Listeners registered on the agent join after its own capabilities, so they see the events those emitted, and they survive an overridden root capability. Capability ordering still applies: one asking for `position='innermost'` keeps that position and its listeners run after these. An agent that never calls `on_event` is unaffected: with nothing registered, the listener capability is never added to the run at all.
+
+Like `hooks.on.event`, they dispatch *upstream* of `run_event_stream`: a listener sees each event as emitted, not as finally delivered, so a capability that rewrites or drops events in its stream wrapper does so after every listener has run — and a listener can see an event no consumer ever receives. When you need the delivered stream, wrap it with `run_event_stream` or consume [`run_stream_events()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events).
+
+Only events can be registered this way. The other hook families are interceptors — they sit in a wrap chain, take and return the value, and where they sit relative to the other capabilities is a choice you need to make — so they go on a `Hooks` capability whose position in `capabilities=` is yours to pick.
 
 Tool hooks (validation and execution) support a `tools` parameter to target specific tools by name:
 

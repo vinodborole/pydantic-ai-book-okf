@@ -2,14 +2,14 @@
 type: Web Page
 title: Getting Help | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/help
-timestamp: '2026-07-09T12:16:42.049694+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Getting Help
 
 If you need help getting started with Pydantic AI or with advanced usage, the following sources may be useful.
 
-Join the `#pydantic-ai` channel in the [Pydantic Slack](https://logfire.pydantic.dev/docs/join-slack/) to ask questions, get help, and chat about Pydantic AI. There’s also channels for Pydantic, Logfire, and FastUI.
+Join the `#pydantic-ai` channel in the [Pydantic Slack](https://logfire.pydantic.dev/docs/join-slack/) to ask questions, get help, and chat about Pydantic AI. There are also channels for Pydantic, Logfire, and FastUI.
 
 If you’re on a [Logfire](https://pydantic.dev/logfire) Pro plan, you can also get a dedicated private slack collab channel with us.
 

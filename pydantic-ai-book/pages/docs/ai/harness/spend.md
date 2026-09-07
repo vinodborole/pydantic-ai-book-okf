@@ -5,7 +5,7 @@ description: Track what an agent costs and refuse the next request once a budget
   spent, with windows longer than a run, per-tenant scopes, and a counter shared across
   worker processes.
 resource: https://pydantic.dev/docs/ai/harness/spend
-timestamp: '2026-08-31T13:11:06.648371+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Spend
@@ -83,7 +83,7 @@ def show(snapshot: SpendSnapshot) -> None:
         print(f'  {status.budget.name}: ${status.remaining_usd} left')
 SpendLimits(budgets=[Budget(usd=Decimal('100'))], on_spend=show)
 ```
-`on_spend` fires after every response, sync or async, with a `SpendSnapshot` — including one that `on_unpriced='raise'` is about to reject, since a report that skipped exactly the unpriced responses would be missing the ones worth knowing about. It carries the response’s `usage` unchanged, so cache reads and writes are available without this capability modelling them.
+`on_spend` fires after every response, sync or async, with a `SpendSnapshot` — including one that `on_unpriced='raise'` is about to reject, since a report that skipped exactly the unpriced responses would be missing the ones worth knowing about. It carries the response’s `usage` unchanged, so cache reads and writes are available without this capability modelling them. Under durable execution, orchestration can replay this callback even though the journaled accrual ran only once. Make the callback idempotent before it writes an audit record, emits a billing event, or performs another side effect.
 
 `status()` reads the same numbers without a run, which is what a cost display in a UI wants:
 
@@ -177,15 +177,15 @@ The compatibility only runs one way, which is worth planning around on three cou
 
 The fallback goes away in 0.28.0. A counter still living under the old name stops being counted at that point, so a window set to `retain='forever'`, or one whose horizon outlasts the gap between the two releases, is worth moving by hand before then.
 
-`add_many` carries a token identifying the response, and `RedisSpendStore` reads a marker for it before the increments and writes it after them, inside the same script. `InMemorySpendStore` remembers the same tokens under its lock, so the default store behaves the same way. A durable engine that re-executes the accrual around a response it already holds — DBOS recovering a workflow, a Prefect flow retry — therefore adds it once rather than twice. The token is the provider’s own response id where the provider reports one; without one it falls back to the run id, the step, and the response timestamp, which survives a replay only for a `run_id` the caller chose rather than the generated default. Markers are held for `dedup_retain`, a field on both stores, an hour by default, or for the window’s own horizon where that is shorter, and cost one small key per response per window. That horizon is the window a replay is recognised in, not the counter’s lifetime: a response replayed later than it is counted again, which is the direction to err in, since a brake that trips early survives and one that releases late does not. Set `dedup_retain=None` to hold no markers and apply every entry, which also gives up the guarantee. Recognition starts at the upgrade either way: a response an earlier release counted left no marker behind, so a replay of that one is counted again.
+`add_many` carries a token identifying the response, and `RedisSpendStore` reads a marker for it before the increments and writes it after them, inside the same script. `InMemorySpendStore` remembers the same tokens under its lock, so the default store behaves the same way while its process survives. The token combines the run id and step with a digest of replay-stable response content, usage, and provider identity; it excludes clock-derived and arbitrary provider bookkeeping. The token layer protects recovery that presents an entry without consulting the journal only when the caller supplies the same `run_id` to `Agent.run` on the original run and its recovery. When `run_id` is omitted, Pydantic AI creates a fresh one and the store cannot recognise the entry. Ordinary durable replay remains protected by the journaled `_accrue` operation regardless. Markers are held for `dedup_retain`, a field on both stores, an hour by default, or for the window’s own horizon where that is shorter, and cost one small key per response per window. That horizon is the window in which recovery outside the durable journal is recognised, not the counter’s lifetime: a response presented again later is counted again, which is the direction to err in, since a brake that trips early survives and one that releases late does not. Set `dedup_retain=None` to hold no markers and apply every entry, which also gives up that store-side protection. Recognition starts at the upgrade either way: a response an earlier release counted left no marker behind, so presenting that response again counts it again.
 
-The default store is built per capability, so two `SpendLimits` instances do not quietly share one counter. Pass the same store object to both when you want them to.
+The default store is built per capability, so two `SpendLimits` instances do not quietly share one counter. Pass the same store object to both when you want them to. `InMemorySpendStore` cannot survive worker replacement: a replacement process has neither the counters nor the deduplication markers accumulated by the first one. Use a shared store for durable workflows that can recover on another worker.
 
 A store that fails does not fail quietly. An error reading the counter refuses the request, which is the safe direction. An error writing it propagates out of the run after the model has already answered and been charged. That is deliberate: a swallowed write would drift the counter down and weaken the gate, which is worse than a visible failure. If your deployment would rather keep the answer than the count, wrap the store and decide there.
 
-Any object with `get_many` and `add_many` works, so a Postgres or DynamoDB counter is a small class rather than a fork. Four obligations come with writing one. Return a total for every key you were handed, keyed by `SpendEntry.key`, including one you skipped as a replay: `SpendLimits` indexes the result by key, so a missing one is a `KeyError` part-way through a run. Read a key that was never written as zero rather than leaving it out. Skip an entry whose `token` has already been applied to that key, or an accrual a durable engine re-executes is counted twice. And apply the whole call or none of it — the guarantee at the top of this section is only as good as the backend behind it, and a store that commits each entry as it goes puts back the split write this seam exists to remove. Neither method is ever handed an empty sequence, so there is no such case to answer for.
+Any object with `get_many` and `add_many` works, so a Postgres or DynamoDB counter is a small class rather than a fork. Four obligations come with writing one. Return a total for every key you were handed, keyed by `SpendEntry.key`, including one you skipped as a replay. A missing total raises `UserError`, which names either this store contract or a non-deterministic scope during durable replay as the cause. Read a key that was never written as zero rather than leaving it out. Skip an entry whose `token` has already been applied to that key, or recovery outside the durable journal can count one response twice. And apply the whole call or none of it — the guarantee at the top of this section is only as good as the backend behind it, and a store that commits each entry as it goes puts back the split write this seam exists to remove. Neither method is ever handed an empty sequence, so there is no such case to answer for.
 
-`SpendStore`, the single-key `get` and `add` pair released in 0.17.0, is deprecated and removed in 0.28.0: a store of that shape still works, driven one window per call, and emits one `HarnessDeprecationWarning` when the `SpendLimits` holding it is constructed, naming what that costs — windows applied one at a time, and no token to recognise a repeat by. The single-key `get` and `add` on `InMemorySpendStore` and `RedisSpendStore` go at that release too. A direct call to either does not warn, so this is the notice; reach for `get_many` and `add_many` instead. A subclass that *overrode* one of them without also overriding the batch pair is warned when the store itself is constructed, because that case loses behavior rather than just naming a deprecated method: `SpendLimits` drives `get_many` and `add_many`, so an override on `get` or `add` is never called and whatever it added — an audit, a mirrored write — stops happening. Move it onto `get_many` or `add_many`, which is also what makes the warning stop.
+`SpendStore`, the single-key `get` and `add` pair released in 0.17.0, is deprecated and removed in 0.28.0: a store of that shape still works, driven one window per call, and emits one `HarnessDeprecationWarning` when the `SpendLimits` holding it is constructed. The warning names both losses: windows are applied one at a time, and the token has nowhere to go. A durable journal still prevents duplicate execution while its record is available, but recovery that cannot consult that journal has no store-side deduplication. The single-key `get` and `add` on `InMemorySpendStore` and `RedisSpendStore` go at that release too. A direct call to either does not warn, so this is the notice; reach for `get_many` and `add_many` instead. A subclass that *overrode* one of them without also overriding the batch pair is warned when the store itself is constructed, because that case loses behavior rather than just naming a deprecated method: `SpendLimits` drives `get_many` and `add_many`, so an override on `get` or `add` is never called and whatever it added — an audit, a mirrored write — stops happening. Move it onto `get_many` or `add_many`, which is also what makes the warning stop.
 
 Prices come from [genai-prices](https://github.com/pydantic/genai-prices) via `ModelResponse.cost()`, per response: cache and tier pricing are per request, so summing usage across requests and pricing the total gives the wrong number.
 
@@ -197,6 +197,8 @@ from pydantic_ai_harness import SpendLimits
 SpendLimits(price=lambda response: Decimal('0.002') if response.model_name == 'internal-7b' else None)
 ```
 An amount returned by `price` must be finite and not negative. Anything else — a credit, a `NaN`, an infinity — fails the run with `UserError`, because a credit moves a budget away from its ceiling and the other two are a broken pricing function rather than a price. The response is still recorded first: it was billed by the provider whatever the function returned, so its tokens and request count are accrued and `on_spend` fires before the error is raised.
+
+Under durable execution, `price` and each budget’s `scope` callable must be deterministic for the same response and run context. Pricing runs in orchestration outside the journaled accrual, so a changed result can make `on_spend` disagree with the recorded counter or turn a successful recovery into a pricing error. Moving it into a durable operation would require the durability backend to serialize the complete provider response, including arbitrary metadata, so the callable remains outside that boundary. A changed scope selects a different store key from the one in the recorded accrual; `SpendLimits` reports that mismatch as a `UserError` naming the determinism requirement.
 
 Returning `None` falls through to the registry. When nothing can price a response, `on_unpriced` decides: `'zero'` (the default) counts it as free and increments `Spent.unpriced_requests` so the gap is visible, and `'raise'` fails the run with `UnpricedModelError`. Either way the response is recorded first and the tokens are counted, so a token ceiling still holds for a model with no price and an application that catches the error does not carry on against an understated counter. Under `'zero'` a USD ceiling is the one that cannot hold: nothing priceable accrues, so no number of such requests reaches it. That combination — `'zero'` plus a `usd` budget — warns once per model with `UnpricedModelWarning`, rather than once per request. If callers choose the model, prefer `'raise'` or supply `price`.
 
@@ -210,23 +212,19 @@ The accrual happens in `wrap_model_request`, immediately around the provider cal
 
 Wrapping also means a request the provider never saw is not charged for. `SkipModelRequest` from an earlier capability’s `before_model_request` reaches `after_model_request` with a response the run never paid for, but never reaches the wrapped handler.
 
-What is left is siblings. Pydantic AI orders innermost capabilities against non-innermost ones only, and among themselves the one listed *later* nests further in. `InputGuardrail` and `TemporalDurability` also declare themselves innermost, so either listed after `SpendLimits` wraps inside it. `InputGuardrail` is the one that can reject a billed response before it is counted; `TemporalDurability` returns the response untouched outside a durable context and routes it into an activity inside one, where `SpendLimits` has already failed on the clock. With `InputGuardrail(parallel=True)` what decides is whether the guard blocks, not who wins the race: a blocked prompt is counted in neither outcome, because the guard cancels the call when it settles first and discards the answer when the model does. The second is the under-count — a response the provider billed that `SpendLimits` never sees. List `SpendLimits` last among your innermost capabilities where the difference matters. Closing it outright needs a way to order innermost capabilities against each other, tracked in [#534](https://github.com/pydantic/pydantic-ai-harness/issues/534).
+What is left is siblings. Pydantic AI orders innermost capabilities against non-innermost ones only, and among themselves the one listed *later* nests further in. `InputGuardrail` and the durability capabilities also declare themselves innermost, so either listed after `SpendLimits` wraps inside it. `InputGuardrail` is the one that can reject a billed response before it is counted. With `InputGuardrail(parallel=True)` what decides is whether the guard blocks, not who wins the race: a blocked prompt is counted in neither outcome, because the guard cancels the call when it settles first and discards the answer when the model does. The second is the under-count — a response the provider billed that `SpendLimits` never sees. A durability wrapper dispatches rather than rejects, so it does not create that gap and is omitted from the warning. List `SpendLimits` last among your other innermost capabilities where the difference matters. Closing the guardrail case outright needs a way to order innermost capabilities against each other, tracked in [#534](https://github.com/pydantic/pydantic-ai-harness/issues/534).
 
 `SpendLimits` reports that arrangement rather than leaving it to be read here. Before each model request it reads the sorted chain from `RunContext.root_capability` and warns with `SpendCompositionWarning`, naming the capabilities listed after it that bring a `wrap_model_request` of their own. One arrangement reports once, not once per request — and it is the arrangement that is remembered rather than the fact of having reported, so an agent whose first run was safe is still read on a later run that adds an inner wrapper through `agent.run(capabilities=[...])`. A warning rather than a refusal, and keyed on the ordering rather than on what the capabilities do with it. None of the conditions above is read: `parallel` can be flipped without moving anything in the list, and neither the verdict nor the race is settled at the point the report is made. So it also names a sequential `InputGuardrail` listed after `SpendLimits`, which raises before the request is made and cannot under-count. Reordering silences it, and is what the paragraph above recommends anyway.
 
-Three kinds of capability are left out of that report. A `Hooks` is not named: it defines `wrap_model_request` whether or not a `model_request` hook was registered, and the registry that would say is private ([pydantic-ai#7177](https://github.com/pydantic/pydantic-ai/issues/7177)). A `WrapperCapability` is answered on whatever it wraps, since its own `wrap_model_request` only delegates — so a wrapper over a real rejector is still named. And a durable-execution capability — one of the bundled Temporal, DBOS and Prefect integrations — is left out because reordering is neither the fix nor available: routing into a durable unit is not rejecting what comes back, and core requires that dispatch to be the last wrapper around the model handler, so listing `SpendLimits` after it is the one thing a reader must not do. What `SpendLimits` does not support under a durable engine is a larger problem than ordering, and the durable-execution section below covers it.
+Three kinds of capability are left out of that report. A `Hooks` is not named: it defines `wrap_model_request` whether or not a `model_request` hook was registered, and the registry that would say is private ([pydantic-ai#7177](https://github.com/pydantic/pydantic-ai/issues/7177)). A `WrapperCapability` is answered on whatever it wraps, since its own `wrap_model_request` only delegates — so a wrapper over a real rejector is still named. A durable-execution capability is also left out: its wrapper dispatches work rather than rejecting a response, and core requires that dispatch to be the last wrapper around the model handler. `SpendLimits` crosses that boundary through its own durable operations instead of by reordering the wrapper.
 
-**Durable execution.** `SpendLimits` is not supported inside a Temporal workflow, and inside a DBOS or Prefect one only as far as the bounds below reach.
+**Durable execution.** `SpendLimits` supports Pydantic AI durability capabilities. Its clock read, counter read, and accrual are separate durable operations. Temporal therefore reads the clock in an activity rather than workflow orchestration, and DBOS or Prefect record the same boundary in their own durable units. On replay, the engine returns each operation’s recorded result without reading the clock or store again. The response is accrued once, and the window key comes from the original recorded clock value.
 
-The capability hooks run in orchestration code, while the model request they wrap is a durable unit — a Temporal activity, a DBOS step, a Prefect task. All three recover by re-executing orchestration code, so they re-execute the accrual with it while the model request beside it is restored from its checkpoint rather than re-run. Pydantic AI already treats a side effect in orchestration code as something to protect: on DBOS the durable agent runs its configured `event_stream_handler` inside a step, and on Prefect inside a cached task, so recovery replays the recorded result instead of calling the handler again. The accrual has no such wrapper. What it does on re-execution is decided by the store instead, and `SpendEntry.token` is what gives the store something to decide on.
+Attach the durability capability to the same agent as `SpendLimits`. Running a `SpendLimits` agent directly inside a Temporal workflow without `TemporalDurability` leaves the clock read in workflow orchestration; the sandbox error is translated into advice to attach durability.
 
-What differs between the engines is whether you find out. Temporal raises on the first request: its workflow sandbox restricts the wall clock these hooks read before they look at a single budget, so the kinds of window configured make no difference, `pydantic_ai_harness` is not among the modules `PydanticAIPlugin` passes through the sandbox, and `SpendLimits` translates that error into what it means rather than into the setting that silences it. Passing the package through the sandbox removes the message, not the replay, and under time-skipping the workflow’s day and the key’s day still drift apart. DBOS recovery and Prefect flow retry report nothing at all, and what the counter holds afterwards follows the store rather than the engine.
+The journal covers replay while its records are available. Store-side idempotency covers a different recovery path: one that presents the same `SpendEntry` without consulting the recorded accrual. A `BatchSpendStore` uses the replay-stable token to apply that entry once within `dedup_retain`. A deprecated `SpendStore` drops the token and warns, so it cannot provide this second layer. `InMemorySpendStore` can deduplicate only while recovery reaches the same process. Use a shared `BatchSpendStore`, such as `RedisSpendStore`, when recovery can land on another worker.
 
-`SpendEntry.token` names the response the accrual is for: the provider’s own name and response id where there is one, the run id and the step the response arrived at where there is not, and `ModelResponse.timestamp` in either case — so two responses reported under one id do not collapse into a single marker. A store that recognises a token it has already applied to a key returns that key’s current total instead of adding again. So a store recovery still reaches — a shared one, or the default in-process store when the retry re-runs in the process that built it — counts a replayed response once. One it does not reach, because recovery landed in a fresh worker holding a fresh `InMemorySpendStore`, has neither the counter nor the marker that would have caught the replay, so it starts from nothing and admits too much.
-
-What bounds that is settled under “Sharing a counter across processes” above: how late a replay is still recognised, what a store reached through the deprecated `SpendStore` protocol gives up, and the run id a provider reporting no response id leaves you to choose. One bound belongs here rather than there. A marker is keyed on the store key the response landed under, and that key carries the window the wall clock named at accrual time, so a replay arriving after midnight is applied to the next day’s counter, which no marker covers. All of them err the same way, and it is the survivable one: a billed response counted twice rather than one dropped.
-
-Refuse the workflow **admission** before starting it instead. That is why `exhausted()` works without a `RunContext`:
+`exhausted()` remains useful as a workflow admission check without a `RunContext`:
 
 ```
 from collections.abc import Awaitable, Callable
@@ -244,13 +242,7 @@ inspected nothing — which is exactly what a `SpendLimits` whose budgets are al
 the scope is missing. `exhausted` raises there instead, naming the budgets that need a
 `scope` or a run context. Use `status` for a reading, `exhausted` for a decision.
 
-Admission is all it is: the check reserves nothing, so what the workflow goes on to spend is bounded by nothing this gate did. A floor on runaway spend already recorded, not a ceiling on what follows.
-
-Closing what is left needs the window key to come from a clock the engine controls, and the store
-write to happen inside the engine’s own durable unit. Neither is something the capability can
-arrange without depending on `temporalio`, `dbos` or `prefect` and detecting which one is running,
-so both belong in Pydantic AI core rather than here. Tracked in
-[#531](https://github.com/pydantic/pydantic-ai-harness/issues/531).
+Admission is all that call does: it reserves nothing. The durable operations then account for the workflow’s model responses. Issue [#531](https://github.com/pydantic/pydantic-ai-harness/issues/531) tracks this support and its remaining store-lifetime limits.
 
 For a ceiling that covers one run and nothing else, Pydantic AI’s own
 [`UsageLimits`](https://pydantic.dev/docs/ai/core-concepts/agent/#usage-limits) does the same job
@@ -312,22 +304,12 @@ State lives across runs on purpose, so `for_run` is left alone: a daily
 budget that reset every run would not be a daily budget. Per-run isolation
 comes from `Budget(window='run')`, whose key carries the run id.
 
-Durable execution: not supported inside a durable workflow, on Temporal, DBOS,
-or Prefect. The hooks run in orchestration code, while the model request beside
-them is a durable unit restored from its checkpoint, so re-execution replays the
-accrual without replaying the request it counted. `SpendEntry.token` identifies
-the response, so a store implementing `BatchSpendStore` applies a replayed accrual
-once rather than twice — within `dedup_retain`, and not at all through the adapter
-that drives a deprecated `SpendStore`, which has nowhere to put the token. What is
-left is the other direction: recovery that lands in a fresh worker holding a fresh
-`InMemorySpendStore` finds neither the counter nor the marker that guards it, and
-admits more than the budget allows. Temporal stops earlier than any of that, on
-the wall clock `before_model_request` reads to pick the window, which the sandbox
-restricts and `PydanticAIPlugin` does not pass `pydantic_ai_harness` through.
-`exhausted()` works without a `RunContext` so a workflow can at least be refused
-admission on what is already recorded — but it reserves nothing, so it is a gate
-on the door, not a budget on what happens inside. Tracked in
-[https://github.com/pydantic/pydantic-ai-harness/issues/531](https://github.com/pydantic/pydantic-ai-harness/issues/531).
+Under a durability capability, clock reads, counter reads, and accruals are durable
+operations. Their recorded results are replayed without re-entering the store. A
+shared store is still required when recovery can move to another worker: the default
+`InMemorySpendStore` loses its counters and deduplication markers with the process.
+A deprecated `SpendStore` also loses token-based deduplication outside the journal
+because its single-key `add` method has nowhere to receive `SpendEntry.token`.
 
 Windows to accumulate against, and which of them can refuse a request.
 
@@ -350,9 +332,13 @@ An amount must be finite and not negative. Anything else fails the run with
 a credit would move a budget away from its ceiling, and a NaN or an infinity
 is a broken pricing function rather than a price.
 
+Under durable execution this callable must return the same result when replayed for the same response. It runs in orchestration after the durable model request, outside the journaled accrual.
+
 **Type:** `PriceFunc` | `None`**Default:** `None`
 
 Called with a `SpendSnapshot` after each response. May be sync or async.
+
+Durable replay can invoke this callback again after the response’s journaled accrual has run only once, so the callback must be idempotent.
 
 **Type:** `SpendCallback` | `None`**Default:** `None`
 
@@ -477,7 +463,7 @@ Where each budget stands.
 
 Inside a run, pass `ctx` and every budget resolves. Without one — the
 reading a cost display wants, and the check to make before starting a
-durable workflow whose hooks cannot reach a shared store — budgets on a
+durable workflow — budgets on a
 `run` or `conversation` window are omitted, since those periods have no
 meaning outside a run, and a budget declaring a `scope` is omitted
 unless `scope` names the partition to read, since its callable has no
@@ -501,16 +487,7 @@ def exhausted(
 ```
 Whether any budget this call can read is exhausted, refusing to guess about the rest.
 
-An admission check, and only that. It reads the counters; it reserves nothing and
-records nothing, so work started on the strength of it goes unmeasured unless
-something else accrues it. That makes it the pre-flight option on every durable
-engine, and what the next caller reads differs. Under Temporal nothing accrues
-inside the workflow at all, because the sandbox refuses the clock these hooks read,
-so the counter still holds the admission reading. Under DBOS and Prefect the accrual
-does run, and `SpendEntry.token` keeps a replay of it from counting twice, so the
-counter tracks the workflow as long as recovery still reaches the store that accrued.
-Either way this is a floor on runaway spend already recorded, not a ceiling on what
-the workflow goes on to spend.
+An admission check, and only that. It reads the counters; it reserves nothing and records nothing, so work started on the strength of it is measured only if the agent also carries this capability. Under durable execution, the agent’s clock reads, counter reads, and accruals are journaled. The store still has to survive worker replacement for a budget shared across those workers.
 
 `status()` omits what it cannot resolve, and `any(...)` over the remainder is a brake
 that silently checks nothing when every budget is scoped — so this raises instead,
@@ -525,7 +502,7 @@ def from_spec(
     budgets: Sequence[BudgetSpec] = (),
     on_unpriced: Literal['zero', 'raise'] = 'zero',
     expose_tools: bool = False,
-    id: str | None = None,
+    id: str | None = 'spend_limits',
     description: str | None = None,
     defer_loading: bool = False,
     **unsupported: Any,
@@ -581,6 +558,8 @@ The period the ceiling applies to.
 **Type:** `Window` **Default:** `'day'`
 
 Partitions the counter — per tenant, per user, per agent. `None` counts globally.
+
+Under durable execution this callable must return the same value when replayed with the same run context, because its result is part of the store key.
 
 **Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
 
@@ -750,11 +729,10 @@ How long the key may be kept after this write. `None` means indefinitely.
 
 Identifies the response this entry came from, so it is applied at most once.
 
-A capability hook runs in orchestration code, which a durable engine re-executes:
-DBOS recovers a workflow by running it again, and a Prefect flow retry replays the
-model request from its cache. Both hand the same response back to the accrual, and
-without a token the window counts it twice. A store that recognises a token it has
-already applied to `key` returns the current total instead of adding again.
+The durable accrual operation handles ordinary replay through its journal. Recovery
+without that record can still present the same response to the store. A store that
+recognises a token it has already applied to `key` returns the current total instead
+of adding again.
 
 `None` means “apply unconditionally”, which is what a reconciler posting a delta
 wants: two corrections of the same size are two corrections.
@@ -805,8 +783,8 @@ Add to `key` and return the result. `ttl` is how long the key may be kept.
 Counters for the lifetime of one process.
 
 Catches a runaway loop inside the worker it runs in. It does not enforce a
-budget across processes: every worker of a queue would keep its own count,
-which is what a shared store such as
+budget across processes and cannot survive durable recovery on a replacement
+worker: each process has its own counters and deduplication markers. A shared store such as
 [`RedisSpendStore`](/docs/ai/harness/spend/#pydantic_ai_harness.spend.RedisSpendStore) is for.
 
 Supplies the time expiry is measured against.

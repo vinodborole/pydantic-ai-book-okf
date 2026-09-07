@@ -2,7 +2,7 @@
 type: Web Page
 title: Multimodal Input | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/input
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Multimodal Input
@@ -15,11 +15,11 @@ If you have the image locally, you can also use [`BinaryContent`](/docs/ai/api/p
 
 To ensure the example is runnable we download this image from the web, but you can also use `Path().read_bytes()` to read a local file's contents.
 
-You can provide audio input using either [`AudioUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AudioUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent). The process is analogous to the examples above.
+For audio, use [`AudioUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AudioUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent).
 
-You can provide video input using either [`VideoUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.VideoUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent). The process is analogous to the examples above.
+For video, use [`VideoUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.VideoUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent).
 
-You can provide document input using either [`DocumentUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.DocumentUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent). The process is similar to the examples above.
+For documents, use [`DocumentUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.DocumentUrl) or [`BinaryContent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryContent).
 
 If you have a direct URL for the document, you can use [`DocumentUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.DocumentUrl):
 

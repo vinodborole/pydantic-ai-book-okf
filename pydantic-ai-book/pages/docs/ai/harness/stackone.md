@@ -4,7 +4,7 @@ title: StackOne | Pydantic Docs
 description: Let a Pydantic AI agent use actions from one of the user's linked business
   applications through StackOne.
 resource: https://pydantic.dev/docs/ai/harness/stackone
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # StackOne
@@ -68,14 +68,44 @@ Passing `actions` selects `individual` mode automatically. Explicitly combining 
 In `search_execute` mode, action IDs are returned by the search tool at runtime and should not be guessed. In
 `individual` mode, all selected tool schemas are sent to the model, so filter large action sets with `actions`.
 
-To keep StackOne tools out of the model context until they are needed, pass `defer_loading=True`. The capability uses
-`id='stackone'` by default so it can be loaded on demand. Give each instance a distinct `id` when one agent uses
-multiple StackOne accounts:
+To keep StackOne tools out of the model context until they are needed, pass `defer_loading=True`. The capability needs
+an `id` to be loaded on demand, and derives one from the linked account — `StackOne(account_id='45320')` is
+`stackone-45320` — so one agent can reach several accounts without naming each one:
 
 ```
 from pydantic_ai_harness import StackOne
 StackOne(account_id='your-linked-account-id', defer_loading=True)
 ```
+Two capabilities on the *same* account share that id and are rejected at agent construction, which is what you want:
+one linked account is one connection. Pass an explicit `id=` if you need to override the derived one.
+
+Distinct ids keep the two capabilities apart, but they do not rename their tools. StackOne’s server
+names the tools after the connector and action (`bamboohr_list_employees`), so two accounts on the
+same provider list the same names and the run fails on the tool name rather than the id:
+
+```
+UserError: StackOneToolset 'stackone-crm-account' defines a tool whose name conflicts with
+existing tool from StackOneToolset: 'bamboohr_list_employees'
+```
+Namespace them with [`PrefixTools`](https://pydantic.dev/docs/ai/capabilities/overview/), which is
+what it is for:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.capabilities import PrefixTools
+from pydantic_ai_harness import StackOne
+agent = Agent(
+    'openai:gpt-5.6-sol',
+    capabilities=[
+        PrefixTools(StackOne(account_id='hr-account'), prefix='hr'),
+        PrefixTools(StackOne(account_id='crm-account'), prefix='crm'),
+    ],
+)
+```
+The model sees `hr_bamboohr_list_employees` and `crm_bamboohr_list_employees`, and each routes to
+its own linked account. Two accounts on *different* providers list different tool names already, so
+they need no prefix.
+
 Provider actions can return large exports. Combine StackOne with the [Tool Output Limits](/docs/ai/harness/tool-output-limits/)
 capability to reduce oversized tool returns agent-wide:
 
@@ -142,9 +172,14 @@ The linked account to act on (one account is one provider connection).
 
 **Type:** `str`
 
-Stable capability and toolset ID. Override it when one agent uses several StackOne accounts.
+Stable capability and toolset ID, derived from `account_id` when not given.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_ID`
+One account is one provider connection, so the account is what identifies this capability —
+the same way an MCP server is identified by its URL. Deriving it rather than fixing it to
+`'stackone'` is what lets one agent reach two linked accounts: their ids differ, so they stay
+two capabilities. Two under the *same* account are a mistake, and collide.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
 
 Routing description used when the capability is loaded on demand.
 
@@ -204,7 +239,7 @@ def from_spec(
     cls,
     account_id: str,
     *,
-    id: str | None = _DEFAULT_ID,
+    id: str | None = None,
     description: str | None = _DEFAULT_DESCRIPTION,
     defer_loading: bool = False,
     api_key: str | None = None,

@@ -2,6 +2,7 @@
 
 - [capabilities/](/pages/docs/ai/capabilities/index.md)
 - [core-concepts/](/pages/docs/ai/core-concepts/index.md)
+- [guides/](/pages/docs/ai/guides/index.md)
 - [harness/](/pages/docs/ai/harness/index.md)
 - [integrations/](/pages/docs/ai/integrations/index.md)
 - [models/](/pages/docs/ai/models/index.md)

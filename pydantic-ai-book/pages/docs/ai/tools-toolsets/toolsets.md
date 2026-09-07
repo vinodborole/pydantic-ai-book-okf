@@ -2,7 +2,7 @@
 type: Web Page
 title: Toolsets | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/toolsets
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Toolsets
@@ -69,7 +69,7 @@ We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.Test
 
 [`FilteredToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FilteredToolset) wraps a toolset and filters available tools ahead of each step of the run based on a user-defined function that is passed the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and each tool’s [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition) and returns a boolean to indicate whether or not a given tool should be available.
 
-To easily chain different modifications, you can also call [`filtered()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.filtered) on any toolset instead of directly constructing a `FilteredToolset`.
+To chain transformations, call [`filtered()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.filtered) on any toolset.
 
 We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) here because it makes it easy to see which tools were available on each run.
 
@@ -77,7 +77,7 @@ We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.Test
 
 [`PrefixedToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.PrefixedToolset) wraps a toolset and adds a prefix to each tool name to prevent tool name conflicts between different toolsets.
 
-To easily chain different modifications, you can also call [`prefixed()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.prefixed) on any toolset instead of directly constructing a `PrefixedToolset`.
+To chain transformations, call [`prefixed()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.prefixed) on any toolset.
 
 We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) here because it makes it easy to see which tools were available on each run.
 
@@ -85,7 +85,7 @@ We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.Test
 
 [`RenamedToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.RenamedToolset) wraps a toolset and lets you rename tools using a dictionary mapping new names to original names. This is useful when the names provided by a toolset are ambiguous or would conflict with tools defined by other toolsets, but [prefixing them](#prefixing-tool-names) creates a name that is unnecessarily long or could be confusing to the model.
 
-To easily chain different modifications, you can also call [`renamed()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.renamed) on any toolset instead of directly constructing a `RenamedToolset`.
+To chain transformations, call [`renamed()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.renamed) on any toolset.
 
 We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) here because it makes it easy to see which tools were available on each run.
 
@@ -97,13 +97,13 @@ This is the toolset-specific equivalent of the [`prepare_tools`](/docs/ai/tools-
 
 Note that it is not possible to add or rename tools using `PreparedToolset`. Instead, you can use [`FunctionToolset.add_function()`](#function-toolset) or [`RenamedToolset`](#renaming-tools).
 
-To easily chain different modifications, you can also call [`prepared()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.prepared) on any toolset instead of directly constructing a `PreparedToolset`.
+To chain transformations, call [`prepared()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.prepared) on any toolset.
 
 We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel) here because it makes it easy to see which tools were available on each run.
 
 [`ApprovalRequiredToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.ApprovalRequiredToolset) wraps a toolset and lets you dynamically [require approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) for a given tool call based on a user-defined function that is passed the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext), the tool’s [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition), and the validated tool call arguments. If no function is provided, all tool calls will require approval.
 
-To easily chain different modifications, you can also call [`approval_required()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.approval_required) on any toolset instead of directly constructing a `ApprovalRequiredToolset`.
+To chain transformations, call [`approval_required()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.approval_required) on any toolset.
 
 See the [Human-in-the-Loop Tool Approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) documentation for more information on how to handle agent runs that call tools that require approval and how to pass in the results.
 
@@ -117,7 +117,7 @@ We're using [`TestModel`](/docs/ai/api/models/test/#pydantic_ai.models.test.Test
 
 [`IncludeReturnSchemasToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.IncludeReturnSchemasToolset) wraps a toolset and sets `include_return_schema=True` on all its tools, causing the model to receive return type information. For models that natively support return schemas (e.g. Google Gemini), the schema is passed as a structured API field. For other models, it is injected into the tool description as JSON text.
 
-To easily chain different modifications, you can also call [`.include_return_schemas()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.include_return_schemas) on any toolset instead of directly constructing an `IncludeReturnSchemasToolset`.
+To chain transformations, call [`.include_return_schemas()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.include_return_schemas) on any toolset.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -125,7 +125,7 @@ This is the toolset-level equivalent of the [`IncludeToolReturnSchemas`](/docs/a
 
 [`SetMetadataToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.SetMetadataToolset) wraps a toolset and merges metadata key-value pairs onto all its tools. This is useful for tagging tools with configuration that other capabilities or custom logic can inspect.
 
-To easily chain different modifications, you can also call [`.with_metadata()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.with_metadata) on any toolset instead of directly constructing a `SetMetadataToolset`.
+To chain transformations, call [`.with_metadata()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.with_metadata) on any toolset.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -183,6 +183,8 @@ To define a fully custom toolset with its own logic to list available tools and 
 
 You can also override the [`get_instructions()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.get_instructions) method to provide a description of how to use the toolset’s tools. This will be injected into the agent’s instructions and is useful for helping the model understand how to effectively use your toolset’s tools.
 
+If the toolset has an [`id`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.id) and contributes instructions, that id must be unique among the toolsets registered with an agent, counting the ones a [capability](/docs/ai/capabilities/overview/) contributes. Its instructions reach the model as [instruction parts](/docs/ai/core-concepts/agent/#instruction-parts) identified by `'toolset:<toolset id>'`, so an application can address them by a key that outlives their wording. Every part the toolset returns carries that one key; if you want a part to be addressable on its own, return an [`InstructionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart) with a `name` relative to your toolset (`'limits'`), which the framework qualifies to `'toolset:weather:limits'`. Don’t spell out your own id — you’d be repeating what the framework already knows, and a name of your own can’t be mistaken for a top-level key.
+
 The toolset lifecycle provides hooks for managing state at different scopes:
 
 - [`for_run()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.for_run) : Called once before each agent run. Return a fresh instance for per-run state isolation (e.g. resetting counters, creating a new session). The framework enters and exits the returned instance.
@@ -198,7 +200,7 @@ Third-party toolsets can also be wrapped as [capabilities](/docs/ai/capabilities
 
 Pydantic AI provides [`MCPToolset`](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset) for connecting to and calling tools on local and remote MCP servers, with the [`MCP` capability](/docs/ai/capabilities/mcp/) as the recommended higher-level entry point. See the [MCP overview](/docs/ai/mcp/overview/) and [MCP client](/docs/ai/mcp/client/) documentation for details.
 
-Toolsets that implement [Agent Skills](https://agentskills.io) support so agents can efficiently discover and perform specific tasks:
+Toolsets that implement [Agent Skills](https://agentskills.io) support help agents efficiently discover and perform specific tasks:
 
 - [`pydantic-ai-skills`](https://github.com/DougTrajano/pydantic-ai-skills) -`SkillsToolset` implements Agent Skills support with progressive disclosure (load skills on-demand to reduce tokens). Supports filesystem and programmatic skills; compatible with[agentskills.io](https://agentskills.io) .
 

@@ -2,7 +2,7 @@
 type: Web Page
 title: Direct Model Requests | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/direct
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Direct Model Requests
@@ -69,7 +69,7 @@ async def main():
     )
     """
 ```
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 The direct API is ideal when:
 

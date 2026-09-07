@@ -4,7 +4,7 @@ title: Pydantic AI | Pydantic Docs
 description: 'How Python does AI: agents, realtime voice, image generation, embeddings.
   Every model, every interface, typed end to end.'
 resource: https://pydantic.dev/docs/ai/overview
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Pydantic AI
@@ -47,9 +47,15 @@ Run the file and you’re chatting with the agent in your terminal. To try it be
 
 Give the agent an [output type](/docs/ai/core-concepts/output/) and [tools](/docs/ai/tools-toolsets/tools/), and every run comes back validated and typed:
 
-The [`@agent.tool`](/docs/ai/tools-toolsets/tools/) function receives a [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) that carries your [dependencies](/docs/ai/core-concepts/dependencies/) in; the rest of its signature and its docstring become the tool schema, arguments are [validated](/docs/ai/tools-toolsets/tools/#function-tools-and-schema) before your code runs, and the run is guaranteed to return a `Sentiment`, so your IDE, type checker, and the LLM all agree on the shape.
+The [`@agent.tool`](/docs/ai/tools-toolsets/tools/) function receives a [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) that carries your [dependencies](/docs/ai/core-concepts/dependencies/) in; the rest of its signature and its docstring become the tool schema, arguments are [validated](/docs/ai/tools-toolsets/tools/#function-tools-and-schema) before your code runs, and the run is guaranteed to return a `Sentiment`, so your IDE, type checker, and the LLM all agree on the returned type.
 
 **Build this →** [Agents](/docs/ai/core-concepts/agent/), [Function Tools](/docs/ai/tools-toolsets/tools/), and [Structured Output](/docs/ai/core-concepts/output/)
+
+Attach [`TemporalDurability`](/docs/ai/capabilities/durable_execution/temporal/) and the same agent runs inside a [Temporal](/docs/ai/capabilities/durable_execution/temporal/) workflow under [durable execution](/docs/ai/capabilities/durable_execution/overview/): every model and tool call becomes a durable activity, so a run working through a background queue survives restarts, failures, and long waits:
+
+[DBOS](/docs/ai/capabilities/durable_execution/dbos/) and [Prefect](/docs/ai/capabilities/durable_execution/prefect/) attach the same way, first-party and co-maintained, with [Restate, Kitaru, and Airflow](/docs/ai/capabilities/durable_execution/overview/) integrations besides.
+
+**Build this →** [Durable Execution](/docs/ai/capabilities/durable_execution/overview/)
 
 Put the same agent on a live voice session, [tools](/docs/ai/realtime/tools/) and [capabilities](/docs/ai/realtime/capabilities/) included:
 
@@ -66,7 +72,7 @@ def order_status(order_id: str) -> str:
     """Look up the status of an order."""
     return f'Order {order_id}: shipped, arriving Thursday.'
 async with agent.realtime('openai:gpt-realtime-2.1').session() as session:
-    microphone = asyncio.create_task(stream_microphone(session))  # chunks → session.send_audio()
+    microphone = asyncio.create_task(session.send_audio(microphone_chunks()))  # your microphone → the model
     speaker = asyncio.create_task(play_audio(session.stream_audio()))  # model audio → your speaker
     async for part in session.stream_transcripts():
         print(f'{part.speaker}: {part.transcript}')
@@ -75,23 +81,11 @@ The model calls your tools mid-conversation while it keeps talking, and every se
 
 **Build this →** [Realtime Voice](/docs/ai/realtime/overview/), starting from the [voice assistant example](/docs/ai/examples/realtime/realtime-voice/)
 
-Attach [`TemporalDurability`](/docs/ai/capabilities/durable_execution/temporal/) and the same agent runs inside a [Temporal](/docs/ai/capabilities/durable_execution/temporal/) workflow: every model and tool call becomes a durable activity, so a run working through a background queue survives restarts, failures, and long waits:
-
-[DBOS](/docs/ai/capabilities/durable_execution/dbos/) and [Prefect](/docs/ai/capabilities/durable_execution/prefect/) attach the same way, first-party and co-maintained, with [Restate, Kitaru, and Airflow](/docs/ai/capabilities/durable_execution/overview/) integrations besides.
-
-**Build this →** [Durable Execution](/docs/ai/capabilities/durable_execution/overview/)
-
 Ask for an image and make it the run’s typed [output](/docs/ai/core-concepts/output/):
 
 [Provider-native generation](/docs/ai/tools-toolsets/native-tools/#image-generation-tool) on models that support it (like this one), a [subagent fallback](/docs/ai/capabilities/image-generation/) you can configure for the rest, and a [standalone image API](https://github.com/pydantic/pydantic-ai/pull/5357) on the way.
 
 **Build this →** [Image Generation](/docs/ai/capabilities/image-generation/)
-
-Embed documents and queries for semantic search or a [RAG pipeline](/docs/ai/examples/data-analytics/rag/):
-
-Seven providers behind one typed API, [instrumented](/docs/ai/integrations/logfire/) like everything else. It lives next to the agent that will use the results.
-
-**Build this →** [Embeddings](/docs/ai/guides/embeddings/), then the [RAG example](/docs/ai/examples/data-analytics/rag/)
 
 - 
 **Any model, one Python API.**[Virtually every model and provider](/docs/ai/models/overview/) (OpenAI, Anthropic, Google, Bedrock, Azure AI Foundry, Groq, Mistral, xAI, Ollama, and dozens more), swappable with a string, or through the[Pydantic AI Gateway](/docs/ai/overview/gateway/) : one key for all of them, with failover and cost monitoring built in. No flagship feature is locked to one vendor.
@@ -104,7 +98,7 @@ Seven providers behind one typed API, [instrumented](/docs/ai/integrations/logfi
 - 
 **[Every interface](/docs/ai/overview/interfaces/).** One agent definition runs as a[CLI](/docs/ai/integrations/cli/) , a[built-in web chat](/docs/ai/guides/web/) , or[realtime speech](/docs/ai/realtime/overview/) ;[UI event streams](/docs/ai/integrations/ui/overview/) (AG-UI, Vercel AI) connect it to your own frontend or anything else; and[ACP](https://pydantic.dev/docs/ai/harness/acp/)*(experimental)* serves it as an editor agent.
 - 
-**Durable execution.** First-party, co-maintained[durable execution](/docs/ai/capabilities/durable_execution/overview/) on Temporal, DBOS, or Prefect, with[Restate, Kitaru, and Airflow](/docs/ai/capabilities/durable_execution/overview/) integrations and more coming. Agents survive restarts and run for days on the engine you already operate, with[human-in-the-loop approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) built in.
+**Durable execution.** First-party, co-maintained[durable execution](/docs/ai/capabilities/durable_execution/overview/) on Temporal, DBOS, Prefect, and Restate, plus external SDK integrations for Kitaru and Airflow. Agents survive restarts and run for days on the engine you already operate, with[human-in-the-loop approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) built in.
 
 Built by the [Pydantic](https://docs.pydantic.dev) team: [Pydantic Validation](https://pydantic.dev/docs/) is the validation layer of the OpenAI SDK, the Anthropic SDK, the Google ADK, LangChain, and most of the AI ecosystem (and the foundation FastAPI was built on). Pydantic AI brings that same feeling to agents.
 
@@ -126,7 +120,7 @@ The [`tool`](/docs/ai/tools-toolsets/tools/) decorator registers a function whos
 
 The docstring of a tool is also passed to the LLM as the description of the tool. Parameter descriptions are [extracted](/docs/ai/tools-toolsets/tools/#function-tools-and-schema) from the docstring and added to the parameter schema sent to the LLM.
 
-`defer_loading=True` makes this an [on-demand capability](/docs/ai/capabilities/on-demand/), the same shape as an [Agent Skill](/docs/ai/capabilities/on-demand/#loading-skills-from-markdown-files). It collapses to a one-line catalog entry in the prompt, and its tools stay hidden until the model decides it's relevant and loads it with the framework-managed `load_capability` tool.
+`defer_loading=True` makes this an [on-demand capability](/docs/ai/capabilities/on-demand/), like an [Agent Skill](/docs/ai/capabilities/on-demand/#loading-skills-from-markdown-files). It collapses to a one-line catalog entry in the prompt, and its tools stay hidden until the model decides it's relevant and loads it with the framework-managed `load_capability` tool.
 
 This [agent](/docs/ai/core-concepts/agent/) will act as first-tier support in a bank. Agents are generic in the type of dependencies they accept and the type of output they return. In this case, the support agent has type `Agent[SupportDependencies, SupportOutput]`.
 
@@ -164,10 +158,10 @@ This format is defined in Markdown and suited for LLMs and AI coding assistants 
 
 Two formats are available:
 
-- [`llms.txt`](https://ai.pydantic.dev/llms.txt) : a file containing a brief description
+- [`llms.txt`](https://pydantic.dev/docs/ai/llms.txt) : a file containing a brief description
 of the project, along with links to the different sections of the documentation. The structure
 of this file is described in details[here](https://llmstxt.org/#format) .
-- [`llms-full.txt`](https://ai.pydantic.dev/llms-full.txt) : Similar to the`llms.txt` file,
+- [`llms-full.txt`](https://pydantic.dev/docs/ai/llms-full.txt) : Similar to the`llms.txt` file,
 but every link content is included. Note that this file may be too large for some LLMs.
 
 As of today, these files are not automatically leveraged by IDEs or coding agents, but they will use it if you provide a link or the full text.

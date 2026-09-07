@@ -4,7 +4,7 @@ title: Advisor | Pydantic Docs
 description: Let an executor model consult a separate advisor model through a provider-native
   tool or a local Pydantic AI fallback.
 resource: https://pydantic.dev/docs/ai/harness/advisor
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Advisor
@@ -119,6 +119,13 @@ agent = Agent(
     capabilities=[Advisor('anthropic:claude-opus-4-8')],
 )
 ```
+One-off: an agent has one advisor, and its tool name is fixed.
+
+Declared here rather than only passed up from `__init__`, so the class states it where a reader
+— and Pydantic AI, deciding what two of this capability under one `id` mean — can see it.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'advisor'`
+
 The model to consult.
 
 Accepts the same model names and model instances as `Agent`. In `auto`

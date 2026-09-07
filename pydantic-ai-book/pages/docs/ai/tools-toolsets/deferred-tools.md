@@ -2,7 +2,7 @@
 type: Web Page
 title: Deferred Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Deferred Tools
@@ -45,7 +45,9 @@ The sections below describe the two kinds of deferred tools the handler can reso
 
 If a tool function always requires approval, you can pass the `requires_approval=True` argument to the [`@agent.tool`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool) decorator, [`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain) decorator, [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) class, [`FunctionToolset.tool`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset.tool) decorator, or [`FunctionToolset.add_function()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.FunctionToolset.add_function) method. Inside the function, you can then assume that the tool call has been approved.
 
-If whether a tool function requires approval depends on the tool call arguments or the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) (e.g. [dependencies](/docs/ai/core-concepts/dependencies/) or message history), you can raise the [`ApprovalRequired`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ApprovalRequired) exception from the tool function. The [`RunContext.tool_call_approved`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tool_call_approved) property will be `True` if the tool call has already been approved.
+In a [realtime session](/docs/ai/realtime/tools/#deferred-and-approval-required-tools), approval must be resolved inline, typically by a [`HandleDeferredToolCalls`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.HandleDeferredToolCalls) handler (a capability hook can resolve it too); a call nothing resolves is refused every time.
+
+If approval depends on the tool call’s arguments or the agent [run context](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext), such as [dependencies](/docs/ai/core-concepts/dependencies/) or message history, raise [`ApprovalRequired`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ApprovalRequired) from the tool function. The [`RunContext.tool_call_approved`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.tool_call_approved) property will be `True` if the tool call has already been approved.
 
 You can also raise it from the tool’s [`args_validator`](/docs/ai/tools-toolsets/tools-advanced/#args-validator), which runs before the tool function and lets you reject invalid arguments before asking a human to approve them.
 
@@ -83,7 +85,7 @@ The optional `metadata` parameter passes the `task_id` so it can be matched with
 
 In reality, this would typically happen in a separate process that polls for the task status or is notified when all pending tasks are complete.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Like any other tool call, a deferred tool call emits a [`FunctionToolCallEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FunctionToolCallEvent) into the [event stream](/docs/ai/core-concepts/agent/#streaming-events-and-final-output) — but that event alone doesn’t tell a stream consumer that the call is paused waiting for interaction, or what kind of interaction is expected. Two additional [`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)s carry that context:
 
@@ -94,12 +96,13 @@ This keeps resolution and presentation decoupled: a handler can contain pure res
 
 Continuing the [handler example](#resolving-deferred-calls-with-a-handler) from above:
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 - [Function Tools](/docs/ai/tools-toolsets/tools/) - Basic tool concepts and registration
 - [Advanced Tool Features](/docs/ai/tools-toolsets/tools-advanced/) - Custom schemas, dynamic tools, and execution details
 - [Toolsets](/docs/ai/tools-toolsets/toolsets/) - Managing collections of tools, including`ExternalToolset` for external tools
 - [Message History](/docs/ai/core-concepts/message-history/) - Working with message history for deferred tools, including[`run_id` / `conversation_id`](/docs/ai/core-concepts/message-history/#correlating-runs-with-run_id-and-conversation_id)
+- [Realtime tools](/docs/ai/realtime/tools/#deferred-and-approval-required-tools) - Approval-required and deferred tools in a live voice session
 
 # Citations
 

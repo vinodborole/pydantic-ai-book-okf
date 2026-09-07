@@ -2,7 +2,7 @@
 type: Web Page
 title: Z.AI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/zai
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Z.AI
@@ -31,7 +31,7 @@ model = ZaiModel('glm-5')
 agent = Agent(model)
 ...
 ```
-Z.AI’s `glm-5.2`, `glm-5.1`, `glm-5`, `glm-4.7`, `glm-4.6` (hybrid thinking), and `glm-4.5` (interleaved thinking) models support thinking/reasoning mode, where the model produces reasoning content before the final response. This includes the `glm-4.6v` and `glm-4.5v` vision models. Configure this through the unified [`thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
+Z.AI’s `glm-5.3`, `glm-5.2`, `glm-5.1`, `glm-5`, `glm-4.7`, `glm-4.6` (hybrid thinking), and `glm-4.5` (interleaved thinking) models support thinking/reasoning mode, where the model produces reasoning content before the final response. This includes the `glm-4.6v` and `glm-4.5v` vision models. Configure this through the unified [`thinking`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.thinking) setting:
 
 ```
 from pydantic_ai import Agent
@@ -42,7 +42,7 @@ agent = Agent(
 )
 ...
 ```
-`thinking=True` enables thinking and `thinking=False` disables it. On GLM-5.2, an explicit effort level (`'minimal'`/`'low'`/`'medium'`/`'high'`/`'xhigh'`) is forwarded to Z.AI as `reasoning_effort`; on other GLM models, which don’t expose effort granularity, the effort levels all collapse to enabled. Omit the field to use each model’s default behavior.
+`thinking=True` enables thinking and `thinking=False` disables it (except on GLM-5.3, which always reasons and ignores `thinking=False`). On GLM-5.2 and GLM-5.3, an explicit effort level (`'minimal'`/`'low'`/`'medium'`/`'high'`/`'xhigh'`) is forwarded to Z.AI as `reasoning_effort`; GLM-5.3 only accepts `low`/`high`/`max`, so the other levels map to the nearest one (`minimal` to `low`, `medium` to `high`, and `xhigh` to `max`). On other GLM models, which don’t expose effort granularity, the effort levels all collapse to enabled. Omit the field to use each model’s default behavior.
 
 On thinking-capable models, reasoning content from prior assistant responses is **preserved by default** — no configuration required — for better multi-turn coherence and consistency with other providers. The complete, unmodified `reasoning_content` from prior turns is automatically sent back to the API by Pydantic AI.
 

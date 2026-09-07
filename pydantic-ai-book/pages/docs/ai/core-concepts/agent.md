@@ -2,7 +2,7 @@
 type: Web Page
 title: Agents | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Agents
@@ -18,7 +18,7 @@ The [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent) class has
 | [Instructions](#instructions) | A set of instructions for the LLM written by the developer. | 
 | [Function tool(s)](/docs/ai/tools-toolsets/tools/) and[toolsets](/docs/ai/tools-toolsets/toolsets/) | Functions that the LLM may call to get information while generating a response. | 
 | [Structured output type](/docs/ai/core-concepts/output/) | The structured datatype the LLM must return at the end of a run, if specified. | 
-| [Dependency type constraint](/docs/ai/core-concepts/dependencies/) | Dynamic instructions functions, tools, and output functions may all use dependencies when they’re run. | 
+| [Dependency type constraint](/docs/ai/core-concepts/dependencies/) | Dynamic instruction functions, tools, and output functions may all use dependencies when they’re run. | 
 | [LLM model](/docs/ai/api/models/base/) | Optional default LLM model associated with the agent. Can also be specified when running the agent. | 
 | [Model Settings](#additional-configuration) | Optional default model settings to help fine tune requests. Can also be specified when running the agent. | 
 | [Capabilities](/docs/ai/capabilities/overview/) | Reusable bundles of tools, hooks, instructions, and model settings that extend agent behavior. | 
@@ -47,7 +47,7 @@ There are five ways to run an agent:
 
 Here’s a simple example demonstrating the first four:
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 You can also pass messages from previous runs to continue a conversation or provide context, as described in [Messages and Chat History](/docs/ai/core-concepts/message-history/).
 
@@ -73,13 +73,61 @@ For convenience, a [`agent.run_stream_events()`](/docs/ai/api/pydantic-ai/agent/
 
 *(This example is complete, it can be run “as is”)*
 
+Alongside the framework’s own events, a tool or code driving [`agent.iter()`](#iterating-over-an-agents-graph) can emit its own [`CustomEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent)s into the same stream. This is useful for surfacing progress updates, intermediate results, or status information from long-running work to whoever is consuming the stream, without adding anything to the model’s context.
+
+Pydantic AI has two families of user-defined events. They ride the same stream and are defined the same way, but which one you define is decided by **who owns the code doing the emitting**, and that split is enforced at runtime: emitting the wrong family raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError).
+
+|  | [`CustomEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent) | [`CapabilityEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CapabilityEvent) | 
+|---|---|---|
+| **Use it when** | your application wants to tell its own stream consumer or frontend something | your [capability](/docs/ai/capabilities/overview/) wants to tell other capabilities and the host application something | 
+| **Emit from** | an application tool, an [output validator](/docs/ai/core-concepts/output/#output-validator-functions) , a[hook](/docs/ai/core-concepts/hooks/) , an`event_stream_handler` , or[`AgentRun.emit()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.emit) | a [capability](/docs/ai/capabilities/custom/) hook or a tool the capability contributes | 
+| **Naming** | flat and process-wide, like `progress` | namespaced, like `workspace.file_read` | 
+| **Reaches the frontend** | yes, via the [AG-UI](/docs/ai/integrations/ui/ag-ui/) and[Vercel AI](/docs/ai/integrations/ui/vercel-ai/) adapters | no, it is an internal signal; re-publish it as a `CustomEvent` if the frontend needs it | 
+| **Can carry a decision** | no | yes, with `dispatch='immediate'` | 
+
+If you are writing a **capability**, define [`CapabilityEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CapabilityEvent)s, as described in [Capability events](/docs/ai/capabilities/overview/#capability-events): its events are part of its contract with the rest of the run, and the namespace is what keeps two capabilities from colliding on a name. If you are writing an **application**, define `CustomEvent`s. To surface a capability’s event to your frontend, listen for it with [`@agent.on_event`](/docs/ai/core-concepts/hooks/#listening-without-a-hooks-capability) and emit your own `CustomEvent` carrying the public payload.
+
+Define an event as a dataclass subclass of `CustomEvent` — its fields are the payload, and consumers can use an `isinstance` check against the class. Await [`ctx.emit()`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.emit) with an event instance from any of your application’s async code that receives a [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext); code driving `agent.iter()` uses [`AgentRun.emit()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.emit) instead. Sync tools cannot emit events; write async tools when they need to emit events. When emitted from within a tool call, the event’s [`tool_call_id`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent.tool_call_id) and [`tool_name`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent.tool_name) are stamped automatically so consumers can attribute it to the originating call. The event reaches the `event_stream_handler`, `run_stream_events()`, `agent.iter()` streaming, and the [AG-UI](/docs/ai/integrations/ui/ag-ui/) and [Vercel AI](/docs/ai/integrations/ui/vercel-ai/) UI adapters.
+
+*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+
+Any consumer of the run’s events sees them: an [`@agent.on_event`](/docs/ai/core-concepts/hooks/#listening-without-a-hooks-capability) listener as above, an [event hook](/docs/ai/core-concepts/hooks/#event-stream-hooks), an `event_stream_handler=`, [`run_stream_events()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_stream_events), `agent.iter()` streaming, and the [AG-UI](/docs/ai/integrations/ui/ag-ui/) and [Vercel AI](/docs/ai/integrations/ui/vercel-ai/) adapters. Payload fields can hold any object, but to flow through [durable execution](/docs/ai/capabilities/durable_execution/overview/) and the UI adapters they need to be serializable by pydantic.
+
+The payload cannot use the field names the envelope needs for itself: `data`, `tool_call_id`, `tool_name`, and `event_kind` are rejected when the class is defined, so pick another name (`payload`, `call_id`) for a field that would collide.
+
+Emitting only works while the run is in progress and only from the family the emitting code owns, so each of these raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError): emitting a `CustomEvent` from a capability, emitting a [`CapabilityEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CapabilityEvent) from application code, and calling [`AgentRun.emit()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.emit) after the run has finished. Events emitted with `AgentRun.emit()` reach consumers that stream the run’s nodes with `node.stream(run.ctx)`, as shown in [Streaming All Events and Output](#streaming-all-events-and-output); a bare `async for node in run` does not consume any event stream, so nothing surfaces.
+
+An event is delivered to stream consumers as soon as it is emitted, so a progress event surfaces while the emitting tool is still running rather than at its return. Events emitted from tools running concurrently interleave in emission order (best-effort ordering).
+
+Events that share fields can share a base. Give the base its own `@dataclass` decorator — an undecorated one contributes no fields, which is rejected rather than left to surface as a payload quietly missing them — and mark it `abstract=True` so it stays out of the event registry and can’t be emitted itself:
+
+[`CapabilityEvent`](/docs/ai/capabilities/overview/#capability-events) bases work the same way, and a base is the natural place to put the family’s `namespace=`.
+
+Custom event names are derived from the class name by removing `Event` and converting the rest to snake case, so `SyncProgressEvent` uses `sync_progress`. Override the name with a class argument, for example `class SyncProgressEvent(CustomEvent, name='sync_status')`. Names are registered when the class is defined and must be unique within the process; re-executing the same class definition (as when re-running a notebook cell) replaces the registration.
+
+The name is the event’s wire identifier, not just a label: it’s what a serialized event carries, so renaming the class renames the tag along with it. A rename is a compatibility break wherever events outlive the process that emitted them — [durable execution](/docs/ai/capabilities/durable_execution/overview/) histories and caches, persisted event logs, a frontend matching on the name. Pass an explicit `name=` to pin the tag when you want the class free to be renamed.
+
+Spell the name out as well when the tag has to match something you don’t control. It’s the identifier the UI adapters put on the wire, as the AG-UI event’s `name` and the Vercel AI chunk’s `data-{name}` type, and derivation only ever produces snake case: a frontend that already expects `data-indexProgress` or a dotted `ui.progress` needs `name='indexProgress'` or `name='ui.progress'` rather than a class renamed to suit it.
+
+Events round-trip through [`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent) serialization as their original class. If an event is deserialized before its class is registered, it becomes an [`UnknownCustomEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UnknownCustomEvent), with its payload preserved in `data`, and a `UserWarning` is emitted. Import the module that defines your event before creating the adapter that deserializes it; each pydantic `TypeAdapter` captures the event classes registered when it is created. A registered event’s payload schema follows the same compatibility expectations as [message](/docs/ai/core-concepts/message-history/) types: a payload that no longer validates against the local class fails loudly rather than degrading, so keep the serializing and deserializing sides on compatible versions of the module that defines the event.
+
+Event names share one application-wide registry, and defining a second class with an already-registered name raises immediately. Custom events belong to the application, so a library that emits events into agent runs should define [capability events](/docs/ai/capabilities/overview/#capability-events) on a capability, which are namespaced. Only a library that reaches the run outside a capability — a bare tool it hands the user to register — can emit application-level events at all, and it should then register them under a dotted prefix (`name='mylib.progress'`) so they can’t collide with the application’s own event names.
+
+UI adapters get the frontend payload by calling [`CustomEvent.to_payload()`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.CustomEvent.to_payload), which defaults to the event’s own fields; override it when the UI should receive a different payload.
+
+Custom events are forwarded to the frontend by default, as the application that emits them is also the one serving that frontend. An event that exists only for server-side consumers — metrics, an audit log, an `event_stream_handler` of your own — opts out with `ui=False`, and then reaches every in-process consumer while the [AG-UI](/docs/ai/integrations/ui/ag-ui/) and [Vercel AI](/docs/ai/integrations/ui/vercel-ai/) adapters skip it:
+
+Subclasses inherit the setting, and because the check happens before the protocol-specific handler, adapters for other protocols honor it too. To send a *different* payload rather than nothing, override `to_payload()` instead — returning `None` from it sends an event with a null payload, which is how you send a name-only signal.
+
+The flag lives on the class rather than on the wire, so an event deserialized where its defining module hasn’t been imported arrives as an [`UnknownCustomEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UnknownCustomEvent) whose `ui` says nothing about what the application declared. Those aren’t forwarded either, so an event crossing a process boundary can’t leak a payload its class had opted out of. If events reach your frontend from another process — a [durable execution](/docs/ai/capabilities/durable_execution/overview/) workflow, a queue, a websocket fan-out, as in [encoding events without a request](/docs/ai/integrations/ui/overview/#encoding-events-without-a-request) — import the modules that define them there, or none of your custom events will reach the frontend.
+
 Under the hood, each `Agent` in Pydantic AI uses **pydantic-graph** to manage its execution flow. **pydantic-graph** is a generic, type-centric library for building and running finite state machines in Python. It doesn’t actually depend on Pydantic AI — you can use it standalone for workflows that have nothing to do with GenAI — but Pydantic AI makes use of it to orchestrate the handling of model requests and model responses in an agent’s run.
 
 In many scenarios, you don’t need to worry about pydantic-graph at all; calling `agent.run(...)` simply traverses the underlying graph from start to finish. However, if you need deeper insight or control — for example to inject your own logic at specific stages — Pydantic AI exposes the lower-level iteration process via [`Agent.iter`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.iter). This method returns an [`AgentRun`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun), which you can async-iterate over, or manually drive node-by-node via the [`next`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next) method. Once the agent’s graph returns an [`End`](/docs/ai/api/pydantic_graph/basenode/#pydantic_graph.basenode.End), you have the final result along with a detailed history of all steps.
 
 Here’s an example of using `async for` with `iter` to record each node the agent executes:
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 - The `AgentRun` is an async iterator that yields each node (`BaseNode` or`End` ) in the flow.
 - The run ends when an `End` node is returned.
@@ -94,11 +142,11 @@ When you call `await agent_run.next(node)`, it executes that node in the agent's
 
 You could also inspect or mutate the new `node` here as needed.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 You can retrieve usage statistics (tokens, requests, etc.) at any time from the [`AgentRun`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun) object via `agent_run.usage`. This property returns a [`RunUsage`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage) object containing the usage data.
 
-`RunUsage.cost` additionally holds a best-effort estimate of the run’s total cost in USD, calculated from each request’s usage with [genai-prices](https://github.com/pydantic/genai-prices). Requests to models or providers that genai-prices doesn’t have pricing data for don’t contribute to the total.
+`RunUsage.cost` additionally holds a best-effort estimate of the run’s total cost in USD, calculated from each request’s usage with [genai-prices](https://github.com/pydantic/genai-prices). Requests to models or providers that genai-prices doesn’t have pricing data for don’t contribute to the total. See [keeping model prices up to date](#keeping-model-prices-up-to-date) for how to price models released after your install.
 
 Once the run finishes, `agent_run.result` becomes an [`AgentRunResult`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult) object containing the final output (and related metadata).
 
@@ -114,7 +162,7 @@ A run in flight can be cancelled entirely — e.g. when a user hits a “stop”
 
 [UI adapter](/docs/ai/integrations/ui/overview/) users can persist this resumable history with the `on_cancel` callback.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 [`agent.run_sync()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run_sync) accepts the same token. Calling `token.cancel()` from another thread is the only way to interrupt a synchronous run while it is blocked.
 
@@ -124,7 +172,7 @@ This demonstrates cancellation imposed by the surrounding asyncio environment. F
 
 [`RunCancelled.all_messages()`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled.all_messages) contains everything completed before cancellation, including completed tool results. Any dangling tool call is [repaired automatically](/docs/ai/core-concepts/message-history/#making-histories-provider-valid) when the history is resumed.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 On Python 3.10, asyncio recreates `CancelledError` across an `await task` boundary, but chains the original exception — carrying the attached run state — via `__context__`, which `from_cancellation()` traverses. The chain is attached only to the first `await` of the cancelled task, so later awaits of the same task see an unchained exception; [`capture_run_messages()`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.capture_run_messages) is the fallback when only history is needed.
 
@@ -132,7 +180,7 @@ When consuming [`run_stream_events()`](/docs/ai/api/pydantic-ai/agent/#pydantic_
 
 Idempotent, a no-op once the run has finished, and callable before the first iteration to prevent the run from starting at all.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Externally cancelling the consuming task works here too: the background run tears down, the propagating `CancelledError` carries the run state for `from_cancellation()`, and the handle’s `all_messages()` and `usage` remain accessible afterwards.
 
@@ -146,7 +194,7 @@ First-party cancellation is a `RunCancelled` you can consume: the run stopped be
 
 External cancellation stays `CancelledError`, and a stop button's `task.cancel()` is indistinguishable from a timeout or a [`TaskGroup`](https://docs.python.org/3/library/asyncio-task.html#asyncio.TaskGroup) tearing down -- so re-raise it (swallowing it would break those teardowns), reaching for [`from_cancellation()`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled.from_cancellation) only to capture the partial state first. It returns `None` when nothing is attached, e.g. an application shutdown unrelated to this run.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Cancellation is terminal: capability hooks may observe it and clean up, but cannot recover the run to success — on Python 3.11+ this holds even if user code absorbs the delivered cancellation; on Python 3.10 it is best-effort. When first-party and external cancellation race, external cancellation wins. On Python 3.10, that race cannot be distinguished, so first-party cancellation wins instead.
 
@@ -156,7 +204,7 @@ For fine-grained control over the agent graph, call [`AgentRun.cancel()`](/docs/
 
 Inside the `agent.iter()` block, cancellation surfaces as `asyncio.CancelledError`; after the context exits, first-party cancellation raises `RunCancelled` with a detached state snapshot.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 When a stream is cancelled mid-generation, the response is recorded with `state='interrupted'` in the message history. The history includes any partial content that was received before cancellation:
 
@@ -164,13 +212,27 @@ The message history includes the interrupted response with any partial content t
 
 The interrupted response state lets your application decide whether to keep, inspect, or discard the partial response before reusing the history.
 
-*(This example is complete, it can be run “as is” — you’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
 
 Cancellation is **run-scoped**: `cancel()` cancels the run its `RunContext` belongs to, and a `CancellationToken` cancels the runs it’s attached to. This matters when you use [agent delegation](/docs/ai/guides/multi-agent-applications/#agent-delegation) — a tool that runs another agent with `await sub_agent.run(...)`:
 
 - **A sub-agent cancelling itself does not cancel the parent** — when it’s`await` ed inside a tool body. If the sub-agent (or one of its tools) calls`ctx.cancel()` , that cancels the*sub-agent’s* run. The delegate tool sees a[`RunCancelled`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.RunCancelled) , which — if it isn’t caught — surfaces to the parent as a*failed tool return* the parent’s model can react to, not as a cancellation of the parent run. This isolation is specific to tool bodies: a sub-agent`await` ed from an`event_stream_handler` , an[output validator](/docs/ai/core-concepts/output/#output-validator-functions) , or a[capability](/docs/ai/capabilities/overview/) hook runs directly on the parent’s task, so its`cancel()`*does* surface as the parent’s own`RunCancelled` .
 - **To cancel the parent too, opt in from the delegate tool** by catching`RunCancelled` and calling`ctx.cancel()` on the parent’s context (or re-raising a different error).
 - **To cancel a whole tree of runs at once, share one `CancellationToken`** across the parent and its sub-agents — cancelling it stops all of them. A parent cancelled this way (or by an external`asyncio.CancelledError` ) also tears down any sub-agent run it is`await` ing inline, since they run on the same task.
+
+Pydantic AI bundles model prices at release time. To estimate costs for models released after you installed it, download updated prices when your app starts:
+
+```
+from pydantic_ai import prices
+updater = prices.update_in_background()
+try:
+    ...  # run your app
+finally:
+    updater.stop()
+```
+The price list updates immediately and then hourly in a background thread. Failed downloads leave the most recent prices in use.
+
+For a custom URL or update interval, use [`genai_prices.UpdatePrices`](https://github.com/pydantic/genai-prices/blob/main/packages/python/README.md#updateprices), which shares the same background task.
 
 Pydantic AI offers a [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits) structure to help you limit your
 usage (tokens, requests, tool calls, and cost) on model runs.
@@ -198,7 +260,7 @@ try:
 except UsageLimitExceeded as e:
     print(e)
     """
-    Exceeded the output_tokens_limit of 10 (output_tokens=32). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    Exceeded the output_tokens_limit of 10 (output_tokens=32). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://pydantic.dev/docs/ai/core-concepts/agent/#usage-limits
     """
 ```
 Restricting the number of requests can be useful in preventing infinite loops or excessive tool calling:
@@ -223,7 +285,7 @@ try:
 except UsageLimitExceeded as e:
     print(e)
     """
-    The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    The next tool call(s) would exceed the tool_calls_limit of 1 (tool_calls=2). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://pydantic.dev/docs/ai/core-concepts/agent/#usage-limits
     """
 ```
 Tools and [capabilities](/docs/ai/capabilities/overview/) can read the run’s limits from [`ctx.usage_limits`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage_limits) (alongside [`ctx.usage`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.usage) for usage so far), so a budget-aware tool or capability can disclose or adapt to the remaining budget without being configured with a duplicate copy of the limits. It reflects what the run is already enforcing and is read-only by convention.
@@ -241,7 +303,7 @@ try:
 except UsageLimitExceeded as e:
     print(e)
     """
-    Exceeded the per_request_input_tokens_limit of 10 (request_input_tokens=62). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    Exceeded the per_request_input_tokens_limit of 10 (request_input_tokens=62). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://pydantic.dev/docs/ai/core-concepts/agent/#usage-limits
     """
 ```
 By default the limit is checked against the provider-reported input tokens after the response, so the oversized request is still sent and billed (matching `input_tokens_limit`). Set `count_tokens_before_request=True` to run a token-counting pass and enforce the limit before the request is sent.
@@ -260,7 +322,7 @@ try:
 except UsageLimitExceeded as e:
     print(e)
     """
-    Exceeded the `cost_limit` of 0.0001 (`usage.cost`=Decimal('0.000201')). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://ai.pydantic.dev/agent/#usage-limits
+    Exceeded the `cost_limit` of 0.0001 (`usage.cost`=Decimal('0.000201')). Consider raising the limit, or see the docs on usage limits for budget-aware patterns: https://pydantic.dev/docs/ai/core-concepts/agent/#usage-limits
     """
 ```
 Like `output_tokens_limit`, this is checked after each response, since a response’s output cost isn’t known until it arrives. Setting `count_tokens_before_request=True` additionally prices the counted input tokens and rejects the request up front when that lower bound alone exceeds the limit.
@@ -430,7 +492,40 @@ Another dynamic instruction, instructions don't have to have the `RunContext` pa
 
 Note that returning an empty string will result in no instruction message added.
 
-Instructions can also come from [capabilities](/docs/ai/capabilities/overview/) via [`get_instructions()`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_instructions), or from [template strings](/docs/ai/core-concepts/agent-spec/#template-strings) rendered against the agent’s dependencies.
+Instructions can also come from [capabilities](/docs/ai/capabilities/overview/) via [`get_instructions()`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_instructions), [toolsets](/docs/ai/tools-toolsets/toolsets/#building-a-custom-toolset) via [`get_instructions()`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.get_instructions), or from [template strings](/docs/ai/core-concepts/agent-spec/#template-strings) rendered against the agent’s dependencies.
+
+Each source contributes its own instruction part. Parts are sent to the model as one string, separated by a blank line, and are also available individually as [`InstructionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart)s on [`ModelRequestParameters.instruction_parts`](/docs/ai/api/models/base/#pydantic_ai.models.ModelRequestParameters.instruction_parts).
+
+You declare a [`name`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart.name); the framework issues an [`id`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart.id). Name a part relative to what you own — `'limits'`, not `'toolset:weather:limits'` — and the source contributing it supplies the rest, so you never repeat your own identity and can never claim another source’s key. The [`InstructionId`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionId) you get back pairs the [`source`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionId.source) that contributed the part with the [`name`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionId.name), if there is one, and renders as its segments joined by `:`:
+
+| `str(part.id)` | Addresses | 
+|---|---|
+| `'agent'` | The agent’s own `instructions` | 
+| `'toolset:<toolset id>'` | Everything a [toolset](/docs/ai/tools-toolsets/toolsets/) with an[`id`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset.id) contributes | 
+| `'capability:<capability id>'` | Everything a [capability](/docs/ai/capabilities/overview/) with an[`id`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.id) contributes | 
+| `'agent:<name>'` | One part the agent named | 
+| `'toolset:<toolset id>:<name>'` | One part that toolset named | 
+| `'capability:<capability id>:<name>'` | One part that capability named | 
+
+There are two ways to declare a name, depending on what the part is:
+
+- **A function** is named where it is registered:[`@agent.instructions(name=...)`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.instructions) ,[`@capability.instructions(name=...)`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Capability.instructions) .
+- **Literal text** carries its name on the text itself, by passing an[`InstructionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart) anywhere instructions are accepted —`Agent(instructions=...)` ,`Capability(instructions=...)` ,`FunctionToolset(instructions=...)` , or a`get_instructions()` implementation on a[capability](/docs/ai/capabilities/custom/) or[toolset](/docs/ai/tools-toolsets/toolsets/#building-a-custom-toolset) . The part also decides whether it counts as[`dynamic`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.InstructionPart.dynamic) , which is what keeps it outside the cacheable prefix (see[prompt caching](/docs/ai/models/anthropic/#prompt-caching) ), and a part is always kept whole rather than merged with its neighbours.
+
+Because a part’s id is stable across runs, an application that stores instruction configuration elsewhere (say, a UI where a user edits the instructions an MCP server contributes) can key that configuration on the id instead of on the part’s position or wording, both of which change as the agent evolves.
+
+A source key is what everything else is built from, so it keeps its meaning permanently: giving more sources ids later can only add keys, never change what an existing key addresses.
+
+Capability ids, toolset ids, and instruction names cannot contain `:`, because the character is reserved as the delimiter between these segments. The name `'agent'` is also reserved, because on its own it is the key of the agent’s own instructions.
+
+*(This example is complete, it can be run “as is”)*
+
+Two consequences worth knowing before you key configuration on an id:
+
+- 
+**A key covers everything under it.** Where a source contributes several parts and none of them are named, they all carry the source key, so replacing that key’s text replaces all of them — computed parts included. That is the honest meaning of “I control what this capability tells the model”, but it means parts a source didn’t name can’t be addressed one by one.`'agent'` is the deliberate exception: it covers only the literal instructions the agent was built with, so taking over the base prompt doesn’t silently swallow an`@agent.instructions` function that injects the date or the user’s name.
+- 
+**Some parts can’t be addressed at all.** They take part in the prompt like any other, but nothing keys them: an instructions function with no`name` (a function’s own name isn’t unique, and a lambda or[template string](/docs/ai/core-concepts/agent-spec/#template-strings) has none), a callable passed to`Agent(instructions=...)` , anything passed as runtime instructions to a specific run, and anything from a toolset or capability without an`id` . If you need one of your own callables to be overridable, register it with`@agent.instructions(name=...)` or[`@capability.instructions(name=...)`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.Capability.instructions) instead of passing it to the constructor.Naming a part whose source has no `id` leaves its`id` as`None` , because there is no source key to qualify the name against. The name still travels with the part, so you can see what its author called it, but nothing addresses it.
 
 Validation errors from both function tool parameter validation and [structured output validation](/docs/ai/core-concepts/output/#structured-output) can be passed back to the model with a request to retry.
 
@@ -510,7 +605,7 @@ Define a tool that will raise `ModelRetry` repeatedly in this case.
 
 When a run is cut short by an exception while streaming, an exception inside a tool, or external cancellation, Pydantic AI still captures partial state where it can. Partial [`ModelResponse`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelResponse) and [`ModelRequest`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ModelRequest) messages have `state='interrupted'` so persistence layers and UIs can distinguish them from complete messages.
 
-For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped. The captured messages reflect exactly what happened — half-finished tool call parts are not turned into synthetic tool results at capture time. When an interrupted history is passed back into a run, it is [repaired automatically](/docs/ai/core-concepts/message-history/#making-histories-provider-valid) before the next model request.
+For model responses, interrupted messages contain the response parts streamed before the interruption. For model requests, interrupted messages contain the tool results that completed before tool execution stopped — if none did, the request is still recorded, with no parts, marking the point where the response’s tool calls were abandoned. The captured messages reflect exactly what happened — half-finished tool call parts are not turned into synthetic tool results at capture time. When an interrupted history is passed back into a run, it is [repaired automatically](/docs/ai/core-concepts/message-history/#making-histories-provider-valid) before the next model request.
 
 In this example, `get_volume` completes before `get_mass` raises, so the interrupted request contains the completed `get_volume` return:
 

@@ -4,7 +4,7 @@ title: Subagents | Pydantic Docs
 description: Let an agent delegate self-contained tasks to named child agents via
   a single delegate_task tool, with per-delegate budgets and failure handling.
 resource: https://pydantic.dev/docs/ai/harness/subagents
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Subagents
@@ -115,7 +115,7 @@ A sub-agent run that fails with a *soft model error* (`ModelRetry`, `UnexpectedM
 
 Hard errors propagate to stop the whole run. A `UsageLimitExceeded` from a child that has *no* per-delegate `usage_limits` (so it shares the parent’s accounting) means the whole tree is out of budget and propagates; a child reaching its *own* `usage_limits` is soft, as above.
 
-An *unexpected crash* — any other exception the child raises, such as a provider `ModelAPIError`/`FallbackExceptionGroup` or a plain `ValueError` from a bad tool argument — propagates by default and aborts the parent run. Set `contain_errors=True` (per delegate, or as the `SubAgents` default) to catch it and return it to the parent as a bounded `ModelRetry` instead, so one delegate crash cannot kill the whole run. Containment stays loud: the exception rides the retry message (`Sub-agent '<name>' crashed: ...`), it is logged via the standard `logging` module, and `tool_retries` still bounds consecutive crashes into an abort. This is orthogonal to `on_failure` — a contained crash always raises the loud retry, never the soft `on_failure` return, so a genuine bug is never masked as success. Cancellation, a shared `UsageLimitExceeded`, pydantic-ai control-flow signals (`CallDeferred`, `ApprovalRequired`, the `Skip*` signals), and `UserError` always propagate regardless of `contain_errors`.
+An *unexpected crash* — any other exception the child raises, such as a provider `ModelAPIError`/`FallbackExceptionGroup` or a plain `ValueError` from a bad tool argument — propagates by default and aborts the parent run. Set `contain_errors=True` (per delegate, or as the `SubAgents` default) to catch it and return it to the parent as a bounded `ModelRetry` instead, so one delegate crash cannot kill the whole run. Containment stays loud: the exception rides the retry message (`Sub-agent '<name>' crashed: ...`), it is logged via the standard `logging` module, and `tool_retries` still bounds consecutive crashes into an abort. This is orthogonal to `on_failure` — a contained crash always raises the loud retry, never the soft `on_failure` return, so a genuine bug is never masked as success. Cancellation, a shared `UsageLimitExceeded`, pydantic-ai control-flow signals (`CallDeferred`, `ApprovalRequired`, the `Skip*` signals), and `UserError` bypass containment regardless of `contain_errors`. Cancellation covers both kinds: external cancellation (`asyncio.CancelledError`) propagates as-is, and a child’s own first-party cancellation (`RunContext.cancel()` inside the child, raising `RunCancelled`) leaves the delegate tool uncontained, after which pydantic-ai isolates it as a failed `delegate_task` return the parent model can react to, not a crash retry that invites re-delegation.
 
 The sub-agents are listed in the system prompt via `get_instructions`, using each agent’s `description` (or a `SubAgent(description=...)` override). A sub-agent with no description is listed by name alone.
 
@@ -333,6 +333,18 @@ Name of the delegate tool exposed to the model.
 
 **Type:** `str`**Default:** `'delegate_task'`
 
+One-off: an agent exposes a single delegate tool, so the id is fixed.
+
+`tool_name` is one name, so two `SubAgents` capabilities register the same tool and collide.
+Declaring the id here is what makes two of them merge instead, unioning their rosters — which
+is what lets a packaged harness that delegates compose with another that does the same.
+
+Keyword-only on the field rather than through a `KW_ONLY` marker: a marker applies to every
+field after it, which would take `tool_retries` and `contain_errors` off the positional
+contract they already have.
+
+**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default='sub_agents', kw_only=True)`
+
 Retries for the delegate tool — how many extra attempts it gets after a
 sub-agent error before the parent run aborts. A sub-agent failure (e.g. it
 exhausts its own output retries) surfaces to the parent as a tool retry it
@@ -381,6 +393,30 @@ Toolset providing the delegate tool, or `None` when no sub-agents are configured
 def get_serialization_name(cls) -> str | None
 ```
 Not spec-serializable — the capability holds live `Agent` instances.
+
+`@classmethod`
+
+```
+def combine(
+    cls,
+    capabilities: Sequence[AbstractCapability[AgentDepsT]],
+) -> AbstractCapability[AgentDepsT]
+```
+Compose the rosters, and require everything else to already agree.
+
+Two packaged harnesses on one agent each bring their delegates, and composing them is what
+the shared `id` is for. Only `agents` and `models` are composed. Every other field decides
+how the delegates *run* — what capabilities they are handed, whether they see the parent’s
+tools, what the delegate tool is called, where delegates are loaded from — so merging it
+would apply one harness’s policy to the other’s sub-agents, which neither author asked for.
+Those must agree, and say so when they do not.
+
+The roster is rebuilt from the delegates the inputs already materialized rather than by
+re-running `__post_init__`: that reloads `agent_folders` relative to the current working
+directory and re-invokes `tool_resolver`, so a merge could answer differently than either
+input did.
+
+`AbstractCapability`[`AgentDepsT`]
 
 **Bases:** `Generic[AgentDepsT]`
 

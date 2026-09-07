@@ -2,7 +2,7 @@
 type: Web Page
 title: Cohere | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/cohere
-timestamp: '2026-08-03T09:54:19.663642+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Cohere
@@ -56,6 +56,8 @@ model = CohereModel(
 agent = Agent(model)
 ...
 ```
+Unlike the OpenAI, Anthropic and Groq clients, the Cohere client exposes no `max_retries` knob: its built-in client retries server errors and rate limits twice above whatever transport you pass here, and that cannot be turned off. Keep it in mind when sizing the transport — see [Provider SDK retries](/docs/ai/core-concepts/retries/#provider-sdk-retries).
+
 You can customize model behavior using [`CohereModelSettings`](/docs/ai/api/models/cohere/#pydantic_ai.models.cohere.CohereModelSettings):
 
 ```

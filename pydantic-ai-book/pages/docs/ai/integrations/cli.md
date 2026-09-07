@@ -2,7 +2,7 @@
 type: Web Page
 title: Command Line Interface (CLI) | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/integrations/cli
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Command Line Interface (CLI)
@@ -27,6 +27,10 @@ Then running `clai` will start an interactive session where you can chat with th
 - `/cp` : Copy the last response to clipboard
 - `/usage` : Show cumulative token usage for the session (turns, input, output, requests, tool calls); add`--json` for a single-line JSON object
 
+When streaming (the default), any tool the agent calls is shown as it runs and marked done once its
+result arrives, so you can follow a tool-using agent without leaving the terminal. Pass `--no-stream`
+to print only the final answer.
+
 | Option | Description | 
 |---|---|
 | `prompt` | AI prompt for one-shot mode (positional). If omitted, starts interactive mode. | 
@@ -34,12 +38,15 @@ Then running `clai` will start an interactive session where you can chat with th
 | `-a` ,`--agent` | Custom agent in `module:variable` format | 
 | `-t` ,`--code-theme` | Syntax highlighting theme ( `dark` ,`light` , or[pygments theme](https://pygments.org/styles/) ) | 
 | `--no-stream` | Disable streaming from the model | 
+| `--mcp-config` | Path to [MCP servers configuration file](/docs/ai/mcp/client/#loading-mcp-toolsets-from-configuration) (JSON, using the same`mcpServers` shape as Claude Desktop, Claude Code, and Cursor) | 
 | `-l` ,`--list-models` | List all available models and exit | 
 | `--version` | Show version and exit | 
 
 You can specify which model to use with the `--model` flag:
 
 (a full list of models available can be printed with `clai --list-models`)
+
+You can connect to [MCP servers](/docs/ai/mcp/client/#loading-mcp-toolsets-from-configuration) using the `--mcp-config` flag with a JSON configuration file that uses the same `mcpServers` shape as Claude Desktop, Claude Code, and Cursor:
 
 You can specify a custom agent using the `--agent` flag with a module path and variable name:
 
@@ -54,7 +61,10 @@ Additionally, you can directly launch CLI mode from an `Agent` instance using `A
 
 You can also use the async interface with `Agent.to_cli()`:
 
-*(You’ll need to add `asyncio.run(main())` to run `main`)*
+*(To run this example, ensure `asyncio` is imported and add `asyncio.run(main())`; no other changes are needed.)*
+
+Both run the same chat interface as `clai`, so an agent with tools shows each call as it runs and
+marks it done when the result arrives, exactly as described under [CLI Usage](#cli-usage).
 
 Both `Agent.to_cli()` and `Agent.to_cli_sync()` support a `message_history` parameter, allowing you to continue an existing conversation or provide conversation context:
 

@@ -4,7 +4,7 @@ title: System Reminders | Pydantic Docs
 description: Re-inject behavioral guidance mid-run -- on a cadence or reactively --
   to counter instruction fade, without invalidating the prompt cache.
 resource: https://pydantic.dev/docs/ai/harness/system-reminders
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # System Reminders
@@ -86,7 +86,21 @@ async def every_tenth(ctx):
     return await _llm(ctx) if ctx.run_step % 10 == 0 else None
 SystemReminders(dynamic_reminders=[every_tenth])
 ```
-`LLMReminder` generates inside `wrap_model_request`, so under durable execution (Temporal, DBOS, Prefect) its model call runs in orchestration context rather than a durable step — non-deterministic on replay and not checkpointed, with errors falling back silently to `GoalReanchor`. For durable runs prefer `GoalReanchor` (no model call) or gate `LLMReminder` off.
+Under a durability engine, a `LLMReminder` listed directly in `dynamic_reminders` is a journaled
+capability operation: replay restores the recorded reminder instead of repeating the model call,
+and a generation error is recorded as the `GoalReanchor` fallback rather than inheriting the
+engine’s retry policy, so a best-effort reminder cannot stall the run. `SystemReminders` carries the
+stable default `id='system_reminders'`, so durable recovery works without configuration.
+
+Only a direct entry takes that route. Two shapes do not:
+
+- A wrapper like `every_tenth` above calls`LLMReminder` from orchestration context, where engines
+that forbid I/O can fail the call outright.
+- An `LLMReminder` subclass that overrides`__call__` runs that override directly, so it cannot be
+journaled either.
+
+Without a durability engine, generation runs directly in all three cases, with the same fallback to
+`GoalReanchor` on error.
 
 ```
 from pydantic_ai_harness import SystemReminders
@@ -171,9 +185,8 @@ def for_run(ctx: RunContext[AgentDepsT]) -> SystemReminders[AgentDepsT]
 ```
 Return a fresh per-run instance with reset counters (config preserved).
 
-`replace` builds a new instance whose generated `__init__` re-initializes the
-`init=False` fields — `_request_count` back to `0` and `_fire_counts` to an empty
-dict — so concurrent runs on the same agent never share fire state.
+The clone resets `_request_count` and `_fire_counts`, so concurrent runs on the
+same agent do not share fire state.
 
 `SystemReminders`[`AgentDepsT`]
 
@@ -255,11 +268,8 @@ run past its `request_limit`. Once the budget is that tight the generation is sk
 `GoalReanchor` text is used instead. Gate it on a cadence (see the docs) if per-turn
 generation is too costly.
 
-The generation runs inside `wrap_model_request`, so under durable execution (Temporal,
-DBOS, Prefect) it executes in orchestration context rather than a durable step: the model
-call is non-deterministic on replay and is not checkpointed, and its errors fall back
-silently to `GoalReanchor`. For durable runs prefer `GoalReanchor`, which makes no model
-call, or gate `LLMReminder` off.
+When owned by `SystemReminders`, generation is a journaled capability operation under a
+durability engine. Replay restores the generated text instead of repeating the model call.
 
 # Citations
 

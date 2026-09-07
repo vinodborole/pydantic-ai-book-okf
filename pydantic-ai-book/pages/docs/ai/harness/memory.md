@@ -4,7 +4,7 @@ title: Memory | Pydantic Docs
 description: Persistent, namespaced agent notebooks with bounded prompt injection,
   on-demand search, and concurrency-safe stores.
 resource: https://pydantic.dev/docs/ai/harness/memory
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-07T12:01:58.556264+00:00'
 ---
 
 # Memory
@@ -54,7 +54,7 @@ memory = Memory(
 ```
 Only the current request retains the injected user-role part, so copies do not accumulate in message history. Each model request receives the latest bounded snapshot, including after `write_memory` or an external update changes `MEMORY.md`.
 
-Set `inject_memory=False` for cache-stable prompts or durable workflows. The tools remain available, and the model can fetch memory only when it needs it:
+Set `inject_memory=False` for cache-stable prompts. The tools remain available, and the model can fetch memory only when it needs it:
 
 ```
 from pydantic_ai_harness import Memory
@@ -191,10 +191,12 @@ The serializable backends are `memory`, `file`, and `sqlite`. A namespace callab
 | Execution mode | Support | 
 |---|---|
 | Normal `Agent.run` calls | Supported with automatic injection or on-demand tools. | 
-| Temporal and Prefect | Use `inject_memory=False` with a statically configured store and on-demand tools. Automatic injection performs backend I/O in a model-request hook and is not workflow-safe. | 
-| DBOS | Normal execution works, but ordinary `FunctionToolset` calls are not DBOS-durable. Wrap memory operations in application-provided DBOS steps when durability is required. | 
+| Temporal and Prefect | Automatic snapshot loading is a journaled capability operation. On replay, the recorded snapshot is reused. `store_resolver` and a callable`namespace` run before that operation, so they must be deterministic and free of backend I/O; a per-tenant resolver that queries a backend is not workflow-safe. | 
+| DBOS | Automatic snapshot loading is a DBOS step. Ordinary `FunctionToolset` calls are not DBOS-durable; wrap memory tool operations in application-provided DBOS steps when required. | 
 
-The memory backend and the workflow state backend are independent. Durable execution does not make an in-memory notebook persistent.
+`Memory` carries the stable default `id='memory'`, so durable recovery works without configuration. The memory backend and workflow state backend remain independent: durable execution does not make an in-memory notebook persistent.
+
+Each model request that uses automatic snapshot loading records one bounded snapshot result in workflow history, so choose `max_memory_size` and `max_tokens` with the engine’s history limits in mind.
 
 Memory is model-written, untrusted content that can re-enter future prompts. Keeping it in a delimited user-role part lowers its authority relative to model instructions, but this is not a hard prompt-injection boundary. Use `inject_memory=False` when less-trusted actors can write to the store, and expose memory only through application-controlled retrieval when stronger isolation is required. Do not store secrets unless the backend, retention policy, and access controls are appropriate. Sanitize content before rendering it into another trust domain.
 
@@ -207,12 +209,9 @@ The public module exports `Memory`, `MemoryToolset`, the bundled stores, the sto
 Persistent agent memory across sessions.
 
 `MEMORY.md` is injected as user-role context and longer topic files are
-available through `read_memory` and `search_memory`. Store access performed
-by automatic injection is not workflow-safe durable I/O. With Temporal or
-Prefect, use `inject_memory=False`; the static, idempotent `memory` toolset
-can then be wrapped by those integrations. DBOS does not currently wrap an
-ordinary `FunctionToolset` as a durable step, so this capability’s tools are
-not DBOS-durable without an application-provided DBOS step wrapper.
+available through `read_memory` and `search_memory`. Automatic snapshot
+loading is journaled by durability engines that support capability
+operations.
 
 Storage backend. The default persists only for the process lifetime.
 
