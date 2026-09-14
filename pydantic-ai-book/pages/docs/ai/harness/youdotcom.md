@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent web research tools backed by the You.com A
   -- search with query-relevant excerpts or full-page markdown, page retrieval, cited
   one-call answers, and multi-step research including a finance-tuned mode.
 resource: https://pydantic.dev/docs/ai/harness/youdotcom
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # You.com
@@ -273,30 +273,30 @@ If non-empty, results only come from these domains (allowlist).
 Mutually exclusive with `exclude_domains` and `boost_domains`; the You.com
 API rejects combining an allowlist with either.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Results never come from these domains (denylist).
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Results from these domains are re-ranked higher without excluding others.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Restrict results by recency: `day`, `week`, `month`, `year`, or a `YYYY-MM-DDtoYYYY-MM-DD` range.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Two-letter country code that focuses results geographically.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Custom research guidance for the system prompt.
 
 Leave as `None` for the default guidance, or set `''` to contribute no
 instructions at all.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Per-request timeout for the default client, in milliseconds. Ignored when `client` is set.
 
@@ -387,34 +387,34 @@ If non-empty, `answer` and `research` only draw from these domains (allowlist).
 
 Mutually exclusive with `exclude_domains` and `boost_domains`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 `answer` and `research` never draw from these domains (denylist).
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Results from these domains are re-ranked higher for `answer` and `research`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Restrict `answer` and `research` by recency: `day`, `week`, `month`, `year`, or a range.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Two-letter country code that focuses `answer` and `research` geographically.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 JSON schema for `research` structured output. `None` returns prose.
 
 The You.com API rejects an `output_schema` with `research_effort='lite'`,
 so that combination raises at construction.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
 Custom guidance for the system prompt. `None` uses the default; `''` contributes none.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Per-request timeout for the default client, in milliseconds. Ignored when `client` is set.
 
@@ -492,7 +492,7 @@ def web_search(query: str) -> ToolReturn[str]
 ```
 Search the web and return matching pages, each with its most relevant excerpts.
 
-[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] — The matching pages, each with title, URL, and excerpts.
+[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] — The matching pages, each with title, URL, and excerpts.
 
 **`query`** : `str`
 
@@ -508,7 +508,7 @@ Retrieve the markdown of a specific URL.
 Use it to read a promising URL from `web_search` results in full, or a
 URL the user provided.
 
-[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] — The page’s title, URL, and markdown content.
+[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] — The page’s title, URL, and markdown content.
 
 **`url`** : `str`
 
@@ -533,7 +533,7 @@ def answer(query: str) -> ToolReturn[str]
 ```
 Get a synthesized answer with citations, grounded in live web results.
 
-[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] — A cited answer, followed by the sources it drew on.
+[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] — A cited answer, followed by the sources it drew on.
 
 **`query`** : `str`
 
@@ -548,7 +548,7 @@ Run multi-step research and return a thorough, cited answer.
 
 Suited to questions too complex for a single lookup: it runs many searches, reads the sources, and synthesizes a verifiable answer.
 
-[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] — The synthesized answer, followed by the sources it drew on.
+[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] — The synthesized answer, followed by the sources it drew on.
 
 **`input`** : `str`
 
@@ -561,7 +561,7 @@ def finance_research(input: str) -> ToolReturn[str]
 ```
 Run finance-tuned research on companies, markets, and instruments.
 
-[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] — The synthesized analysis, followed by the sources it drew on.
+[`ToolReturn`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolReturn)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] — The synthesized analysis, followed by the sources it drew on.
 
 **`input`** : `str`
 

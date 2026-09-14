@@ -4,7 +4,7 @@ title: Advisor | Pydantic Docs
 description: Let an executor model consult a separate advisor model through a provider-native
   tool or a local Pydantic AI fallback.
 resource: https://pydantic.dev/docs/ai/harness/advisor
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Advisor
@@ -124,7 +124,7 @@ One-off: an agent has one advisor, and its tool name is fixed.
 Declared here rather than only passed up from `__init__`, so the class states it where a reader
 — and Pydantic AI, deciding what two of this capability under one `id` mean — can see it.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'advisor'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `'advisor'`
 
 The model to consult.
 
@@ -146,13 +146,13 @@ Maximum consultations in one executor model request.
 
 The limit resets on the next executor request. OpenRouter’s native advisor does not honor this option, so setting it selects the local fallback there.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_uses`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `max_uses`
 
 Maximum output tokens for each advisor consultation.
 
 Values below 1024 are rejected so the setting remains valid on every native and local execution path.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `max_tokens`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `max_tokens`
 
 Anthropic-native advisor prompt caching.
 

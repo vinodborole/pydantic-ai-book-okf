@@ -4,7 +4,7 @@ title: Compaction | Pydantic Docs
 description: A menu of strategies -- clear, dedupe, trim, or summarize -- for keeping
   an agent's conversation history within the model's context window.
 resource: https://pydantic.dev/docs/ai/harness/compaction
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Compaction
@@ -30,6 +30,8 @@ An agent that runs for many turns accumulates history: tool outputs, file reads,
 | `FallbackCompaction` | depends on chain | Tries the next strategy when one raises | Summarization can fail and deterministic truncation must keep the run alive | 
 | `WarnNearLimits` | zero-LLM | Injects an URGENT/CRITICAL warning as limits approach | You want the agent to wrap up rather than have its history rewritten | 
 | `ReportContextUsage` | zero-LLM | Reports context usage to your application; never edits history | You want a live context gauge in a UI | 
+
+Instruction replacement and withdrawal records contribute their full rendered system text to token estimates. Superseded updates before a new instruction baseline are excluded.
 
 Every size-based strategy triggers on `max_messages`, `max_tokens` (estimated), or `max_fraction`. Token counts anchor on the provider-reported usage of the most recent model response when one is available. That provider usage includes the instructions, tool definitions, and `FilePart` payloads sent in the anchored request; only the messages added since are estimated. The suffix after the anchor, or a history with no usage anchor, uses `tokenizer` or a ~4-chars-per-token heuristic and cannot see `FilePart` payloads. Pending tool schemas newly revealed for the request are conservatively estimated by the implementation. `DeduplicateFileReads` runs on every request when no trigger is set (it is cheap and near-lossless). `TieredCompaction` triggers and stops on a single `target_tokens` / `target_fraction` budget. `ClampOversizedMessages` triggers per *part* (`max_part_tokens` / `max_part_chars`), not on the whole history — the failure it targets is one oversized part, not a large total.
 
@@ -100,15 +102,19 @@ A strategy knows when to act but says nothing about how close the run is to the 
 ```
 from pydantic_ai import Agent
 from pydantic_ai_harness import ReportContextUsage, SummarizingCompaction
+from pydantic_ai_harness.compaction import ContextUsageEvent
 agent = Agent(
     'anthropic:claude-sonnet-5',
     capabilities=[
         SummarizingCompaction(max_fraction=0.9, keep_messages=20),
-        ReportContextUsage(on_usage=lambda usage: print(f'{usage.fraction:.0%}')),
+        ReportContextUsage(),
     ],
 )
+@agent.on_event(ContextUsageEvent)
+async def show(ctx, event):
+    print(f'{event.fraction:.0%}')
 ```
-Each reading carries `used_tokens`, `window_tokens`, and `resolved` — `False` when the window is the fallback rather than the model’s real one, so a gauge can show that the percentage is a guess. `on_usage` may be a coroutine function, so a gauge that pushes over a socket does not need a sync bridge. Order matters: register the monitor *after* a compaction capability to observe the corrected current history after same-cycle compaction, or before it to see what triggered the compaction.
+Each reading carries `used_tokens`, `window_tokens`, `fraction`, and `resolved` — `False` when the window is the fallback rather than the model’s real one, so a gauge can show that the percentage is a guess. Migration: `on_usage` remains supported but is deprecated. Move its callback body to a `ContextUsageEvent` subscription. Order matters: register the monitor *after* a compaction capability to observe the corrected current history after same-cycle compaction, or before it to see what triggered the compaction.
 
 `used_tokens` follows the accounting above: provider usage anchors include instructions, tool
 definitions, and `FilePart` payloads from the anchored request. The suffix after the anchor, or a
@@ -277,6 +283,8 @@ agent = Agent(
 
 Both prompt surfaces of the summary request are fields: `summary_prompt` is the user-turn template (it must contain a `{messages}` placeholder), and `instructions` sets the internal agent’s static instructions, which Pydantic AI sends in the request’s system prompt. Override `instructions` when the summarizer endpoint requires a fixed leading instruction.
 
+The messages served into that template are rendered to text, and each tool return is capped per return at `tool_return_max_chars` (default 500) characters using the same explicit truncation marker as kept user turns. Raise it, or set it to `None` to render each return whole, when the summarizer’s context window is large enough to absorb the payloads. `max_tokens` and `keep_tokens` control when compaction runs and which history messages are retained; they do not cap the summary-request payload.
+
 The summary request is non-streaming unless `event_stream_handler` is set. Supply a handler to watch the summary as it is written, or pass `drain_summary_events` to take the streaming request path without handling the events — which is what a summarizer endpoint that rejects non-streaming requests needs:
 
 ```
@@ -333,6 +341,8 @@ The span name is the static `compact_messages`; the strategy is an attribute, no
 
 `gen_ai.conversation.compacted` is the GenAI semantic convention’s flag; the rest is harness-specific. Token counts use the strategy’s `tokenizer` when set, otherwise the ~4-chars-per-token heuristic. Raw message content is not recorded.
 
+`SummarizingCompaction` runs its summarizer as a nested `Agent` named `summarizing_compaction`, so under `Agent.instrument_all()` (or `logfire.instrument_pydantic_ai()`) its runs carry `agent_name = summarizing_compaction`. Filter on that to track summarization usage and cost separately from the parent agent.
+
 Compaction is a memory wipe the model cannot veto and often cannot detect, which invites *resumption drift* — the model confabulates continuity with history it no longer has. A receipt makes the wipe legible: after a boundary-crossing strategy rewrites history it appends a short, deterministic note recording how much was compacted, warning that what survives is secondhand, and — when a handle provider is attached — an identifier for persisted run history.
 
 ```
@@ -381,7 +391,7 @@ The family token is a coarse approximation: drop any `provider:` prefix, then ta
 
 As with receipts, the update instruction and the bridge-prefix wording are content, shipped minimal and neutral pending the eval-rig pass; the anchoring and family-gating mechanisms are structural.
 
-These strategies compress or drop context *inside* the window. Moving large tool outputs *out* of the window — overflowing them to a file the agent (or a subagent) can query on demand — is a separate capability ([tool output limits](/docs/ai/harness/tool-output-limits/)), not lossy truncation. Prefer it over capping individual tool outputs.
+These strategies compress or drop context *inside* the window. Moving large tool outputs *out* of the window — overflowing them to a file the agent (or a subagent) can query on demand — is a separate capability ([tool output limits](/docs/ai/harness/tool-output-limits/)), not lossy truncation. Within `SummarizingCompaction`, `tool_return_max_chars` makes the summarizer’s per-return cap tunable (or `None` to render returns whole), but the summary request still reads a lossy rendering; prefer tool output limits when a payload must be queryable in full.
 
 The recommended default is `TieredCompaction`; the other strategies below can be used standalone or plugged in as its tiers.
 
@@ -405,14 +415,14 @@ Stop escalating once the estimated token count is at or below this value.
 
 Mutually exclusive with `target_fraction`; exactly one of the two must be set.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Target expressed as a fraction of the model’s context window, resolved per request.
 
 Use this instead of `target_tokens` when the same agent runs on models with
 different windows. Mutually exclusive with `target_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -421,7 +431,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `target_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the model is not in the pricing registry.
 
@@ -435,7 +445,7 @@ Optional tokenizer for accurate token counting.
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 ```
 def with_focus(focus: str) -> TieredCompaction[AgentDepsT]
@@ -502,11 +512,11 @@ it is the only zero-LLM way to keep a run alive after a runaway generation.
 
 Clamp a part whose estimated token count exceeds this value. `None` disables this trigger.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Clamp a part whose character count exceeds this value. `None` disables this trigger.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Characters of the part’s head to retain.
 
@@ -525,7 +535,7 @@ Optional tokenizer for accurate token counting.
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 `@async`
 
@@ -565,18 +575,18 @@ cache.
 
 Trigger clearing when message count exceeds this value. `None` disables.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger clearing when estimated token count exceeds this value. `None` disables.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger when estimated tokens exceed this fraction of the model’s context window.
 
 Resolved per request from the request’s model, so one setting behaves correctly on any
 model. Mutually exclusive with `max_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -585,7 +595,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -604,7 +614,7 @@ Replacement content for a cleared tool result.
 
 Tool names whose results are never cleared.
 
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset()`
+**Type:** [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `frozenset()`
 
 When `True`, also blank the arguments of the cleared tool calls.
 
@@ -614,14 +624,14 @@ Only clear if doing so reclaims at least this many estimated tokens.
 
 Protects the prompt cache from being invalidated for a trivial gain. `None` always clears.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Optional tokenizer for accurate token counting.
 
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 `@async`
 
@@ -656,7 +666,7 @@ live data.
 
 Map a tool call to a stable file key, or `None` if it is not a file read.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`ToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolCallPart)], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`ToolCallPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ToolCallPart)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 Replacement content for a superseded file read.
 
@@ -664,18 +674,18 @@ Replacement content for a superseded file read.
 
 Optional message-count trigger. When both triggers are `None`, runs whenever invoked.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Optional token-count trigger. When both triggers are `None`, runs whenever invoked.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger when estimated tokens exceed this fraction of the model’s context window.
 
 Resolved per request from the request’s model, so one setting behaves correctly on any
 model. Mutually exclusive with `max_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -684,7 +694,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -698,7 +708,7 @@ Optional tokenizer for accurate token counting.
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 `@async`
 
@@ -731,18 +741,18 @@ rest of the agent run.
 
 Trigger trimming when message count exceeds this value. `None` disables.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger trimming when estimated token count exceeds this value. `None` disables.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger when estimated tokens exceed this fraction of the model’s context window.
 
 Resolved per request from the request’s model, so one setting behaves correctly on any
 model. Mutually exclusive with `max_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -751,7 +761,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -768,14 +778,14 @@ Target token budget after trimming (token-count trigger).
 
 When `None`, falls back to `keep_messages`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Optional tokenizer for accurate token counting.
 
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 When `True`, the first `ModelRequest` containing a `UserPromptPart`
 is always kept after trimming, in addition to system prompts.
@@ -826,7 +836,7 @@ When `None`, inherits the model the request being compacted is going to. Core st
 that as the run’s model, so the two differ only where a capability replaced
 `ModelRequestContext.model`; set this explicitly to pin the summarizer regardless.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Model` | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Model` | `None`**Default:** `None`
 
 Settings for the dedicated summary model call.
 
@@ -847,18 +857,18 @@ endpoint that rejects streaming requests needs. The handler receives the summary
 
 Trigger compaction when message count exceeds this value.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger compaction when estimated token count exceeds this value.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Trigger when estimated tokens exceed this fraction of the model’s context window.
 
 Resolved per request from the request’s model, so one setting behaves correctly on any
 model. Mutually exclusive with `max_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -867,7 +877,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -884,7 +894,7 @@ Target token budget to preserve after compaction (token-count trigger).
 
 When `None`, falls back to `keep_messages`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Prompt template for generating summaries.
 
@@ -905,7 +915,7 @@ Optional tokenizer for accurate token counting.
 A callable that returns the token count for a given string.
 When `None`, uses a ~4 characters-per-token heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 When `True`, the first `ModelRequest` containing a `UserPromptPart`
 is always kept after compaction, in addition to system prompts.
@@ -937,6 +947,11 @@ Per-message character cap for `keep_user_messages`; oversized messages are trunc
 with an explicit marker (the shared truncation-marker convention).
 
 **Type:** `int`**Default:** `20000`
+
+Per-return character cap when rendering tool results for the summarizer. `None` renders
+them whole.
+
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=500, kw_only=True)`
 
 When `True`, append a deterministic compaction receipt after the summary noting how
 much history was summarized, that the summary is secondhand, and — when a
@@ -989,18 +1004,18 @@ Previous warnings injected by this capability are stripped before deciding wheth
 
 Maximum allowed requests for the run.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Maximum context-window size to warn against.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Context limit as a fraction of the model’s real context window, resolved per request.
 
 Use this instead of `max_context_tokens` when the same agent runs on models with
 different windows. Mutually exclusive with `max_context_tokens`.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
@@ -1009,7 +1024,7 @@ for it when the registry is confidently wrong: a beta- or tier-gated window it r
 the maximum, or a self-hosted endpoint whose model id describes someone else’s
 deployment. Only consulted alongside `max_context_fraction`.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `field(default=None, kw_only=True)`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -1020,7 +1035,7 @@ the registry cannot resolve.
 
 Maximum cumulative run token budget to warn against.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Which limits should emit warnings. Defaults to all configured limits.
 
@@ -1057,15 +1072,16 @@ or before it to see what triggered the compaction. After a preceding compactor r
 anchored history, the reading subtracts that compactor’s heuristic reclaim while retaining
 the anchor’s fixed provider overhead.
 
-Called with a fresh reading before every model request.
+Deprecated callback with a fresh reading before every model request.
 
-A coroutine function is awaited, so a gauge that pushes over a socket does not need a sync bridge. An exception raised here propagates and fails the run.
+Subscribe to `ContextUsageEvent` instead. A coroutine function is awaited and an exception
+raised here propagates and fails the run.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`ContextUsage`], [`None`](https://docs.python.org/3/library/constants.html#None) | [`Awaitable`](https://docs.python.org/3/library/typing.html#typing.Awaitable)[[`None`](https://docs.python.org/3/library/constants.html#None)]]
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`ContextUsage`], [`None`](https://docs.python.org/3/builtins/constants.html#None) | [`Awaitable`](https://docs.python.org/3/library/typing.html#typing.Awaitable)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]] | `None`**Default:** `None`
 
 Window override in tokens. `None` resolves it from the request’s model.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Window assumed when the request’s model is not in the pricing registry.
 
@@ -1073,7 +1089,7 @@ Window assumed when the request’s model is not in the pricing registry.
 
 Optional tokenizer, matching the one your compaction strategy uses.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 `@async`
 
@@ -1083,7 +1099,7 @@ def before_model_request(
     request_context: ModelRequestContext,
 ) -> ModelRequestContext
 ```
-Measure the pending history and hand the reading to `on_usage`.
+Measure the pending history, emit it, and invoke the compatibility callback.
 
 A single reading of how full the context is.
 

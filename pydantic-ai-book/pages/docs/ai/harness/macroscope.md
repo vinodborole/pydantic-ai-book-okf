@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent the same local Macroscope code review its 
   plugins run -- streamed findings parsed into structured issues the agent validates
   and fixes with its own tools.
 resource: https://pydantic.dev/docs/ai/harness/macroscope
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Macroscope
@@ -114,7 +114,7 @@ never starts, the tool reports that the user needs to run `macroscope` once.
 Git ref to diff against. When `None`, `--base` is omitted and the CLI
 auto-detects the base branch itself (and creates its own review worktree).
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Name or path of the CLI binary. Override for a non-default install location.
 
@@ -122,7 +122,7 @@ Name or path of the CLI binary. Override for a non-default install location.
 
 Repository directory the review runs in.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Path` **Default:** `'.'`
 
 Maximum seconds to wait for a review. Reviews call a remote service, so this is generous by default.
 
@@ -133,7 +133,7 @@ Custom review guidance for the system prompt.
 Leave as `None` for the default validate-then-fix guidance, or set `''` to
 contribute no instructions at all.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 ```
 def get_toolset() -> MacroscopeToolset[AgentDepsT]

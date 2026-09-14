@@ -43,3 +43,7 @@
 ## 2026-09-07
 
 - Sync: +3 added, ~50 changed, -3 removed.
+
+## 2026-09-14
+
+- Sync: +4 added, ~36 changed, -4 removed.

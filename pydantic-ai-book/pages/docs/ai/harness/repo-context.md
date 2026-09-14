@@ -4,7 +4,7 @@ title: Repo Context | Pydantic Docs
 description: Discover and load a repo's accumulated coding-assistant context engineering
   -- instruction files, skills, sub-agents, and hooks.
 resource: https://pydantic.dev/docs/ai/harness/repo-context
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Repo Context
@@ -36,7 +36,10 @@ Exposes one tool, `inventory_agent_context()`, that reports where the repo’s C
 
 Rename the tool with `inventory_tool_name`, or scope which roots it scans with `asset_roots`.
 
-When the model lists or reads a directory, surface that directory’s `CLAUDE.md`/`AGENTS.md`. This couples to the host’s list/read tools, so it is opt-in and configurable:
+When the model lists or reads a directory, surface that directory’s
+`CLAUDE.md`/`AGENTS.md`. This strategy subscribes to `FileReadEvent` and
+`DirectoryListedEvent`, so it receives normalized, containment-checked paths
+instead of inspecting raw tool arguments. It remains opt-in:
 
 ```
 from pathlib import Path
@@ -49,19 +52,35 @@ agent = Agent(
         RepoContext(
             workspace_dir=Path('.'),
             nested_traversal=True,
-            traversal_tool_names=frozenset({'list_directory', 'read_file'}),  # the FileSystem tool names to hook
-            traversal_path_arg='path',                                   # the path arg key
-            nested_inject='pointer',                                     # or 'contents'
+            nested_inject='pointer',  # or 'contents'
         )
     ],
 )
 ```
-`nested_inject='pointer'` (default) appends a one-line note pointing at the file; `'contents'` inlines the file body. Each directory is surfaced at most once per run.
+`nested_inject='pointer'` (default) enqueues a one-line note pointing at the
+file; `'contents'` enqueues the file body. The note reaches message history
+before the next model request. Each directory is surfaced at most once per run.
+
+`FileSystem` emits these events directly. Hosts with other file tools can emit
+the same types by importing `FileReadEvent` and `DirectoryListedEvent` from
+`pydantic_ai_harness.filesystem`; set `root_dir` to the directory the event’s
+`path` is relative to.
+
+The traversed location is `root_dir / path`, so a `FileSystem` rooted at a
+subdirectory of `workspace_dir` still surfaces the right directory. A
+traversal that resolves outside `workspace_dir` is ignored: it is not nested in
+the workspace, so there is no nested context to surface.
+
+`traversal_tool_names` and `traversal_path_arg` are deprecated. Setting either
+to a non-default value emits `HarnessDeprecationWarning` and keeps the old
+tool-name and argument sniffing path active for hosts that do not emit events.
+With the defaults, sniffing is disabled, so a `FileSystem` event cannot deliver
+the same note twice.
 
 Injecting file contents into the system prompt costs prompt-cache stability: a changed prefix re-bills the whole cached region. `RepoContext` keeps the two cache-relevant paths separate:
 
 - Strategy 1 reads its files once at run start and injects them as static system instructions, so the cached prefix stays byte-identical across turns.
-- Strategy 3 is volatile (it depends on which directory was just touched), so its note is appended to the tool result in the message tail — never to the system prompt — and cannot invalidate the cached prefix.
+- Strategy 3 is volatile (it depends on which directory was just touched), so its note is enqueued in the message tail, never in the system prompt, and cannot invalidate the cached prefix.
 
 ```
 RepoContext(
@@ -73,8 +92,8 @@ RepoContext(
     inventory_tool_name='inventory_agent_context',
     nested_traversal=False,         # Strategy 3
     nested_inject='pointer',        # 'pointer' | 'contents'
-    traversal_tool_names=frozenset({'list_directory', 'read_file'}),
-    traversal_path_arg='path',
+    traversal_tool_names=frozenset({'list_directory', 'read_file'}),  # deprecated fallback
+    traversal_path_arg='path',                                       # deprecated fallback
     asset_roots=('.claude', '.agents', '.codex', '.grok'),
 )
 ```
@@ -98,11 +117,11 @@ reports where the repo’s CE assets live (`.claude` /`.agents` /`.codex` /`.gro
 assets; it does not parse them.
 3. 
 Nested-on-traversal ( `nested_traversal` , off by default): when the model
-lists or reads a directory (via a tool named in`traversal_tool_names` ),
-surface that directory’s`CLAUDE.md` /`AGENTS.md` . The note is appended to
-the**tool result** (message tail), not to system instructions, so it
-does not invalidate the cached prefix.`nested_inject='pointer'` (default)
-appends a one-line pointer;`'contents'` inlines the file body.
+lists or reads a directory through a filesystem capability event,
+surface that directory’s`CLAUDE.md` /`AGENTS.md` . The note is enqueued in
+the message tail, not added to system instructions, so it does not
+invalidate the cached prefix.`nested_inject='pointer'` (default)
+enqueues a one-line pointer;`'contents'` inlines the file body.
 
 Cache note: injecting file contents into the system prompt costs prompt-cache stability. Strategy 1 is safe because its files are static; the volatile Strategy 3 content rides in the message tail instead.
 
@@ -126,7 +145,7 @@ default) scans only `workspace_dir` — no walk-up.
 
 Instruction filenames to look for, in within-directory precedence order.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('CLAUDE.md', 'AGENTS.md')`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `('CLAUDE.md', 'AGENTS.md')`
 
 Strategy 1: load instruction files into the system prompt.
 
@@ -148,18 +167,17 @@ For Strategy 3: append a one-line `pointer`, or inline the file `contents`.
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘pointer’, ‘contents’] **Default:** `'pointer'`
 
-Tool names that trigger Strategy 3. Override to match the host’s list/read
-tools (e.g. `frozenset({'list_dir', 'read_file'})`).
+Deprecated tool names used by the compatibility traversal detector.
 
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `frozenset({'list_directory', 'read_file'})`
+**Type:** [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `_DEFAULT_TRAVERSAL_TOOL_NAMES`
 
-The tool argument key holding the listed/read path.
+Deprecated path argument used by the compatibility traversal detector.
 
-**Type:** `str`**Default:** `'path'`
+**Type:** `str`**Default:** `_DEFAULT_TRAVERSAL_PATH_ARG`
 
 Root directories the inventory tool scans, relative to `workspace_dir`.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `('.claude', '.agents', '.codex', '.grok')`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `('.claude', '.agents', '.codex', '.grok')`
 
 `@async`
 
@@ -196,7 +214,7 @@ def after_tool_execute(
     result: Any,
 ) -> Any
 ```
-Strategy 3: append a directory’s instruction file to a list/read result.
+Support customized legacy traversal tool and argument names.
 
 `@classmethod`
 

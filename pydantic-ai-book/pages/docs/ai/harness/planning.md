@@ -4,7 +4,7 @@ title: Planning | Pydantic Docs
 description: Give an agent a structured, self-updating task list -- with a cache-safe
   live reminder, optional persistence, subtasks, dependencies, and events.
 resource: https://pydantic.dev/docs/ai/harness/planning
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Planning
@@ -19,10 +19,14 @@ While Pydantic AI Harness is on 0.x releases, the API may change between minor r
 
 Long agentic runs drift: the model loses track of what it set out to do and what’s left. The usual fix — keep a running plan and re-inject it into the system prompt each turn — invalidates the prompt cache. The system prompt sits at the front of the request, so every plan edit changes the cached prefix and forces the whole conversation to be re-processed at full token price.
 
-The model owns the plan through the `planning` toolset. The current plan is surfaced back as an ephemeral reminder appended to the tail of each request, with a cache breakpoint after its stable opening tag:
+The model owns the plan through the `planning` toolset. The current plan is surfaced back as an ephemeral reminder appended to the tail of each request, with the single cache breakpoint anchored on the last durable user content:
 
 - The reminder is added after the durable history is persisted, so it reaches the model but is never written to `message_history` . No reminders accumulate across turns.
-- A `CachePoint` follows the stable`<plan-reminder>` opening tag, so the cached prefix (tools + system + real conversation + that tag) stays byte-identical turn over turn. Only the mutable reminder content falls outside the cache.
+- The `CachePoint` sits on the last durable user content, so the prefix it saves is a prefix of the next request and cache hits survive turn over turn. The reminder carries no breakpoint, so re-sending its mutable content never invalidates the cache.
+
+As with all capability cache breakpoints, provider mapping applies: OpenAI models only receive the `CachePoint` when the model profile enables explicit cache control, and with no durable user content to anchor on the reminder is sent without a breakpoint.
+
+Note that the anchor lands on the last `UserPromptPart` present in the request. A capability listed before `Planning` that appends user content each request (for example `SystemReminders`) displaces the anchor onto that part, so the prefix stays cache-stable only while that content is stable across turns.
 
 Construct an `Agent` with `Planning()` in its `capabilities`. The tools are registered automatically and static usage guidance is added to the system prompt:
 
@@ -99,17 +103,24 @@ The executor starts with no `message_history`, so it never pays for the planner�
 
 The planner’s read-only discipline is a property of how you configure that agent (which toolsets it gets, and what its instructions say), not something the capability enforces.
 
-Attach a `PlanEventEmitter` to a store to react to changes:
+Subscribe to typed plan events to react to changes made through the `Planning` tools:
 
 ```
-from pydantic_ai_harness.planning import InMemoryPlanStore, PlanEventEmitter
-emitter = PlanEventEmitter()
-@emitter.on_completed
-async def announce(event):
+from pydantic_ai import Agent
+from pydantic_ai_harness import Planning
+from pydantic_ai_harness.planning import PlanCompletedEvent
+agent = Agent('anthropic:claude-sonnet-4-6', capabilities=[Planning()])
+@agent.on_event(PlanCompletedEvent)
+async def announce(ctx, event):
     print('done:', event.item.content)
-store = InMemoryPlanStore(event_emitter=emitter)
 ```
-Events come from granular tools (`add_task`, `update_task_status`, `add_subtask`, …). `write_plan` is a bulk whole-plan replacement and is **event-silent**, so a UI driven purely by events should also read the plan after a run, or steer the model toward granular tools when it needs live event coverage.
+The family contains
+`PlanCreatedEvent`, `PlanUpdatedEvent`, `PlanStatusChangedEvent`, `PlanCompletedEvent`, and
+`PlanDeletedEvent`; each carries the affected `item` and, for updates, `previous_state`.
+
+Run events come from planning tool paths, including `write_plan`. Direct application mutations on a
+`PlanStore` have no run context and do not produce run events. `PlanEventEmitter`, `EventCallback`,
+and store `event_emitter` parameters remain supported but are deprecated.
 
 Addressing steps by mutable integer index (insert/remove/reorder) is error-prone for both the code and the model. `write_plan` restates the whole plan each call, so there are no indices to track. Granular edits (`add_task`, `update_task_status`, `remove_task`) instead reference the stable `id` shown by `read_plan`.
 
@@ -124,7 +135,7 @@ configuration.
 from pydantic_ai_harness import Planning
 Planning(
     guidance=None,           # static system-prompt guidance; None = default, '' = omit
-    cache_ttl='5m',          # TTL for the cache breakpoint after the stable opening tag ('5m' | '1h')
+    cache_ttl='5m',          # TTL for the cache breakpoint anchored on the last durable user content ('5m' | '1h')
     store=None,              # None = fresh in-memory plan per run; or a PlanStore to persist
     enable_subtasks=False,   # add subtask/dependency tools and the 'blocked' status
     inject=True,             # surface the current plan as a cache-safe tail reminder
@@ -160,9 +171,10 @@ The model owns the plan through a small toolset (`write_plan`, `read_plan`,
 — when `enable_subtasks` is set — `add_subtask`, `set_dependency`,
 `get_available_tasks`); `tools` narrows that surface to an allowlist. The
 current plan is surfaced back as an *ephemeral* reminder appended to the
-tail of each request. Its cache-stable opening tag precedes a `CachePoint`,
-so the cached prefix stays byte-identical across turns; only the mutable
-plan content is re-read each turn.
+tail of each request. A single `CachePoint` is anchored on the last durable
+user content, so the prefix it saves is a prefix of the next request; the
+reminder itself carries no breakpoint, so only the mutable plan content is
+re-read each turn.
 
 By default the plan lives in memory for the duration of a single run (a
 fresh, isolated plan per run). Pass a `store` (or `store_resolver`) to
@@ -186,9 +198,9 @@ ask for the default explicitly, and would turn a config that resolves to
 `None` into a silent opt-out. This matches `memory`, `exa` and
 `runtime_authoring`, which read the same way.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
-TTL for the cache breakpoint placed after the stable plan-reminder opening tag.
+TTL for the cache breakpoint anchored on the last durable user content.
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
 
@@ -205,7 +217,7 @@ Add the subtask/dependency tools and the `blocked` status when true.
 
 **Type:** `bool`**Default:** `False`
 
-Surface the current plan as a cache-safe tail reminder each turn.
+Surface the current plan as an ephemeral tail reminder each turn.
 
 **Type:** `bool`**Default:** `True`
 
@@ -219,11 +231,11 @@ useful plan surface. Naming a tool this mode does not register raises `ValueErro
 The built-in `guidance` follows the allowlist for the whole-plan/granular/subtask split;
 trimming within a group is better paired with a `guidance` string of your own.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 Optional per-tool description overrides, keyed by tool name. Unknown names raise `ValueError`.
 
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 `@async`
 
@@ -270,7 +282,7 @@ def wrap_model_request(
     handler: WrapModelRequestHandler,
 ) -> ModelResponse
 ```
-Append the current plan as an ephemeral tail reminder with a cache breakpoint.
+Anchor a cache breakpoint on durable user content, then append the ephemeral plan reminder.
 
 `@classmethod`
 

@@ -3,7 +3,7 @@ type: Web Page
 title: Skills | Pydantic Docs
 description: Load Agent Skill instructions as on-demand Pydantic AI capabilities.
 resource: https://pydantic.dev/docs/ai/harness/skills
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Skills
@@ -236,15 +236,15 @@ emit a warning.
 
 Skill-library paths scanned during construction.
 
-**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path`, …] **Default:** `self._normalize_directories(directories)`
+**Type:** [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Path`, …] **Default:** `self._normalize_directories(directories)`
 
 Exact skill names to expose, or `None` to expose all discovered skills.
 
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `self._normalize_selection('include', include) if include is not None else None`
+**Type:** [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `self._normalize_selection('include', include) if include is not None else None`
 
 Exact skill names to omit from the deferred capability catalog.
 
-**Type:** [`frozenset`](https://docs.python.org/3/library/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `self._normalize_selection('exclude', exclude) if exclude is not None else frozenset()`
+**Type:** [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `self._normalize_selection('exclude', exclude) if exclude is not None else frozenset()`
 
 ```
 def __init__(
@@ -264,11 +264,11 @@ Build a snapshot of the selected Agent Skills.
 
 One skill-library path or a sequence of paths.
 
-**`include`** : [`Collection`](https://docs.python.org/3/library/typing.html#typing.Collection)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`*Default:* `None` 
+**`include`** : [`Collection`](https://docs.python.org/3/library/typing.html#typing.Collection)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`*Default:* `None` 
 
 Exact names to expose. Omit to expose all discovered skills.
 
-**`exclude`** : [`Collection`](https://docs.python.org/3/library/typing.html#typing.Collection)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`*Default:* `None` 
+**`exclude`** : [`Collection`](https://docs.python.org/3/library/typing.html#typing.Collection)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`*Default:* `None` 
 
 Exact names to omit. Cannot be combined with `include`.
 

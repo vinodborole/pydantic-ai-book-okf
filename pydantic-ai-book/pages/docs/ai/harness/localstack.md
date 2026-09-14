@@ -4,7 +4,7 @@ title: LocalStack | Pydantic Docs
 description: Give a Pydantic AI agent access to an emulated AWS environment through
   the AWS CLI, with an optional Docker-managed LocalStack container lifecycle.
 resource: https://pydantic.dev/docs/ai/harness/localstack
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # LocalStack
@@ -200,11 +200,11 @@ AWS secret access key. LocalStack accepts any value; defaults to its `test` conv
 
 If non-empty, only these AWS services may be used (allowlist), e.g. `['s3', 'dynamodb']`.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 These AWS services are always rejected (denylist).
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Default timeout in seconds for AWS CLI commands and the health check.
 
@@ -235,7 +235,7 @@ Host address Docker publishes the LocalStack edge port on.
 
 Optional host/container port range for services that expose their own ports, e.g. `4510-4559`.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 If True, mount `/var/run/docker.sock` into the managed container for Docker-backed services like Lambda.
 
@@ -243,11 +243,11 @@ If True, mount `/var/run/docker.sock` into the managed container for Docker-back
 
 Optional name for the managed container. Leave None to let Docker assign one.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Environment variables passed to the managed container, e.g. `{'DEBUG': '1'}`.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(dict[str, str]))`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(dict[str, str]))`
 
 Path or name of the Docker executable used to manage the container.
 
@@ -336,7 +336,7 @@ Pass the command without the leading `aws` and without `--endpoint-url`;
 the endpoint, region, and credentials are injected automatically. For
 example `s3 mb s3://my-bucket`, `s3 ls`, or `dynamodb list-tables`.
 
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — Labelled stdout/stderr output, with an exit code on non-zero exit.
+[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) — Labelled stdout/stderr output, with an exit code on non-zero exit.
 
 **`command`** : `str`
 
@@ -353,7 +353,7 @@ Report the health and availability of the emulated AWS services.
 
 Queries LocalStack’s health endpoint and returns the raw JSON, which maps each service (s3, dynamodb, sqs, …) to its state (available, running, …).
 
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — The health JSON, or an error message if LocalStack is unreachable.
+[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) — The health JSON, or an error message if LocalStack is unreachable.
 
 Async context manager that starts and stops a LocalStack Docker container.
 

@@ -4,7 +4,7 @@ title: Prompt Injection Defender | Pydantic Docs
 description: Classify local tool results for indirect prompt injection using Defender
   by StackOne.
 resource: https://pydantic.dev/docs/ai/harness/prompt-injection-defender
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Prompt Injection Defender
@@ -135,7 +135,7 @@ Ask the built-in defense to reject detected high or critical risk results.
 `None` keeps the library default (`False`: report only). Cannot be combined with
 `defense`; configure blocking on the `PromptDefense` instead.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `None`**Default:** `None`
 
 Use StackOne Defender’s local ML classifier in addition to pattern detection.
 

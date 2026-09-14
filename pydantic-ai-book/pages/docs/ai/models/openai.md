@@ -2,7 +2,7 @@
 type: Web Page
 title: OpenAI | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/openai
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # OpenAI
@@ -68,6 +68,18 @@ model = OpenAIChatModel(
 agent = Agent(model)
 ...
 ```
+Use [`ImageGenerator`](/docs/ai/api/pydantic-ai/images/#pydantic_ai.images.ImageGenerator) with an `openai:` image model for direct generation and
+reference-image editing. This uses OpenAI’s Images API rather than a conversational Responses model:
+
+OpenAI accepts [`BinaryImage`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.BinaryImage) and
+[`ImageUrl`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.ImageUrl) reference inputs. Its image-edit endpoint requires file content and does not
+accept an [`UploadedFile`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UploadedFile) provider file ID. Transparent-background support varies
+by model and requires PNG or WebP output. Provider-specific settings are forwarded to OpenAI so newly supported values
+are not blocked by stale client-side checks. See the [image-generation guide](/docs/ai/guides/image-generation/) for generation,
+editing, geometry, and normalized settings.
+
+GPT Image models require a verified organization on a paid usage tier: on an unverified organization every request fails with a rate-limit error before anything generates. Complex prompts can take up to two minutes to process.
+
 You can customize model behavior using [`OpenAIResponsesModelSettings`](/docs/ai/api/models/openai/#pydantic_ai.models.openai.OpenAIResponsesModelSettings):
 
 ```

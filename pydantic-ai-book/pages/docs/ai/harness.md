@@ -5,7 +5,7 @@ description: 'Your agent''s favorite harness, built on Pydantic AI: 30+ capabili
   and complete agents assembled from them, from a coding agent to your own custom
   stack.'
 resource: https://pydantic.dev/docs/ai/harness
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Pydantic AI Harness
@@ -182,6 +182,7 @@ Bounding what the agent may do, and keeping it on-instructions.
 | [Tool approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) | Core | Flag tool calls that need human approval before they run | 
 | [Handle Deferred Tool Calls](/docs/ai/capabilities/handle-deferred-tool-calls/) | Core | Resolve approval-deferred tool calls programmatically | 
 | [System Reminders](/docs/ai/harness/system-reminders/) | Harness | Cache-safe re-injection of guidance mid-run to counter instruction fade | 
+| [Trajectory Judge](/docs/ai/harness/trajectory-judge/) | Harness | A second model reviews the live run every N requests over a sliding token window and steers it mid-run | 
 
 | Capability | Package | What it does | 
 |---|---|---|

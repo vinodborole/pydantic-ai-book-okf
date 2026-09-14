@@ -4,7 +4,7 @@ title: Step Persistence | Pydantic Docs
 description: Record what an agent did at each boundary, save continuable snapshots
   to resume or fork from, and track tool side effects across crashes.
 resource: https://pydantic.dev/docs/ai/harness/step-persistence
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Step Persistence
@@ -234,7 +234,7 @@ The helper reads the active `run_id` from the `StepPersistence` `ContextVar` and
   - `snapshot-keys.jsonl` — replay-suppression keys retained independently of snapshot pruning
   - `snapshots/{seq}.json` —`ContinuableSnapshot` s, named by a per-run monotonic counter (not`step_index` , which would collide when the same`run_id` is reused across`Agent.run` calls, since`ctx.run_step` resets to 0 each call).
 - `SqliteStepStore(database='runs.db')` — single SQLite file with tables`runs` ,`events` ,`snapshots` ,`snapshot_idempotency_keys` ,`tool_effects` , and a sibling`media` table for externalized blobs (see[Persisting media](#persisting-media) below). WAL mode is enabled;`tool_effects` upserts per`(run_id, tool_call_id)` so the latest state wins; snapshots use`AUTOINCREMENT seq` to mirror`FileStepStore._next_snapshot_seq` . Databases created before the snapshot`state` column existed gain it automatically on open (existing rows read as`complete` ). Pass`connection=` instead of`database=` to share a`sqlite3.Connection` with the rest of your application; the connection must be opened with`check_same_thread=False` because hook calls are dispatched onto a worker thread.
-- `MongoStepStore(client= or db_url=, database=...)` — MongoDB collections`runs` ,`events` ,`snapshots` ,`snapshot_idempotency_keys` ,`tool_effects` , and`counters` (atomic`$inc` allocates the monotonic`seq` ). Run registration uses an atomic insert by`runs._id = run_id` ; duplicate ids raise`ValueError` . Needs the`mongodb` extra (`pip install pydantic-ai-harness[mongodb]` , which installs`pymongo>=4.17.0` ); pass a shared`AsyncMongoClient` as`client=` , or a connection string as`db_url=` (the store then owns the client — call`await store.aclose()` to release it). Individual parts at or above`media_threshold_bytes` externalize by default to a`MongoMediaStore` on the same client. That is a per-value offload, not an aggregate cap: a snapshot of many below-threshold parts can still exceed MongoDB’s 16 MiB document limit and fail on insert, so lower the threshold if that is a risk for your workload.
+- `MongoStepStore(client= or db_url=, database=...)` — MongoDB collections`runs` ,`events` ,`snapshots` ,`snapshot_idempotency_keys` ,`tool_effects` , and`counters` (atomic`$inc` allocates the monotonic`seq` ). Run registration uses an atomic insert by`runs._id = run_id` ; duplicate ids raise`ValueError` . Needs the`mongodb` extra (which installs`pymongo>=4.17.0` ); pass a shared`AsyncMongoClient` as`client=` , or a connection string as`db_url=` (the store then owns the client — call`await store.aclose()` to release it). Individual parts at or above`media_threshold_bytes` externalize by default to a`MongoMediaStore` on the same client. That is a per-value offload, not an aggregate cap: a snapshot of many below-threshold parts can still exceed MongoDB’s 16 MiB document limit and fail on insert, so lower the threshold if that is a risk for your workload.
 
 All implement the same async `StepStore` protocol, so capability hooks never block the event loop on the file/sqlite backends (I/O is dispatched via `anyio.to_thread`); the Mongo backend is natively async.
 
@@ -247,6 +247,8 @@ The store issues `createIndex` on its first write, for ten indexes: `conversatio
 - Index builds against already-populated collections cost time and I/O on that first call.
 
 `RunRecord.metadata` and `StepEvent.metadata` are stored as nested documents, so their keys become BSON field names: keys containing `.` or starting with `�IC4� and �IC3� are stored as nested documents, so their keys become BSON field names: keys containing �IC2� or starting with  need [MongoDB 5.0 or later](https://www.mongodb.com/docs/manual/core/dot-dollar-considerations/), and a key containing a NULL byte is rejected by the BSON encoder before it reaches the server. CI exercises both Mongo backends against` mongo:8`.
+
+Install MongoDB support:
 
 Each step writes a new full-history snapshot keyed by an incrementing `seq`, and nothing is pruned by default. Within one long `Agent.run` the snapshot count equals the number of settled tool-call steps, so a long single run pays a growing storage cost.
 
@@ -269,6 +271,8 @@ Bounded retention discards older per-step snapshots, including pre-compaction on
 `BinaryContent` payloads (images, audio, documents, video) inlined as base64 inside a snapshot would balloon every file or row containing the message; a large text part (e.g. a big tool-return string) does the same and can push a `MongoStepStore` snapshot past MongoDB’s 16 MiB document cap ([#440](https://github.com/pydantic/pydantic-ai-harness/issues/440)). The file, sqlite, and mongo backends externalize any `BinaryContent.data`, and any part whose string `content` is at or above **64 KiB**, through a configured `MediaStore`, leaving a URI reference in the snapshot. The same `media_threshold_bytes` governs binary and text alike; there is no separate text knob. Round-trip is transparent: `latest_snapshot(...).messages[*]` returns the original `BinaryContent` bytes and text.
 
 Text externalization is not Mongo-only and has no opt-out short of `media_store=None`: the walker is shared, so an existing `FileStepStore` or `SqliteStepStore` deployment starts writing blobs for large text parts as well as binary ones from this release on. Snapshots written before it still restore — the reader recognises the older binary marker shape. This compatibility is upgrade-only: a release that predates text externalization treats every marker as binary, so it cannot validate a snapshot containing an externalized text marker. Keep a current reader for persisted snapshots that contain those markers.
+
+Reserved-key escaping is a second marker-format generation with the same rule for these stores: a payload using the marker format’s namespaced keys is moved into a versioned reserved mapping (the `__harness_external_escaped_keys__` stash, stamped with the format version under `__harness_external_marker_format__`), and the current reader moves those values back to their own keys. Compatibility the other way is upgrade-only. A reader that predates the escaping format re-inlines the externalized field correctly, but it leaves both reserved keys sitting in the restored payload rather than removing them. A marker carrying both, stamped with a version this reader does not know, is rejected rather than restored with the reserved values stripped: `restore_media` raises `ValueError`, and `latest_snapshot` surfaces it to the caller for the file, sqlite, and mongo stores. `list_snapshots` is different: each store treats the failed snapshot as unparsable, skips it, and logs the error, so an unknown version shows up as a missing snapshot rather than an exception. That rejection is the version gate and is intended, but store users have to anticipate it. Keep a current reader for persisted snapshots that contain escaped markers.
 
 | StepStore | Default `media_store` | Where blobs live | 
 |---|---|---|
@@ -424,7 +428,7 @@ Logical agent name (e.g. `code_librarian`, `reproducer`).
 Used as a stable prefix for the context-derived `run_id` so store
 inspection identifies both the agent and the durable run.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Identifier for this one `Agent.run` call.
 
@@ -445,7 +449,7 @@ Reusing the capability instance yields distinct ids because the agent
 graph assigns each run its own id.
 3. **Neither set** ->`ctx.run_id` per`.run()` .
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Run that spawned this one.
 
@@ -455,11 +459,11 @@ when an orchestrator’s tool synchronously calls a delegate’s
 here without manual threading. Set explicitly to override (e.g. for
 cross-process delegation where `ContextVar`s do not propagate).
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Free-form metadata stored on the `RunRecord` and on each event.
 
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=_empty_metadata)`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=_empty_metadata)`
 
 `@classmethod`
 

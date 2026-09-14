@@ -4,7 +4,7 @@ title: StackOne | Pydantic Docs
 description: Let a Pydantic AI agent use actions from one of the user's linked business
   applications through StackOne.
 resource: https://pydantic.dev/docs/ai/harness/stackone
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # StackOne
@@ -179,15 +179,15 @@ the same way an MCP server is identified by its URL. Deriving it rather than fix
 `'stackone'` is what lets one agent reach two linked accounts: their ids differ, so they stay
 two capabilities. Two under the *same* account are a mistake, and collide.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Routing description used when the capability is loaded on demand.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `_DEFAULT_DESCRIPTION`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `_DEFAULT_DESCRIPTION`
 
 StackOne API key. Defaults to the `STACKONE_API_KEY` environment variable.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
 
 HTTPS StackOne API host. Point at a regional or staging host if needed.
 
@@ -196,7 +196,7 @@ HTTPS StackOne API host. Point at a regional or staging host if needed.
 `fnmatch` globs over full tool names (case-insensitive), e.g. `['*_list_*']`.
 Giving `actions` switches the default `tool_mode` to `individual`, where the globs apply.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `()`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `()`
 
 `individual` registers one tool per enabled action; `search_execute` registers two
 server-side meta-tools (search the catalog, execute an action by id) whose prompt
@@ -212,7 +212,7 @@ Inject StackOne usage instructions into the system prompt.
 Metadata merged onto every tool, available to tool-selection machinery such as
 `CodeMode(tools={'code_mode': True})` or custom `prepare_tools` hooks.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
 Replacement for the default `{base_url}/mcp` connection. URL values must use HTTPS;
 prebuilt clients keep their own transport, auth, and account selection, so `account_id`

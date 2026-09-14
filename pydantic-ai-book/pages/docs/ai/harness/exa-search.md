@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent web research tools backed by the Exa searc
   API -- search with relevant excerpts and optional synthesized text summaries, full-page
   retrieval, opt-in deep search, and deferred Exa agent runs.
 resource: https://pydantic.dev/docs/ai/harness/exa-search
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Exa Search
@@ -359,7 +359,7 @@ desired summary format (it is sent as the schema’s `description`), or
 `True` for an unconstrained summary. The tool’s return shape is unchanged:
 the summary is prepended as a `Summary:` line when Exa returns one.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `str`**Default:** `False`
 
 Also expose the `deep_search` tool. Off by default.
 
@@ -376,21 +376,21 @@ If non-empty, search results only come from these domains (allowlist).
 Applies to `web_search` and `deep_search`. Mutually exclusive with
 `exclude_domains`.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Search results never come from these domains (denylist).
 
 Applies to `web_search` and `deep_search`. Mutually exclusive with
 `include_domains`.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Custom research guidance for the system prompt.
 
 Leave as `None` for the default guidance (which adapts to
 `include_deep_search`), or set `''` to contribute no instructions at all.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Exa client to use; when `None`, an `exa_py.AsyncExa` is built from `EXA_API_KEY`.
 
@@ -481,11 +481,11 @@ Structured output schema for the Exa agent’s result. `None` returns prose.
 
 Accepts a Pydantic model class or a JSON-schema-style dict. A model class is forwarded to the API and a completed run’s structured output is validated against it (a mismatch surfaces as a retry). The dict form skips client-side validation and is the serializable shape used by agent specs.
 
-**Type:** [`type`](https://docs.python.org/3/glossary.html#term-type)[`BaseModel`] | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
+**Type:** [`type`](https://docs.python.org/3/glossary.html#term-type)[`BaseModel`] | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
 System prompt forwarded to the Exa agent run; `None` uses the API default.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Milliseconds between polls while resolving a run inline.
 
@@ -500,7 +500,7 @@ Custom delegation guidance for the system prompt.
 Leave as `None` for the default guidance, or set `''` to contribute no
 instructions at all.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Exa Agent runs client; when `None`, `exa_py.AsyncExa().agent.runs` is built from `EXA_API_KEY`.
 

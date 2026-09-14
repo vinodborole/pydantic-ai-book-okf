@@ -4,7 +4,7 @@ title: Subagents | Pydantic Docs
 description: Let an agent delegate self-contained tasks to named child agents via
   a single delegate_task tool, with per-delegate budgets and failure handling.
 resource: https://pydantic.dev/docs/ai/harness/subagents
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Subagents
@@ -116,6 +116,41 @@ A sub-agent run that fails with a *soft model error* (`ModelRetry`, `UnexpectedM
 Hard errors propagate to stop the whole run. A `UsageLimitExceeded` from a child that has *no* per-delegate `usage_limits` (so it shares the parent’s accounting) means the whole tree is out of budget and propagates; a child reaching its *own* `usage_limits` is soft, as above.
 
 An *unexpected crash* — any other exception the child raises, such as a provider `ModelAPIError`/`FallbackExceptionGroup` or a plain `ValueError` from a bad tool argument — propagates by default and aborts the parent run. Set `contain_errors=True` (per delegate, or as the `SubAgents` default) to catch it and return it to the parent as a bounded `ModelRetry` instead, so one delegate crash cannot kill the whole run. Containment stays loud: the exception rides the retry message (`Sub-agent '<name>' crashed: ...`), it is logged via the standard `logging` module, and `tool_retries` still bounds consecutive crashes into an abort. This is orthogonal to `on_failure` — a contained crash always raises the loud retry, never the soft `on_failure` return, so a genuine bug is never masked as success. Cancellation, a shared `UsageLimitExceeded`, pydantic-ai control-flow signals (`CallDeferred`, `ApprovalRequired`, the `Skip*` signals), and `UserError` bypass containment regardless of `contain_errors`. Cancellation covers both kinds: external cancellation (`asyncio.CancelledError`) propagates as-is, and a child’s own first-party cancellation (`RunContext.cancel()` inside the child, raising `RunCancelled`) leaves the delegate tool uncontained, after which pydantic-ai isolates it as a failed `delegate_task` return the parent model can react to, not a crash retry that invites re-delegation.
+
+`SubAgents` emits typed capability events in the `sub_agents` namespace so a host can show a delegation as it runs, and how it ended, without parsing the delegate tool’s arguments and result:
+
+| Event | Dispatch | When | Payload | 
+|---|---|---|---|
+| `DelegationStartEvent` | stream | a delegation passed every check and the child run is about to start | `agent_name` ,`task` ,`truncated` ,`model` (the menu key, or`None` ),`inherits_tools` | 
+| `DelegationEndEvent` | stream | the delegation settled into what the parent receives | `agent_name` ,`outcome` ,`output` ,`truncated` ,`usage` ,`duration_seconds` | 
+
+Both are notifications. One delegation is one `delegate_task` call, so a start and its end share the `tool_call_id` core stamps on every event; that is how a subscriber pairs them when the model delegates in parallel.
+
+`outcome` follows the failure handling above: `ok` (the child’s output went back to the parent), `timeout`, `budget` (the child’s own `usage_limits`), `failed` (a soft model error, returned as `on_failure` or raised as a `ModelRetry`), or `contained` (a crash `contain_errors` caught). `output` is what the delegate tool hands back to the parent in each case: the child’s output, the steering message, or the retry text. It is emitted from inside the tool, before any `ToolGuardrail` result guard screens that text for the model; a host that needs the screened version reads the `ToolReturnPart` in core’s `FunctionToolResultEvent`. `usage` is the child’s own `RunUsage` when it has separate accounting (`usage_limits` set, or `forward_usage=False`) and `None` when it accrues into the parent’s usage, where its share is not separable.
+
+A delegation refused before the child runs (an unknown sub-agent, a model key off the menu, an exhausted `max_calls` budget) emits nothing; the tool result says why. An exception that propagates out of the delegate tool (a shared usage limit, an uncontained crash, a cancellation) ends without an end event. A `SubAgentToolset` registered directly in `Agent(toolsets=[...])` has no owning capability and emits nothing. As with any capability event, a listener that raises aborts the parent run.
+
+`task` and `output` are cut at `MAX_EVENT_TEXT_CHARS` (4096) with a `truncated` flag, so a persisted or forwarded event stream cannot be flooded by one verbose delegation.
+
+```
+from pydantic_ai import Agent
+from pydantic_ai.capabilities import AbstractCapability, on_event
+from pydantic_ai_harness.subagents import DelegationEndEvent, SubAgent, SubAgents
+class ReportDelegations(AbstractCapability):
+    @on_event(DelegationEndEvent)
+    async def on_delegation_end(self, ctx, event: DelegationEndEvent) -> None:
+        print(f'{event.agent_name}: {event.outcome} in {event.duration_seconds:.1f}s')
+researcher = Agent('anthropic:claude-sonnet-4-6', name='researcher')
+agent = Agent(
+    'anthropic:claude-opus-4-7',
+    capabilities=[SubAgents(agents=[SubAgent(researcher)]), ReportDelegations()],
+)
+```
+Nested model streaming from the child run is not an event concern; pass an `event_stream_handler` for that.
+
+See [capability events](/docs/ai/capabilities/overview/#capability-events) for how `@on_event` works.
+
+`SubAgents` emits no OpenTelemetry spans of its own: the child run is a core agent run with its own spans nested under the parent’s tool-call span, and the events above carry the outcome a trace would only show as an exception or a tool result.
 
 The sub-agents are listed in the system prompt via `get_instructions`, using each agent’s `description` (or a `SubAgent(description=...)` override). A sub-agent with no description is listed by name alone.
 
@@ -277,7 +312,7 @@ restricts which of them a given delegate accepts.
 from pydantic_ai_harness.subagents import SubAgents
 SubAgents(models={'fast': 'anthropic:claude-haiku-4-5', 'deep': 'anthropic:claude-opus-4-7'})
 ```
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `ModelOption`] **Default:** `field(default_factory=(dict[str, 'Model | KnownModelName | str | ModelOption']))`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `ModelOption`] **Default:** `field(default_factory=(dict[str, 'Model | KnownModelName | str | ModelOption']))`
 
 Where to load markdown agent definitions from, in addition to `agents`.
 Defaults to the conventional layout, so constructing the capability auto-loads
@@ -291,13 +326,13 @@ falling back to`<root>/.claude/<name>/` when`<root>/.agents/` is absent.
 
 Missing folders are skipped. Within a folder every `*.md` file is a candidate.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Path`] | `None`**Default:** `'agents'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Path`] | `None`**Default:** `'agents'`
 
 Per-disk-agent overrides keyed by the agent’s name. An entry can set the
 agent’s `model` (otherwise the parent’s model is inherited) and its `effort`
 (otherwise the minimum floor). Has no effect on explicitly-passed `agents`.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), `AgentOverride`] **Default:** `field(default_factory=(dict[str, AgentOverride]))`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), `AgentOverride`] **Default:** `field(default_factory=(dict[str, AgentOverride]))`
 
 Optional override for how a disk agent gets its tools. When set, each tool
 name in a definition’s `tools`/`allowed-tools` frontmatter is passed to this
@@ -343,7 +378,7 @@ Keyword-only on the field rather than through a `KW_ONLY` marker: a marker appli
 field after it, which would take `tool_retries` and `contain_errors` off the positional
 contract they already have.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default='sub_agents', kw_only=True)`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `field(default='sub_agents', kw_only=True)`
 
 Retries for the delegate tool — how many extra attempts it gets after a
 sub-agent error before the parent run aborts. A sub-agent failure (e.g. it
@@ -437,12 +472,12 @@ The agent that runs when this delegate is invoked.
 Name the parent model uses to delegate to this agent. Defaults to the
 agent’s own `name` when unset.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Description for the system-prompt listing. Defaults to the agent’s own
 `description` when unset; a delegate with neither is listed by name alone.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Which of `SubAgents.models` this delegate may run on, as menu keys, and
 which one it runs on by default: the first key listed. Leave it unset to let
@@ -451,7 +486,7 @@ model when it picks none. Set it to pin a delegate to one option
 (`models=['fast']`) or to bound an expensive delegate to a subset. Naming a key
 the menu does not define is an error.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 Request/token budget for one delegation. When set, the child runs with
 its own usage accounting so the budget counts only the child’s own requests
@@ -464,11 +499,11 @@ run-stopping `UsageLimitExceeded`.
 
 Wall-clock budget for one delegation. When the child exceeds it, the run is cancelled and the parent gets a soft steering message instead of hanging on the child.
 
-**Type:** [`float`](https://docs.python.org/3/library/functions.html#float) | `None`**Default:** `None`
+**Type:** [`float`](https://docs.python.org/3/builtins/functions.html#float) | `None`**Default:** `None`
 
 Maximum number of delegations to this sub-agent per parent run. Once reached, further delegations return a soft budget-exhausted message without running the child.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Steering message returned to the parent for any soft degradation of this
 delegate (timeout, child failure, usage budget reached, call budget
@@ -476,7 +511,7 @@ exhausted), in place of the built-in default. Setting it also makes child
 failures soft: a child error returns this message as a normal tool result
 instead of raising a parent `ModelRetry`.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Whether an unexpected sub-agent crash is contained instead of aborting the
 parent run. When `True`, an exception the child raises that is not an expected
@@ -490,7 +525,7 @@ propagate regardless. Unset inherits `SubAgents.contain_errors` (default off).
 Orthogonal to `on_failure`, which only sets the message for expected soft
 degradations; a contained crash always raises the loud `ModelRetry`.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `None`**Default:** `None`
 
 The delegate’s name: `name` if set, else the agent’s own `name`.
 
@@ -519,7 +554,7 @@ The model a delegation routed to this option runs on.
 
 What this option is for, listed in the prompt next to the key so the parent can route on task difficulty rather than on model names alone.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Settings for a delegation routed to this option — thinking effort,
 temperature, and so on. They merge over the sub-agent’s own `model_settings`,
@@ -535,11 +570,43 @@ unset `effort` runs at the capability’s minimum effort floor (see
 
 Model to run this disk agent with, in place of inheriting the parent’s.
 
-**Type:** `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** `Model` | `KnownModelName` | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Thinking/reasoning level for this disk agent. Raised to at least the floor.
 
 **Type:** `ThinkingLevel` | `None`**Default:** `None`
+
+**Bases:** `CapabilityEvent`
+
+A sub-agent run is about to start for one delegation.
+
+Emitted once the delegation has passed every check that could refuse it (an
+unknown sub-agent, a model key off the menu, an exhausted `max_calls`
+budget), immediately before the child run starts.
+
+The menu key the delegation runs on, or `None` when no option was selected: there is
+no menu, or the delegate allows the whole menu and the parent named no key.
+
+Whether the parent’s own tools were passed to the child run (`SubAgents.inherit_tools`).
+
+**Type:** `bool`
+
+**Bases:** `CapabilityEvent`
+
+A delegation settled into what the parent receives.
+
+`output` is what the delegate tool hands back to the parent: the child’s
+output on `ok`, otherwise the steering message it returns or the
+`ModelRetry` it raises. An exception that propagates out of the delegate
+tool (a shared usage limit, an uncontained crash, a cancellation) ends
+without this event.
+
+The child’s own usage when it has separate accounting (`SubAgent.usage_limits`
+set, or `forward_usage` off); `None` when it accrues into the parent’s usage.
+
+Wall-clock seconds from just after the start event was emitted until the delegation settled.
+
+**Type:** `float`
 
 # Citations
 

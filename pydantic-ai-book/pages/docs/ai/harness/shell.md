@@ -4,7 +4,7 @@ title: Shell | Pydantic Docs
 description: Give a Pydantic AI agent shell command execution with allow/deny controls,
   environment scrubbing, and managed background processes.
 resource: https://pydantic.dev/docs/ai/harness/shell
-timestamp: '2026-08-31T13:11:06.648371+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Shell
@@ -225,21 +225,21 @@ or `denied_commands` to control what the agent can invoke.
 
 Working directory for command execution.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` **Default:** `'.'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Path` **Default:** `'.'`
 
 If non-empty, only these command names may be executed (allowlist).
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 These command names are always rejected (denylist).
 
 Defaults to blocking destructive commands (rm, dd, shutdown, etc.). Set to an empty list to disable.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `_DEFAULT_DENIED_COMMANDS`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `_DEFAULT_DENIED_COMMANDS`
 
 Shell operators that are blocked (e.g. ’>’, ’>>’, ’|’ for restrictive mode).
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 Default timeout in seconds for command execution.
 
@@ -265,7 +265,7 @@ in its own environment. This is not a security boundary: a command running
 as the same OS user may read secrets from the parent process through system
 interfaces such as Linux procfs. Use OS-level isolation for untrusted commands.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 Glob patterns for environment variable names to strip before spawning.
 
@@ -276,7 +276,7 @@ any pattern are removed from the base environment; applied on top of `env`
 when both are set, so patterns filter an explicit `env` too. See
 `LLM_API_KEY_ENV_PATTERNS` for a ready-made provider-credential denylist.
 
-**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
+**Type:** [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] **Default:** `field(default_factory=(list[str]))`
 
 ```
 def __post_init__() -> None

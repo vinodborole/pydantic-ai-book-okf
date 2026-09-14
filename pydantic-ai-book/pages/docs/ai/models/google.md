@@ -2,7 +2,7 @@
 type: Web Page
 title: Google | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/google
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 The `GoogleModel` is a model that uses the [`google-genai`](https://pypi.org/project/google-genai/) package under the hood to
@@ -219,6 +219,28 @@ Files can be uploaded via the [Files API](https://ai.google.dev/gemini-api/docs/
 
 See the [input documentation](/docs/ai/core-concepts/input/) for more details and examples.
 
+Use [`ImageGenerator`](/docs/ai/api/pydantic-ai/images/#pydantic_ai.images.ImageGenerator) with a `google:` image model for direct generation and
+reference-image editing through the Gemini API, or with a `google-cloud:` model to run the same models on Vertex AI:
+
+Construct [`GoogleImageGenerationModel`](/docs/ai/api/pydantic-ai/images/#pydantic_ai.images.google.GoogleImageGenerationModel) with a
+[`GoogleCloudProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.google_cloud.GoogleCloudProvider) to set the Vertex project and location
+explicitly.
+
+The direct adapter accepts inline images and downloadable image URLs on both APIs. Google Files API URIs represented as
+[`UploadedFile`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.UploadedFile) are accepted only on the Gemini Developer API: the Files API is not
+available on Vertex AI, and the adapter does not accept the `gs://` URIs Vertex uses instead, so a Vertex client raises
+[`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) and reference images must be passed as `BinaryImage` or `ImageUrl`.
+Which API a model talks to is read off the client, not the provider name, so a Vertex-backed client passed to
+[`GoogleProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.google.GoogleProvider) is treated as Vertex, and a Gemini Developer API client
+passed to [`GoogleCloudProvider`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.google_cloud.GoogleCloudProvider) keeps Files API support. See the
+[image-generation guide](/docs/ai/guides/image-generation/) for the common API and geometry behavior. The adapter requests an
+image-only response because [`ImageGenerator`](/docs/ai/api/pydantic-ai/images/#pydantic_ai.images.ImageGenerator) returns generated images rather than
+Gemini’s optional conversational text.
+
+Every generated image carries an unconditional
+[SynthID watermark](https://ai.google.dev/responsible/docs/safeguards/synthid). The Gemini 3 image models are thinking
+models: thinking is always on and billed, and its tokens are included in the result’s `usage`.
+
 You can customize model behavior using [`GoogleModelSettings`](/docs/ai/api/models/google/#pydantic_ai.models.google.GoogleModelSettings):
 
 ```
@@ -258,6 +280,11 @@ model_settings = GoogleModelSettings(google_thinking_config={'include_thoughts':
 agent = Agent(model, model_settings=model_settings)
 ...
 ```
+Pydantic AI resolves each model’s supported levels from Google’s documented thinking table and snaps a
+requested effort to the nearest supported level. For a model id the table doesn’t cover, declare its
+levels with [`GoogleModelProfile.google_thinking_levels`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.google.GoogleModelProfile.google_thinking_levels)
+(default: the full scale); unsupported efforts resolve to the nearest supported level.
+
 See [Thinking](/docs/ai/capabilities/thinking/) for the unified API and [Gemini API docs](https://ai.google.dev/gemini-api/docs/thinking) for Google’s native thinking configuration.
 
 You can customize the safety settings by setting the `google_safety_settings` field.

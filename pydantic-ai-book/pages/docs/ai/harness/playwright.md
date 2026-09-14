@@ -5,7 +5,7 @@ description: Give a Pydantic AI agent a real, stateful Chromium browser via asyn
   Playwright -- navigate, click, type, scroll, extract page text, run JavaScript,
   and screenshot JS-heavy or authenticated pages.
 resource: https://pydantic.dev/docs/ai/harness/playwright
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Playwright Browser
@@ -475,7 +475,7 @@ For anything this does not express — a denylist, apex-only matching, locking
 down every request type, a rule of your own — pass an `EgressPolicy` as
 `policy` instead.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 Full egress policy, for rules the two shorthands above cannot express.
 
@@ -563,7 +563,7 @@ browser, and the run does not inherit the sessions already open in that
 Chrome. Provider endpoints sometimes carry an auth token in the URL; treat
 those as secrets.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
 
 ```
 def for_agent(
@@ -607,7 +607,7 @@ def get_instructions() -> Callable[[RunContext[AgentDepsT]], str | None]
 ```
 When-to-use guidance for the browser.
 
-[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`None`](https://docs.python.org/3/library/constants.html#None)]
+[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 `@async`
 

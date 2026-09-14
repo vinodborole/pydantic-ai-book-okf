@@ -4,7 +4,7 @@ title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Tool Output Limits
@@ -106,6 +106,78 @@ agent = Agent(
 schemas), `tail` (keep the last characters, good for build and test output where errors land
 last), and `head_tail` (keep both ends, elide the middle — the default).
 
+Set `Truncate(keep_tail_lines=N)` to reserve the final N lines before allocating the rest of
+the character budget. The default is zero, which leaves existing truncation behavior unchanged.
+
+```
+from pydantic_ai_harness.tool_output_limits import Band, ToolOutputLimits, Truncate, TruncationStrategy
+truncate = Truncate(max_chars=4_000, strategy=TruncationStrategy.head, keep_tail_lines=2)
+limits = ToolOutputLimits(bands=[], per_tool={'run_command': [Band(over=4_000, action=truncate)]})
+```
+With `head`, the remaining content budget keeps the beginning of the output. With
+`head_tail`, it is split 2:3 between the beginning and the text immediately before the
+reserved lines. `tail` continues to keep the end. Markers and all retained characters count
+toward `max_chars`.
+
+The cap takes priority. If the requested lines exceed it, truncation falls back to the
+usual tail strategy; if they fit but a full marker would displace them, the result is a
+bare tail slice within the cap. This does not invoke `then` or guarantee that an oversized
+control trailer remains intact.
+
+Lines are separated by LF or CRLF, and their existing endings are retained. A terminating
+newline does not add a line, but a blank final line counts. Requesting more lines than exist
+selects the whole text, subject to the same cap. Negative `keep_tail_lines` values are rejected.
+
+This applies to the text after serialization and optional ANSI stripping, independently
+for `ToolReturn.return_value` and textual `content`. Binary fallbacks are unchanged.
+Tail-line selection adds no telemetry spans: it is a slicing choice within the existing
+tool-result reduction, rather than a separate operation.
+
+Keep Shell’s native `max_output_chars` above the `ToolOutputLimits` thresholds. Use
+`tail` truncation for moderate command output and `Spill` for large output:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai_harness.shell import Shell
+from pydantic_ai_harness.tool_output_limits import (
+    Band,
+    Spill,
+    ToolOutputLimits,
+    Truncate,
+    TruncationStrategy,
+)
+tail = Truncate(max_chars=4_000, strategy=TruncationStrategy.tail)
+agent = Agent(
+    'openai:gpt-5.6-sol',
+    capabilities=[
+        Shell(allowed_commands=['git', 'rg', 'pytest'], max_output_chars=100_000),
+        ToolOutputLimits(
+            bands=[],
+            per_tool={
+                'run_command': [
+                    Band(over=20_000, action=Spill(then=tail)),
+                    Band(over=4_000, action=tail),
+                ],
+            },
+        ),
+    ],
+)
+```
+Only `run_command` uses these bands; `bands=[]` leaves other tools to their native limits.
+A tail slice retains an exit-code trailer when it fits in the retained suffix. It does not
+guarantee that an entire line survives a small budget; `head` can remove the trailer.
+
+Shell applies its native cap before `ToolOutputLimits` sees the result. With the spill
+threshold below that cap, a natively truncated result is stored instead of being truncated
+again, unless the store fails. The spill preview shows both ends and the model can use
+`read_tool_result` to inspect the stored text.
+
+Spilling preserves only the result received from Shell. It cannot recover content already
+removed by the native cap. A preview can contain both spill and native truncation notices;
+a native notice describes the stored result, not the shorter preview. A positive
+`Spill.preview_chars` value controls the preview’s content budget; its header and omission
+marker add to that length.
+
 A `ToolReturn` carries a `return_value` and an optional `content` that core renders as a
 separate, model-visible part which also persists in history. This capability measures and
 reduces both with the same band logic (they spill to distinct handles). Text `content` is
@@ -115,8 +187,11 @@ a `warnings.warn`, since it cannot be safely truncated.
 Thresholds are measured in characters by default. Set `over_tokens=True` to measure in
 estimated tokens (the same ~4-chars-per-token heuristic as [compaction](/docs/ai/harness/compaction/)); pass a
 `tokenizer` callable for accuracy. `Truncate.max_chars` is always characters — truncation is a
-character operation regardless of the threshold unit. Set `strip_ansi=True` to strip ANSI
-escape sequences from text returns before measuring and reducing.
+character operation regardless of the threshold unit. The cap includes the truncation marker
+and applies separately to each reduced text value. If the budget cannot fit both retained
+content and a complete marker, truncation keeps the selected slice without a marker. A
+non-positive cap returns an empty string. Set `strip_ansi=True` to strip ANSI escape sequences
+from text returns before measuring and reducing.
 
 A spilled structured return is stored as compact JSON: one long line. `read_tool_result`
 pages by line, so page 1 returns the whole payload and page 2 is empty. Setting `serializer`
@@ -254,7 +329,7 @@ Ordered size bands. The first band whose `over` threshold is met wins.
 
 Per-tool band lists that replace `bands` for the named tools.
 
-**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
+**Type:** [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/typing.html#typing.Sequence)[`Band`]] **Default:** `field(default_factory=(dict[str, Sequence[Band]]))`
 
 Which tools this capability touches. Non-matching tools always pass through.
 
@@ -266,7 +341,7 @@ Measure band thresholds in estimated tokens instead of characters.
 
 Optional `(str) -> int` tokenizer for `over_tokens`. Defaults to a ~4-char heuristic.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 Backend for spilled payloads. Defaults to a `LocalFileStore`.
 

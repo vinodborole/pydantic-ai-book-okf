@@ -2,7 +2,7 @@
 type: Web Page
 title: Pydantic AI Gateway | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/gateway
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Pydantic AI Gateway
@@ -43,6 +43,8 @@ Examples of providers and models that can be used are:
 | Google Cloud (formerly Vertex AI) | `google-cloud` | `gateway/google-cloud:gemini-3-flash-preview` | 
 | Groq | `groq` | `gateway/groq:openai/gpt-oss-120b` | 
 | AWS Bedrock | `bedrock` | `gateway/bedrock:amazon.nova-micro-v1:0` | 
+
+[Image generation](/docs/ai/guides/image-generation/) routes through the gateway as `gateway/google:<model>`, which serves the Gemini image models over Google Cloud.
 
 Before you start, make sure you are on version 1.16 or later of `pydantic-ai`. To update to the latest version run:
 

@@ -4,7 +4,7 @@ title: Runtime Capability Creation | Pydantic Docs
 description: Let an agent create, validate, and persist Pydantic AI capabilities during
   one run for activation on the next.
 resource: https://pydantic.dev/docs/ai/harness/capability-creation
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Runtime Capability Creation
@@ -105,7 +105,7 @@ Directory holding the authored `<name>.py` files and the `manifest.json` index.
 Static system-prompt guidance on authoring. Cache-stable. Leave `None` for the
 default, or set `''` to omit guidance entirely.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 The disk-backed store. Call `store.load_active()` to inject authored capabilities into the next run.
 

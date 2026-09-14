@@ -4,7 +4,7 @@ title: Code Mode | Pydantic Docs
 description: Wrap an agent's tools into a single sandboxed run_code tool so the model
   orchestrates many calls in one Python program instead of many round-trips.
 resource: https://pydantic.dev/docs/ai/harness/code-mode
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Code Mode
@@ -172,6 +172,55 @@ time-bounded work behind a Temporal activity instead.
 
 State persists between `run_code` calls within the same agent run — variables, imports, and function definitions carry over. Pass `restart: true` in the tool call to reset state. If a worker crash or host-side execution failure invalidates the session, `run_code` returns a model retry that reports the reset; the next snippet must recreate any required state.
 
+Normally, `CodeMode` waits for the model to finish writing a `run_code` call before it
+runs any code. Set `eager=True` to start sooner:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai_harness import CodeMode
+agent = Agent(
+    'openai:gpt-5.6-sol',
+    capabilities=[CodeMode(eager=True)],
+)
+```
+For example, suppose the model produces this code one line at a time:
+
+```
+first = await fetch_item(item_id=1)
+second = await fetch_item(item_id=2)
+[first, second]
+```
+With eager mode, the first call to `fetch_item` can begin as soon as the first line is
+complete. `CodeMode` continues receiving the remaining lines at the same time. Without
+eager mode, neither call begins until the model has produced the whole snippet.
+
+The code still counts as one `run_code` call. It uses one REPL session, one tool-call limit,
+and one combined result. Hooks on `fetch_item` and other tools called by the code still run.
+Hooks around `run_code` itself run only after the model has finished writing the call, so
+they cannot approve or change lines that eager mode has already run.
+
+Configured Monty resource limits still apply. Eager fragments and the remaining code share the same session duration and memory allowances.
+
+Keep these limitations in mind:
+
+- Eager mode cannot undo side effects from code that has already run.
+- If the model later requests `restart: true` , some work may run again.
+- If the model changes an earlier line while streaming, `CodeMode` resets the REPL and asks
+the model to send the code again.
+- Eager mode trusts that the provider preserves the streamed `run_code` part and its tool
+name. If a provider removes or renames the part, the work that already ran cannot be
+undone.
+- Eager execution is used only when `run_code` is the first tool call in a model response.
+Later tool calls wait for normal dispatch so they run in the order the model requested.
+- Eager mode is disabled when using durable execution such as Temporal or DBOS.
+- Eager mode needs asyncio, like the rest of the sandbox executor.
+- If a statement is interrupted before it finishes, for example because the call failed validation, the session restarts and the next snippet must recreate its state.
+- Nested tools called from eager statements must cooperate with asyncio cancellation. When
+a run ends or a streamed call is invalidated, `CodeMode` cancels the in-flight work and
+waits a bounded time (currently 5 seconds) for it to release. Work that does not release
+in time is abandoned; it cannot start further tool calls.
+- Tools called from statements that ran early are traced before the `run_code` span opens.
+
 Install both integrations:
 
 Construct the named agent and its stable-ID toolsets outside the workflow, then attach
@@ -290,6 +339,7 @@ Code runs inside [Monty](https://github.com/pydantic/monty), a sandboxed Python 
 - No `import *` .
 - Filesystem I/O needs an `os_access` handler or a`mount` ;`os.getenv` /`os.environ` need an`os_access` handler.
 - Tools requiring approval or with deferred (`CallDeferred` ) execution are sandboxed like any other tool; without a`HandleDeferredToolCalls` (or equivalent) capability on the agent to resolve them inline, calling one from`run_code` raises an error that surfaces to the model as a retry.
+- Tool results reach the sandbox in the JSON shape their generated stub declares, since the stub is derived from the tool’s JSON schema. `Decimal` ,`UUID` and`datetime` arrive as strings, and mapping keys are stringified, so a`dict[int, str]` of`{1: 'a'}` arrives as`{'1': 'a'}` .`bytes` and`bytearray` are the exception: Monty carries binary natively, so they cross unchanged even though the stub declares`str` for them.
 
 `CodeMode` works with Pydantic AI’s [agent spec](/docs/ai/core-concepts/agent-spec/) feature for defining agents in YAML or JSON:
 
@@ -392,6 +442,14 @@ both caps.
 
 **Type:** `CodeModeResourceLimits` | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘unlimited’] | `None`**Default:** `None`
 
+Execute complete streamed statements before the `run_code` call finishes.
+
+Needs asyncio, like the sandbox executor, and is inactive under durable execution. Side
+effects cannot be rolled back and run before hooks on `run_code` see the completed call.
+See the Code Mode guide for the execution and `restart` semantics.
+
+**Type:** `bool`**Default:** `False`
+
 Keep the `run_code` tool definition cache-stable as the sandboxed toolset grows.
 
 By default the signatures of all sandboxed tools are rendered into `run_code`’s
@@ -421,6 +479,13 @@ keeps the system prompt shorter and is the better choice.
 
 **Type:** `bool`**Default:** `False`
 
+Report the stream hook only when eager execution is enabled.
+
+The base class detects a class-level override, which would put every `CodeMode` user in
+streaming mode; gating on the instance keeps plain `CodeMode` runs non-streaming.
+
+**Type:** `bool`
+
 ```
 def get_ordering() -> CapabilityOrdering
 ```
@@ -445,6 +510,21 @@ def get_wrapper_toolset(
 Wrap the agent’s assembled toolset, splitting it into native + sandboxed subsets if needed.
 
 [`AbstractToolset`](/docs/ai/api/pydantic-ai/toolsets/#pydantic_ai.toolsets.AbstractToolset)[`AgentDepsT`] | `None`
+
+`@async`
+
+```
+def wrap_run_event_stream(
+    ctx: RunContext[AgentDepsT],
+    *,
+    stream: AsyncIterable[AgentStreamEvent],
+) -> AsyncIterable[AgentStreamEvent]
+```
+Feed streamed `run_code` argument deltas to the eager statement pump.
+
+Wrapped events pass through unmodified; the watcher acts purely by side effect, enqueueing closed statements for execution in the live REPL. Inactive under durable execution, where overlapping non-deterministic work with the stream has no place in a replayed workflow.
+
+[`AsyncIterable`](https://docs.python.org/3/library/typing.html#typing.AsyncIterable)[[`AgentStreamEvent`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.AgentStreamEvent)]
 
 `@async`
 

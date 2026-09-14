@@ -4,7 +4,7 @@ title: Conversation Search | Pydantic Docs
 description: BM25-search the history StepPersistence already stores -- turns that
   compaction dropped from the live context, and past runs in the same conversation.
 resource: https://pydantic.dev/docs/ai/harness/conversation-search
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Conversation Search
@@ -96,6 +96,8 @@ warnings.filterwarnings('ignore', category=HarnessDeprecationWarning)
 | `bm25_b` | `0.75` | BM25 length normalization (Lucene default). | 
 | `add_instructions` | `True` | Emit a short note telling the model the recall tool exists. | 
 | `tool_id` | `conversation-search` | Toolset id for the search tool. | 
+
+Persisted instruction replacements and withdrawals are searchable as system text. Their displayed excerpts are limited to 200 characters; the search index retains the full text.
 
 - Search only reaches what was persisted: history inherited from runs that never ran with `StepPersistence` (for example a long`message_history` passed in from an unpersisted session) cannot be recovered if compaction drops it before the first snapshot.
 - Recovery of compaction-dropped originals depends on the pre-compaction snapshots still being retained. A store with bounded snapshot retention (for example a per-run snapshot cap) can prune the early snapshots that held those originals; a search then returns only what the surviving snapshots still carry, degrading to a partial result rather than erroring. Retain full snapshot history for the run if complete recovery matters.

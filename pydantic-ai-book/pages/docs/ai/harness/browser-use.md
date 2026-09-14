@@ -5,7 +5,7 @@ description: Delegate open-ended web tasks from a Pydantic AI agent to an autono
   browser-use agent -- one browse_web tool hands over a natural-language goal, browser-use
   drives a real browser, and the result comes back as text or validated JSON.
 resource: https://pydantic.dev/docs/ai/harness/browser-use
-timestamp: '2026-08-24T07:05:59.791507+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Browser Use
@@ -386,7 +386,7 @@ scheme-qualified host such as `'https://example.com'` is normalized with a
 path boundary before browser-use receives it. When set, it overrides the
 `browser_profile`’s own `allowed_domains`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 Block direct IP-address navigation and localhost-style hostnames.
 
@@ -401,7 +401,7 @@ Run the browser without a visible window.
 given, which then keeps its own setting. Set `False` to watch the agent
 work.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `None`**Default:** `None`
 
 Hard cap on the sub-agent’s perception-action steps per `browse_web` call.
 
@@ -415,7 +415,7 @@ Vision makes the agent markedly better on visual layouts but adds image
 tokens on every step; turn it off for text-heavy tasks on a budget, or use
 `'auto'` to follow the model’s declared vision support.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’] **Default:** `True`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘auto’] **Default:** `True`
 
 Pydantic model class the sub-agent’s final result must conform to. `None` returns prose.
 
@@ -439,13 +439,13 @@ entries require a non-empty `allowed_domains` on the capability or
 `browser_profile` with explicit hostnames. Secret-bearing sessions process
 same-origin frames only.
 
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)]] | `None`**Default:** `field(default=None, repr=False)`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]] | `None`**Default:** `field(default=None, repr=False)`
 
 Extra instructions appended to the browser agent’s own system prompt.
 
 Use it to give the sub-agent standing constraints (“never submit forms”, “prefer the English version of pages”) without replacing browser-use’s prompt.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Supported browser-use `Agent` options (judge, planning, timeouts, custom tools, …).
 
@@ -477,7 +477,7 @@ itself, so a browser you manage survives `'call'` scope.
 
 Kept out of `repr()` because hosted endpoints can include credentials.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `field(default=None, repr=False)`
 
 Custom delegation guidance for the system prompt.
 
@@ -485,7 +485,7 @@ Leave as `None` for the default guidance, or set `''` to contribute no
 instructions at all. Custom guidance must retain the untrusted web-content
 safety rule from the default guidance.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Factory for the sub-agent; `None` builds a real `browser_use.Agent`.
 
@@ -592,11 +592,11 @@ or a model name string.
 
 Custom action registry (browser-use `Tools`): register your own actions, exclude built-ins.
 
-**Type:** `Tools`[[`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
+**Type:** `Tools`[[`None`](https://docs.python.org/3/builtins/constants.html#None)] | `None`**Default:** `None`
 
 Replace the browser agent’s system prompt entirely (`BrowserUse.extend_system_message` appends instead).
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Consecutive step failures before the agent gives up.
 
@@ -616,7 +616,7 @@ Minimal output schema (skips evaluation/memory/goal fields) for speed.
 
 Cap on agent-history items kept in the model’s context; `None` keeps all.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Separate model for page-content extraction; `None` uses the main model.
 
@@ -636,7 +636,7 @@ Separate model for the judge; `None` uses the main model.
 
 Reference answer for the judge to evaluate the result against.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Track token costs via browser-use’s pricing data.
 
@@ -648,11 +648,11 @@ Screenshot detail level sent to the model.
 
 Resize screenshots to (width, height) before sending them to the model.
 
-**Type:** [`tuple`](https://docs.python.org/3/library/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/library/functions.html#int), [`int`](https://docs.python.org/3/library/functions.html#int)] | `None`**Default:** `None`
+**Type:** [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)] | `None`**Default:** `None`
 
 Seconds to wait for a single model call; `None` uses browser-use’s per-model default.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Seconds to wait for a single agent step.
 
@@ -692,7 +692,7 @@ How many recent steps the loop detector inspects.
 
 Compact older messages in the sub-agent’s context; pass settings for fine control.
 
-**Type:** `MessageCompactionSettings` | [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `True`
+**Type:** `MessageCompactionSettings` | [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `None`**Default:** `True`
 
 Character cap for the serialized clickable-elements listing.
 
@@ -704,11 +704,11 @@ Include tool-call examples in the system prompt.
 
 Actions to run before the first model call, e.g. `[{'navigate': {'url': ...}}]`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)]]] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)]]] | `None`**Default:** `None`
 
 Directory backing the sub-agent’s own file system; `None` uses a temporary one per run.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Include the contents of files the agent wrote in its final message.
 
@@ -716,19 +716,19 @@ Include the contents of files the agent wrote in its final message.
 
 Write the full sub-agent conversation to this path for debugging.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `Path` | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Path` | `None`**Default:** `None`
 
 Encoding for the saved conversation file.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'utf-8'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `'utf-8'`
 
 DOM attributes serialized for the model with each element; `None` uses browser-use’s set.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str)] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | `None`**Default:** `None`
 
 JSON schema for browser-use’s page-extraction action (distinct from the task’s `output_schema`).
 
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`object`](https://docs.python.org/3/glossary.html#term-object)] | `None`**Default:** `None`
 
 Reference images (with captions) prepended to the sub-agent’s context, e.g. what to look for.
 
@@ -736,23 +736,23 @@ Reference images (with captions) prepended to the sub-agent’s context, e.g. wh
 
 browser-use skills to enable by name, or `'*'` for all; needs a browser-use account.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
 
 browser-use skills to enable by id; the id-addressed counterpart of `skills`.
 
-**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
+**Type:** [`list`](https://docs.python.org/3/glossary.html#term-list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[’*’]] | `None`**Default:** `None`
 
 Override the pricing data source used when `calculate_cost` is on.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `None`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `None`
 
 Record the run as a GIF (`True` for a default path, or a target path).
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `str`**Default:** `False`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `str`**Default:** `False`
 
 Slow the browser down and highlight interactions, for demos; `None` uses browser-use’s default.
 
-**Type:** [`bool`](https://docs.python.org/3/library/functions.html#bool) | `None`**Default:** `None`
+**Type:** [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | `None`**Default:** `None`
 
 **Bases:** `BaseChatModel`
 
@@ -789,7 +789,7 @@ def ainvoke(
 ```
 Run one model turn over the mapped conversation, optionally with structured output.
 
-`ChatInvokeCompletion`[`T`] | `ChatInvokeCompletion`[[`str`](https://docs.python.org/3/library/stdtypes.html#str)]
+`ChatInvokeCompletion`[`T`] | `ChatInvokeCompletion`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 **Bases:** `FunctionToolset[AgentDepsT]`
 
@@ -802,8 +802,8 @@ def browse_web(task: str) -> str
 ```
 Have an autonomous browser agent carry out a web task and return its result.
 
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — The browser agent’s final text result, or JSON conforming to the
-[`str`](https://docs.python.org/3/library/stdtypes.html#str) — configured output schema when one is set.
+[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) — The browser agent’s final text result, or JSON conforming to the
+[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) — configured output schema when one is set.
 
 **`task`** : `str`
 
@@ -852,7 +852,7 @@ Secret placeholders for browser-use to substitute without showing the values to 
 Kept out of `repr()`: a `BrowserTask` is what a factory receives, so it is the object most
 likely to end up in a log line or a traceback.
 
-**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/library/stdtypes.html#str), [`str`](https://docs.python.org/3/library/stdtypes.html#str)]] | `None`**Default:** `field(repr=False)`
+**Type:** [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`dict`](https://docs.python.org/3/reference/expressions.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]] | `None`**Default:** `field(repr=False)`
 
 Extra instructions appended to the browser agent’s own system prompt.
 

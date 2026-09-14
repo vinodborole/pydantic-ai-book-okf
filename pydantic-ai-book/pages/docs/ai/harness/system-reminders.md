@@ -4,7 +4,7 @@ title: System Reminders | Pydantic Docs
 description: Re-inject behavioral guidance mid-run -- on a cadence or reactively --
   to counter instruction fade, without invalidating the prompt cache.
 resource: https://pydantic.dev/docs/ai/harness/system-reminders
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # System Reminders
@@ -102,6 +102,23 @@ journaled either.
 Without a durability engine, generation runs directly in all three cases, with the same fallback to
 `GoalReanchor` on error.
 
+Subscribe to `ReminderFiredEvent` to observe reminders after they are appended:
+
+```
+from pydantic_ai import Agent
+from pydantic_ai_harness import SystemReminders
+from pydantic_ai_harness.system_reminders import Reminder, ReminderFiredEvent
+agent = Agent(
+    'anthropic:claude-sonnet-4-6',
+    capabilities=[SystemReminders(reminders=[Reminder('...', interval=5)])],
+)
+@agent.on_event(ReminderFiredEvent)
+async def record(ctx, event):
+    print(event.text)
+```
+Migration: `on_fire` remains supported but is deprecated. Move its callback body to this
+subscription.
+
 ```
 from pydantic_ai_harness import SystemReminders
 from pydantic_ai_harness.system_reminders import Reminder
@@ -109,7 +126,6 @@ SystemReminders(
     reminders=[Reminder('...', interval=5)],
     dynamic_reminders=[],       # callables evaluated every request
     cache_ttl='5m',             # TTL for the cache breakpoint before the reminder ('5m' | '1h')
-    on_fire=None,               # optional callback invoked with each rendered reminder
 )
 ```
 Per-run state (the request counter and per-reminder fire counts) is isolated via `for_run`, so concurrent runs on the same agent never share fire state.
@@ -174,9 +190,9 @@ TTL for the cache breakpoint placed before the tail reminder.
 
 **Type:** [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘5m’, ‘1h’] **Default:** `'5m'`
 
-Optional observability callback invoked with each rendered reminder as it fires.
+Deprecated callback invoked with each rendered reminder. Subscribe to `ReminderFiredEvent` instead.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/library/stdtypes.html#str)], [`None`](https://docs.python.org/3/library/constants.html#None)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`None`](https://docs.python.org/3/builtins/constants.html#None)] | `None`**Default:** `None`
 
 `@async`
 
@@ -229,21 +245,21 @@ Request number of the first fire. `None` (the default) fires on the first multip
 `interval` (plain modulo). When set, the reminder fires at `first_after`, then every
 `interval` requests after that.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 Optional predicate over the current `RunContext`. When set, the reminder fires only when
 the trigger returns `True` *and* the cadence condition is met.
 
-**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/library/functions.html#bool)] | `None`**Default:** `None`
+**Type:** [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext)[`AgentDepsT`]], [`bool`](https://docs.python.org/3/builtins/functions.html#bool)] | `None`**Default:** `None`
 
 Maximum number of times this reminder may fire within a run. `None` means no limit.
 
-**Type:** [`int`](https://docs.python.org/3/library/functions.html#int) | `None`**Default:** `None`
+**Type:** [`int`](https://docs.python.org/3/builtins/functions.html#int) | `None`**Default:** `None`
 
 When set, wrap the content in an XML tag: `<tag>\ncontent\n</tag>`. Defaults to
 `'system-reminder'` (Claude Code’s convention); set `None` to emit the raw content.
 
-**Type:** [`str`](https://docs.python.org/3/library/stdtypes.html#str) | `None`**Default:** `'system-reminder'`
+**Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `'system-reminder'`
 
 **Bases:** `Generic[AgentDepsT]`
 

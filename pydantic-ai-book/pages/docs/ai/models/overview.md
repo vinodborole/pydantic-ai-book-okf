@@ -2,7 +2,7 @@
 type: Web Page
 title: Model Providers | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Model Providers
@@ -17,9 +17,11 @@ Pydantic AI is model-agnostic and has built-in support for multiple model provid
 - [Cerebras](/docs/ai/models/cerebras/)
 - [Cohere](/docs/ai/models/cohere/)
 - [Crusoe](/docs/ai/models/crusoe/)
+- [GitHub Copilot](/docs/ai/models/github-copilot/)
 - [Groq](/docs/ai/models/groq/)
 - [Hugging Face](/docs/ai/models/huggingface/)
 - [Mistral](/docs/ai/models/mistral/)
+- [OpenAI Codex](/docs/ai/models/openai-codex/) (via your ChatGPT/Codex subscription)
 - [OpenRouter](/docs/ai/models/openrouter/)
 - [Snowflake Cortex](/docs/ai/models/snowflake/)
 - [Z.AI](/docs/ai/models/zai/)
@@ -30,7 +32,7 @@ In addition, many providers are compatible with the OpenAI API, and can be used 
 - [Azure AI Foundry](/docs/ai/models/openai/#azure-ai-foundry)
 - [DeepSeek](/docs/ai/models/openai/#deepseek)
 - [Fireworks AI](/docs/ai/models/openai/#fireworks-ai)
-- [GitHub Models](/docs/ai/models/openai/#github-models) (retired, deprecated)
+- [GitHub Models](/docs/ai/models/openai/#github-models) (retired, deprecated — see[GitHub Copilot](/docs/ai/models/github-copilot/) )
 - [Heroku](/docs/ai/models/openai/#heroku-ai)
 - [LiteLLM](/docs/ai/models/openai/#litellm)
 - [Nebius AI Studio](/docs/ai/models/openai/#nebius-ai-studio)

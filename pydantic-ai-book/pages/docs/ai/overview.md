@@ -4,7 +4,7 @@ title: Pydantic AI | Pydantic Docs
 description: 'How Python does AI: agents, realtime voice, image generation, embeddings.
   Every model, every interface, typed end to end.'
 resource: https://pydantic.dev/docs/ai/overview
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-14T12:17:54.595402+00:00'
 ---
 
 # Pydantic AI
@@ -13,7 +13,7 @@ timestamp: '2026-09-07T12:01:58.556264+00:00'
 
 Agents, realtime voice, image generation, embeddings. Every model, every interface, typed end to end.
 
-**Pydantic AI** is the Python AI SDK: a typed, [extensible](/docs/ai/guides/extensibility/) agent loop with [every model](/docs/ai/models/overview/) a string swap away. The same agent [runs everywhere you need it](/docs/ai/overview/interfaces/): behind a [web frontend](/docs/ai/integrations/ui/overview/), in the [terminal](/docs/ai/integrations/cli/), on a [voice call](/docs/ai/realtime/overview/), on a [durable background queue](/docs/ai/capabilities/durable_execution/overview/), or as a plain object you call [`run()`](/docs/ai/core-concepts/agent/#running-agents) on. [Image generation](/docs/ai/capabilities/image-generation/) and [embeddings](/docs/ai/guides/embeddings/) come in the same box.
+**Pydantic AI** is the Python AI SDK: a typed, [extensible](/docs/ai/guides/extensibility/) agent loop with [every model](/docs/ai/models/overview/) a string swap away. The same agent [runs everywhere you need it](/docs/ai/overview/interfaces/): behind a [web frontend](/docs/ai/integrations/ui/overview/), in the [terminal](/docs/ai/integrations/cli/), on a [voice call](/docs/ai/realtime/overview/), on a [durable background queue](/docs/ai/capabilities/durable_execution/overview/), or as a plain object you call [`run()`](/docs/ai/core-concepts/agent/#running-agents) on. [Image generation](/docs/ai/guides/image-generation/) and [embeddings](/docs/ai/guides/embeddings/) come in the same box.
 
 **[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)** has everything an agent needs for complex, long-running work, snapped on as [capabilities](/docs/ai/capabilities/overview/), from [memory](https://pydantic.dev/docs/ai/harness/memory/), [sub-agents](https://pydantic.dev/docs/ai/harness/subagents/), and [context management](https://pydantic.dev/docs/ai/harness/compaction/) to a complete [coding agent](https://pydantic.dev/docs/ai/harness/coder/).
 
@@ -81,11 +81,11 @@ The model calls your tools mid-conversation while it keeps talking, and every se
 
 **Build this →** [Realtime Voice](/docs/ai/realtime/overview/), starting from the [voice assistant example](/docs/ai/examples/realtime/realtime-voice/)
 
-Ask for an image and make it the run’s typed [output](/docs/ai/core-concepts/output/):
+Generate an image with a dedicated image model, no agent run required:
 
-[Provider-native generation](/docs/ai/tools-toolsets/native-tools/#image-generation-tool) on models that support it (like this one), a [subagent fallback](/docs/ai/capabilities/image-generation/) you can configure for the rest, and a [standalone image API](https://github.com/pydantic/pydantic-ai/pull/5357) on the way.
+That [standalone image API](/docs/ai/guides/image-generation/) is for when your application decides; when an agent run decides, there is [provider-native generation](/docs/ai/tools-toolsets/native-tools/#image-generation-tool) with `output_type=BinaryImage` for a typed image [output](/docs/ai/core-concepts/output/#image-output), and the [`ImageGeneration` capability](/docs/ai/capabilities/image-generation/) with its fallbacks for models that generate no images of their own.
 
-**Build this →** [Image Generation](/docs/ai/capabilities/image-generation/)
+**Build this →** [Image Generation](/docs/ai/guides/image-generation/)
 
 - 
 **Any model, one Python API.**[Virtually every model and provider](/docs/ai/models/overview/) (OpenAI, Anthropic, Google, Bedrock, Azure AI Foundry, Groq, Mistral, xAI, Ollama, and dozens more), swappable with a string, or through the[Pydantic AI Gateway](/docs/ai/overview/gateway/) : one key for all of them, with failover and cost monitoring built in. No flagship feature is locked to one vendor.
