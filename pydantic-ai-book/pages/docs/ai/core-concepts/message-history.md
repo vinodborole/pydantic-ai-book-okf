@@ -2,7 +2,7 @@
 type: Web Page
 title: Messages and chat history | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/message-history
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Messages and chat history
@@ -107,6 +107,15 @@ You can now continue the conversation with history `same_history_as_step_1` desp
 
 *(This example is complete, it can be run “as is”)*
 
+An [`AgentRunResult`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult) can be stored directly as a field on a Pydantic model:
+
+The round-trip preserves the output, messages and new-message boundary, output tool name, usage, run and conversation IDs, metadata, and trace context. Run-local state used only while the agent is executing is not stored.
+
+A [`StreamedRunResult`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult) reads its values off the stream that is
+producing them, so it lasts only as long as that stream. Once the stream has finished, take
+[`StreamedRunResult.result`](/docs/ai/api/pydantic-ai/result/#pydantic_ai.result.StreamedRunResult.result) to get the same run in settled
+form and store that:
+
 The `message_history` parameter is trusted server-side state. If you load history that came from a browser request or another untrusted boundary, sanitize it before passing it to the agent.
 
 [`sanitize_messages`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.sanitize_messages) applies the same default message sanitization used by the [UI adapters](/docs/ai/integrations/ui/overview/): it strips client-supplied system prompts, drops non-HTTP file URL schemes, resets non-allowlisted [`FileUrl.force_download`](/docs/ai/api/pydantic-ai/messages/#pydantic_ai.messages.FileUrl.force_download) values to `False`, drops uploaded file references, and removes unresolved tool calls at the end of the history.
@@ -115,7 +124,7 @@ Client-supplied [`CompactionPart`](/docs/ai/api/pydantic-ai/messages/#pydantic_a
 
 Each sanitization can be turned off individually when the corresponding parts were created by trusted server-side code: pass `strip_system_prompts=False`, add schemes to `allowed_file_url_schemes`, add values to `allowed_file_url_force_download`, or set `allow_uploaded_files=True`. See [file URL input security](/docs/ai/core-concepts/input/#user-side-download-vs-direct-file-url) for the file input trust model.
 
-[Serializing a history](#storing-and-loading-messages-to-json) turns it into bytes and back, but that is only the primitive. Deciding where those bytes live, which conversation they belong to, and when to reload them is left to your application. [`conversation_id`](#correlating-runs-with-run_id-and-conversation_id) is the key to store them under: pass your own chat thread ID, or let Pydantic AI resolve one, and read the resolved value back off the result as [`AgentRunResult.conversation_id`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult.conversation_id).
+[Serializing a history](#storing-and-loading-messages-to-json) turns it into bytes and back, but that is only the primitive. Deciding where those bytes live, which conversation they belong to, and when to reload them is left to your application, and [Storage](/docs/ai/core-concepts/storage/) lays out the choice, including the cases a stored history doesn’t answer. [`conversation_id`](#correlating-runs-with-run_id-and-conversation_id) is the key to store them under: pass your own chat thread ID, or let Pydantic AI resolve one, and read the resolved value back off the result as [`AgentRunResult.conversation_id`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult.conversation_id).
 
 For a chat application that is usually the whole design: load a thread’s history, pass it as `message_history`, and write back [`new_messages()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRunResult.new_messages) once the run finishes. Appending each run’s new messages rather than rewriting the full list keeps each write proportional to the turn instead of to the conversation, and leaves the stored order intact.
 
@@ -171,6 +180,10 @@ into the conversation mid-run with [`RunContext.enqueue`](/docs/ai/api/pydantic-
 a realtime session). Use this when something happens during a
 run that the agent should know about — a tool wants to add follow-up context, an external event
 needs to *steer* the agent’s plan, or background work needs to reach the agent when it completes.
+You can call any of these directly from synchronous or asynchronous code, including a tool or
+callback running in another thread. Calls after the run or session has ended raise
+[`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError). For standard runs, submission is synchronized with
+the final drain, so a concurrent call is either accepted for delivery or rejected as the run ends.
 
 A `priority` controls when the enqueued content is delivered:
 
@@ -202,9 +215,10 @@ instead.
 Use [`AgentRun.enqueue`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.enqueue) when you’re driving a run
 from outside (e.g. forwarding events from a webhook, chat platform, or job queue):
 
-`'when_idle'` messages are only drained when the agent would otherwise reach an `End` — that
-drain happens in `after_node_run`. `'asap'` messages are drained in `before_model_request`, and
-also at the same end-of-run point if anything arrived during the final step. Both fire however
+`'when_idle'` messages are only drained when the agent would otherwise reach an `End`. That
+drain runs after every capability’s `after_node_run` hook, so a capability that redirects the run
+can still enqueue there. `'asap'` messages are drained in `before_model_request`, and also at the
+same end-of-run point if anything arrived during the final step. Both fire however
 you drive the run, so [`Agent.run`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AbstractAgent.run),
 [`AgentRun.next()`](/docs/ai/api/pydantic-ai/run/#pydantic_ai.run.AgentRun.next), and a bare `async for node in agent_run:`
 loop all deliver enqueued messages.

@@ -2,7 +2,7 @@
 type: Web Page
 title: Capabilities | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/capabilities/overview
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Capabilities
@@ -81,7 +81,7 @@ How the agent spends its context window: the difference between an agent that de
 | [Tool Output Limits](https://pydantic.dev/docs/ai/harness/tool-output-limits/) | Harness | Truncate, spill to a queryable file, or summarize oversized tool returns at the source | 
 | [Warn On Cache Busts](https://pydantic.dev/docs/ai/harness/warn-on-cache-busts/) | Harness | Detect prompt-cache prefix collapses between requests, from the provider’s own numbers | 
 
-What the agent knows and remembers, loaded when relevant instead of carried in every prompt.
+What the agent knows and remembers, loaded when relevant instead of carried in every prompt. [Storage](/docs/ai/core-concepts/storage/) covers how these sit next to the conversation history itself, which is an agent’s memory of the run it is in.
 
 | Capability | Package | What it does | 
 |---|---|---|

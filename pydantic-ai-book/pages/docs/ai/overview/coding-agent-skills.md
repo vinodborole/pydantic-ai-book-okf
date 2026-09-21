@@ -2,7 +2,7 @@
 type: Web Page
 title: Coding Agent Skills | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/coding-agent-skills
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Coding Agent Skills
@@ -19,11 +19,13 @@ Install the Pydantic AI skill using the [skills CLI](https://github.com/vercel-l
 
 This works with 30+ agents via the [agentskills.io](https://agentskills.io) standard, including Claude Code, Codex, Cursor, and Gemini CLI.
 
-Pydantic AI also ships its skill bundled with the package, so you can install it directly from your project’s dependencies via [library-skills.io](https://library-skills.io):
+Pydantic AI also ships its skills bundled with the package, so you can install them directly from your project’s dependencies via [library-skills.io](https://library-skills.io):
 
-The `--all` flag is required because the skill is bundled in `pydantic-ai-slim`, which is a transitive dependency of the `pydantic-ai` meta-package. Without it, `library-skills` only scans direct dependencies and won’t discover the skill.
+The `--all` flag is required because the skills are bundled in `pydantic-ai-slim`, which is a transitive dependency of the `pydantic-ai` meta-package. Without it, `library-skills` only scans direct dependencies and won’t discover them.
 
 Add `--claude` to also install into `.claude/skills/` alongside the default `.agents/skills/` directory, since Claude Code doesn’t read from `.agents/`.
+
+This installation also includes [migration skills](/docs/ai/comparisons/migrate-from-other-frameworks/) for moving applications from other agent frameworks to Pydantic AI.
 
 - [`pydantic/skills`](https://github.com/pydantic/skills) : source repository
 - [agentskills.io](https://agentskills.io) : the open standard for agent skills

@@ -2,7 +2,7 @@
 type: Web Page
 title: Output | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Output
@@ -61,6 +61,8 @@ If desired, this marker class can be used alongside one or more [`ToolOutput`](#
 
 Like other output functions, text output functions can optionally take [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) as the first argument, and can raise [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to ask the model to try again with modified arguments (or with a different output type).
 
+Some models cannot write text at all, and say so through [`supports_text_output=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output) on their profile — [TypeSafe’s Jev](/docs/ai/models/typesafe/) is one. On those, any `output_type` that leaves text output available is a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) before a request is sent: the default `str`, a `str` among several output types, a `TextOutput` function, and [`PromptedOutput`](#prompted-output), which asks for its structured data as text. Give such a model one structured `output_type`, such as a `BaseModel`, instead.
+
 *(This example is complete, it can be run “as is”)*
 
 When streaming with `run_stream()` or `run_stream_sync()`, output functions are called **multiple times** — once for each partial output received from the model, and once for the final complete output.
@@ -81,6 +83,8 @@ Pydantic AI implements three different methods to get a model to output structur
 In the default Tool Output mode, the output JSON schema of each output type (or function) is provided to the model as the parameters schema of a special output tool. This is the default as it’s supported by virtually all models and has been shown to work very well.
 
 If you’d like to change the name of the output tool, pass a custom description to aid the model, or turn on or off [strict mode](/docs/ai/tools-toolsets/tools-advanced/#strict-mode), you can wrap the type(s) in the [`ToolOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput) marker class and provide the appropriate arguments. Note that by default, the description is taken from the docstring specified on a Pydantic model or output function, so specifying it using the marker class is typically not necessary.
+
+Field descriptions reach the model as in [tool schemas](/docs/ai/tools-toolsets/tools/#docstrings), including a Pydantic model’s field docstrings when it sets `use_attribute_docstrings`. An `Enum` that mixes in [`UseEnumMemberDocstrings`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.UseEnumMemberDocstrings) additionally describes each of its options by the docstring written under that member, wherever the enum appears — in an output model, in a tool parameter, or as a bare `Enum` `output_type`. Without the mix-in the docstrings are ignored; see [enum options](/docs/ai/tools-toolsets/tools/#enum-options).
 
 When using output tools, each tool gets its own retry counter — the output side of the agent retry budget (set with [`AgentRetries`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentRetries) via `Agent(retries={'output': N})`, or per-run via `agent.run(retries={'output': N})`) is the *default per-tool limit*. To override the limit for an individual output tool, pass [`max_retries`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.ToolOutput.max_retries) on `ToolOutput`: `ToolOutput(Fruit, max_retries=2)`. See [How output retries are enforced](/docs/ai/core-concepts/agent/#how-output-retries-are-enforced) for the relationship to the text-output path’s global budget.
 
@@ -156,6 +160,18 @@ agent = Agent('openai:gpt-5.2', output_type=HumanDict)
 result = agent.run_sync('Create a person')
 #> {'name': 'John Doe', 'age': 30}
 ```
+Sometimes the model has to pick one of a set that doesn’t exist until the run is under way: the actions available on the screen in front of an agent, the records a search returned. A `Literal` or an `Enum` (with [`UseEnumMemberDocstrings`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.UseEnumMemberDocstrings) to describe its members) covers a set you know when you write the code, and gives you exhaustiveness checking that a run-time set cannot. For everything else there is [`Choices()`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.Choices), which takes a mapping from each option to what it means:
+
+The descriptions are what make this worth a helper: each option carries its meaning into the schema the model receives, and the output is one of the keys, validated, and typed `str`. Passing a sequence of keys instead of a mapping describes nothing and asks the same question with a plain `enum`.
+
+Like [`StructuredDict()`](#structured-dict), `Choices()` returns a type rather than a marker, so the same value works as an `output_type`, as a field of a Pydantic model, and as a [tool](/docs/ai/tools-toolsets/tools/) parameter.
+
+An option can stand for a value instead of its own key, by giving [`Choice`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.Choice) the value alongside the description. The model still picks a key, and the output is what that key stands for:
+
+When the value is a callable, picking it *calls* it, the way an [output function](#output-functions) is called, so the run’s output is what the action returned and there is no dispatch table between the model’s answer and the thing it meant:
+
+The action takes no arguments, so bind what it needs with `functools.partial` or a closure, and it may be `async`. Like an output function it can raise [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to send the model back for another pick.
+
 Some validation relies on an extra Pydantic [context](https://docs.pydantic.dev/latest/concepts/validators/#validation-context) object. You can pass such an object to an `Agent` at definition-time via its [`validation_context`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.__init__) parameter. It will be used in the validation of both structured outputs and [tool arguments](/docs/ai/tools-toolsets/tools-advanced/#tool-retries).
 
 This validation context can be either:

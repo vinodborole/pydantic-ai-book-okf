@@ -2,7 +2,7 @@
 type: Web Page
 title: Native Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/native-tools
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Native Tools
@@ -62,7 +62,7 @@ The `WebSearchTool` supports several configuration parameters:
 |---|---|---|---|---|---|
 | `search_context_size` | ✅ | ❌ | ❌ | ❌ | ✅ | 
 | `user_location` | ✅ | ✅ | ✅ | ❌ | ✅ | 
-| `blocked_domains` | ❌ | ✅ | ✅ | ✅ | ✅ | 
+| `blocked_domains` | ✅ | ✅ | ✅ | ✅ | ✅ | 
 | `allowed_domains` | ✅ | ✅ | ✅ | ✅ | ✅ | 
 | `max_uses` | ❌ | ✅ | ❌ | ❌ | ✅* | 
 | `external_web_access` | ✅ | ❌ | ❌ | ❌ | ❌ | 

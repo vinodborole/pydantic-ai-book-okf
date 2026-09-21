@@ -9,4 +9,5 @@
 - [Messages and chat history | Pydantic Docs](/pages/docs/ai/core-concepts/message-history.md)
 - [Output | Pydantic Docs](/pages/docs/ai/core-concepts/output.md)
 - [Retries | Pydantic Docs](/pages/docs/ai/core-concepts/retries.md)
+- [Storage | Pydantic Docs](/pages/docs/ai/core-concepts/storage.md)
 - [Timeouts | Pydantic Docs](/pages/docs/ai/core-concepts/timeouts.md)

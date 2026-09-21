@@ -2,7 +2,7 @@
 type: Web Page
 title: Installation | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/overview/install
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Installation
@@ -50,6 +50,7 @@ For example, if you’re using just [`OpenAIChatModel`](/docs/ai/api/models/open
 - `snowflake` - installs the[Snowflake Cortex](/docs/ai/models/snowflake/) dependency`openai`[PyPI ↗](https://pypi.org/project/openai)
 - `crusoe` - installs the[Crusoe](/docs/ai/models/crusoe/) dependency`openai`[PyPI ↗](https://pypi.org/project/openai)
 - `cerebras` - installs the[Cerebras](/docs/ai/models/cerebras/) dependency`openai`[PyPI ↗](https://pypi.org/project/openai)
+- `typesafe` - installs the[TypeSafe (Jev)](/docs/ai/models/typesafe/) dependency`typesafe-sdk`[PyPI ↗](https://pypi.org/project/typesafe-sdk)
 - `huggingface` - installs[Hugging Face Model](/docs/ai/models/huggingface/) dependency`huggingface-hub`[PyPI ↗](https://pypi.org/project/huggingface-hub)
 - `sentence-transformers` - installs[Sentence Transformers Embedding Model](/docs/ai/guides/embeddings/#sentence-transformers-local) dependency`sentence-transformers`[PyPI ↗](https://pypi.org/project/sentence-transformers)
 - `voyageai` - installs[VoyageAI Embedding Model](/docs/ai/guides/embeddings/#voyageai) dependency`voyageai`[PyPI ↗](https://pypi.org/project/voyageai)

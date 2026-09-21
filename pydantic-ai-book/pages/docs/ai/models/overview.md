@@ -2,7 +2,7 @@
 type: Web Page
 title: Model Providers | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Model Providers
@@ -24,6 +24,7 @@ Pydantic AI is model-agnostic and has built-in support for multiple model provid
 - [OpenAI Codex](/docs/ai/models/openai-codex/) (via your ChatGPT/Codex subscription)
 - [OpenRouter](/docs/ai/models/openrouter/)
 - [Snowflake Cortex](/docs/ai/models/snowflake/)
+- [TypeSafe (Jev)](/docs/ai/models/typesafe/)
 - [Z.AI](/docs/ai/models/zai/)
 
 In addition, many providers are compatible with the OpenAI API, and can be used with `OpenAIChatModel` in Pydantic AI:
@@ -72,7 +73,7 @@ When you instantiate an [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.ag
 Pydantic AI will automatically select the appropriate model class, provider, and profile.
 If you want to use a different provider or profile, you can instantiate a model class directly and pass in `provider` and/or `profile` arguments.
 
-A model’s [`ModelProfile`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile) also describes what the model can do. It is a `TypedDict`, so you read capability flags with normal dictionary access via `model.profile` — for example [`supports_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_tools), [`supports_json_schema_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_json_schema_output), and [`supported_native_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supported_native_tools). This is useful when you want to branch on a capability rather than discover a limitation at request time — for example checking whether a model supports tool calling, native JSON-schema output, or a specific native tool before relying on it:
+A model’s [`ModelProfile`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile) also describes what the model can do. It is a `TypedDict`, so you read capability flags with normal dictionary access via `model.profile` — for example [`supports_text_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output), [`supports_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_tools), [`supports_json_schema_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_json_schema_output), and [`supported_native_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supported_native_tools). This is useful when you want to branch on a capability rather than discover a limitation at request time — for example checking whether a model supports text generation, tool calling, native JSON-schema output, or a specific native tool before relying on it:
 
 ```
 from pydantic_ai.models.test import TestModel
@@ -80,6 +81,8 @@ from pydantic_ai.native_tools import WebSearchTool
 model = TestModel()
 profile = model.profile
 print(profile['supports_tools'])
+#> True
+print(profile['supports_text_output'])
 #> True
 print(profile['supports_json_schema_output'])
 #> False

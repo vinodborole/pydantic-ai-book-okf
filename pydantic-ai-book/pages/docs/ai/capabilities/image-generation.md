@@ -1,15 +1,19 @@
 ---
 type: Web Page
-title: Image Generation | Pydantic Docs
+title: ImageGeneration Capability | Pydantic Docs
+description: 'Let an agent decide when to generate an image: the `ImageGeneration`
+  capability prefers the model provider''s native image tool and falls back to a dedicated
+  image model.'
 resource: https://pydantic.dev/docs/ai/capabilities/image-generation
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
-# Image Generation
+# ImageGeneration Capability
 
 The `ImageGeneration`[capability](/docs/ai/capabilities/overview/) lets an agent decide when to
 generate an image. It prefers the conversational model provider’s native image-generation tool and can fall back to a
-dedicated image model through the [direct image-generation API](/docs/ai/guides/image-generation/).
+dedicated image model through the direct image-generation API, whose end-to-end walkthrough is
+[Image Generation](/docs/ai/guides/image-generation/).
 
 `ImageGeneration()` is native-only by default. Add a fallback that generates through the image API — without creating
 another agent — with one of two fields, and which one you use follows what you have: an

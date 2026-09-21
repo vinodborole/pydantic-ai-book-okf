@@ -4,7 +4,7 @@ title: Tool Output Limits | Pydantic Docs
 description: Reduce oversized tool returns when they are produced -- truncate, spill
   to a queryable file, or summarize -- so a large payload does not persist in history.
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Tool Output Limits
@@ -183,6 +183,13 @@ separate, model-visible part which also persists in history. This capability mea
 reduces both with the same band logic (they spill to distinct handles). Text `content` is
 reduced in place; non-text `content` (multimodal parts) that overflows is left unreduced with
 a `warnings.warn`, since it cannot be safely truncated.
+
+Spill keys (`overflow_handle`, `overflow_bytes`, `overflow_content_handle`) live in
+`ToolReturn.metadata` alongside whatever the tool put there. A pre-existing mapping is copied
+in with stringified keys; a pre-existing non-mapping value (a string, a dataclass, anything
+that is not a `Mapping`) is kept under `original_metadata` rather than dropped. Either way the
+caller’s own metadata survives a spill and is readable from `metadata` on the resulting
+`ToolReturnPart` after `Agent.run`.
 
 Thresholds are measured in characters by default. Set `over_tokens=True` to measure in
 estimated tokens (the same ~4-chars-per-token heuristic as [compaction](/docs/ai/harness/compaction/)); pass a

@@ -2,7 +2,7 @@
 type: Web Page
 title: Advanced Tool Features | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Advanced Tool Features
@@ -125,7 +125,7 @@ A `prepare` method can be registered via the `prepare` kwarg to any of the tool 
 - [`@agent.tool_plain`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.Agent.tool_plain) decorator
 - [`Tool`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool) dataclass
 
-The `prepare` method has type [`ToolPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolPrepareFunc). It receives [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a pre-built [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition). It can return that definition unchanged or modified, return a new definition, or return `None` to omit the tool for that step.
+The `prepare` method has type [`ToolPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolPrepareFunc). It receives [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a pre-built [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition). It can return that definition unchanged, return a modified copy built with [`dataclasses.replace`](https://docs.python.org/3/library/dataclasses.html#dataclasses.replace), or return `None` to omit the tool for that step.
 
 Here’s a simple `prepare` method that only includes the tool if the value of the dependency is `42`.
 
@@ -141,7 +141,7 @@ For the sake of variation, we create this tool using the [`Tool`](/docs/ai/api/p
 
 In addition to per-tool `prepare` methods, you can also define an agent-wide `prepare_tools` function. This function is called at each step of a run and allows you to filter or modify the list of all tool definitions available to the agent for that step. This is especially useful if you want to enable or disable multiple tools at once, or apply global logic based on the current context.
 
-The `prepare_tools` function should be of type [`ToolsPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolsPrepareFunc), which takes the [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a list of [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition), and returns the tool definitions to expose for that step. Return the `tool_defs` argument to keep every tool as-is, or `[]` to expose no tools.
+The `prepare_tools` function should be of type [`ToolsPrepareFunc`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolsPrepareFunc), which takes the [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) and a list of [`ToolDefinition`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.ToolDefinition), and returns the tool definitions to expose for that step. Return the `tool_defs` argument to keep every tool as-is, or `[]` to expose no tools. As with per-tool `prepare`, modify the definitions you were given or copy them with [`dataclasses.replace`](https://docs.python.org/3/library/dataclasses.html#dataclasses.replace) rather than constructing new ones.
 
 To modify output tools, you can set a `prepare_output_tools` function instead.
 
@@ -210,11 +210,13 @@ All providers support `'auto'` and `'none'`. Key differences for other options:
 | OpenAI | ✓ | ✓ | Full support | 
 | Anthropic | ⚠️ | ⚠️ | Not supported with extended thinking; adaptive thinking is compatible | 
 |  | ✓ | ✓ |  | 
-| Bedrock | ✓ | Single only | Multiple tools fall back to ‘any’ mode | 
+| Bedrock | ✓ | Single only | Multiple tools fall back to ‘any’ mode. See [thinking and structured output](/docs/ai/models/bedrock/#thinking-and-structured-output) for thinking compatibility | 
 | Groq/HuggingFace | ✓ | Single only | Multiple tools fall back to ‘required’ mode | 
 | Mistral | ✓ | ✓ | Maps `'required'` to`'any'` mode | 
 | Cohere | ✓ | ✓ | Maps `'required'` to`'REQUIRED'` ; a named subset is applied by trimming the tools array | 
 | xAI | ✓ | ✓ | Some models may not support forcing; falls back to ‘auto’ | 
+
+With adaptive thinking, a forced tool response may contain only the tool call and no visible thinking block. Enabling adaptive thinking does not guarantee that the model will return visible reasoning.
 
 The model classes built on `OpenAIChatModel` — Cerebras, Crusoe, GitHub Copilot, Ollama, OpenRouter, Snowflake, Z.AI and Bedrock Mantle Chat — behave as the OpenAI row describes, with two exceptions. Ollama documents `tool_choice` as unsupported and ignores it. OpenRouter raises a `UserError` for an explicit `'required'` or named subset on models that can’t combine forced tool choice with thinking, rather than silently dropping the reasoning; forcing that Pydantic AI merely inferred falls back to `'auto'` instead.
 
@@ -229,7 +231,7 @@ The table below covers the cases where Pydantic AI must filter client-side and t
 |---|---|
 | Anthropic | `tool_choice` is a list of multiple tools, OR a single tool with extended thinking or on a model that doesn’t support forcing | 
 | OpenAI Chat | `tool_choice` is a list of multiple tools, OR a single tool on a model that doesn’t support forcing | 
-| Bedrock | `tool_choice` is a list of multiple tools, OR a single tool with thinking enabled or on a model that doesn’t support forcing | 
+| Bedrock | `tool_choice` is a list of multiple tools, OR a single tool with extended thinking or on a model that doesn’t support forcing | 
 | Groq / HuggingFace | `tool_choice` is a list of multiple tools | 
 | Mistral | `tool_choice` is a list (any size) — the API doesn’t accept specific tool names | 
 | Cohere | `tool_choice` is a list (any size) — the API doesn’t accept specific tool names | 

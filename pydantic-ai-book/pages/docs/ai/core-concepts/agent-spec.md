@@ -2,7 +2,7 @@
 type: Web Page
 title: Agent Specs | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/agent-spec
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Agent Specs
@@ -29,6 +29,8 @@ Keyword arguments interact with spec fields as follows:
 - **`capabilities`** — merged: spec capabilities come first, then keyword argument capabilities.
 - **`model_settings`** — merged additively: keyword argument settings override matching spec settings.
 - **`output_type`** — takes precedence over`output_schema` from the spec.
+
+The spec may omit `model`; it can instead be supplied to `Agent.from_spec` or when running the agent.
 
 When `deps_type` is passed, [template strings](#template-strings) in the spec’s `instructions`, `description`, and capability arguments are compiled and validated against the deps type at construction time.
 
@@ -57,7 +59,7 @@ The [`AgentSpec`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.agent.AgentSpec) m
 
 | Field | Type | Description | 
 |---|---|---|
-| `model` | `str` | [Model](/docs/ai/models/overview/) name (required) | 
+| `model` | `str \| None` | [Model](/docs/ai/models/overview/) name | 
 | `name` | `str \| None` | Agent name | 
 | `description` | `str \| None` | Agent description (supports [templates](#template-strings) ) | 
 | `instructions` | `str \| list[str] \| None` | [Instructions](/docs/ai/core-concepts/agent/#instructions) (supports[templates](#template-strings) ) | 

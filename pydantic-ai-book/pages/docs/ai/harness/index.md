@@ -1,8 +1,8 @@
 # /pages/docs/ai/harness — directory listing
 
 - [Advisor | Pydantic Docs](/pages/docs/ai/harness/advisor.md)
+- [Ask User | Pydantic Docs](/pages/docs/ai/harness/ask-user.md)
 - [Browser Use | Pydantic Docs](/pages/docs/ai/harness/browser-use.md)
-- [Runtime Capability Creation | Pydantic Docs](/pages/docs/ai/harness/capability-creation.md)
 - [Code Mode | Pydantic Docs](/pages/docs/ai/harness/code-mode.md)
 - [Coder | Pydantic Docs](/pages/docs/ai/harness/coder.md)
 - [Compaction | Pydantic Docs](/pages/docs/ai/harness/compaction.md)
@@ -25,7 +25,6 @@
 - [Skills | Pydantic Docs](/pages/docs/ai/harness/skills.md)
 - [Spend | Pydantic Docs](/pages/docs/ai/harness/spend.md)
 - [StackOne | Pydantic Docs](/pages/docs/ai/harness/stackone.md)
-- [Step Persistence | Pydantic Docs](/pages/docs/ai/harness/step-persistence.md)
 - [Subagents | Pydantic Docs](/pages/docs/ai/harness/subagents.md)
 - [System Reminders | Pydantic Docs](/pages/docs/ai/harness/system-reminders.md)
 - [Tool Output Limits | Pydantic Docs](/pages/docs/ai/harness/tool-output-limits.md)

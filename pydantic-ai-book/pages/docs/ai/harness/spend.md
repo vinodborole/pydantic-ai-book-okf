@@ -5,7 +5,7 @@ description: Track what an agent costs and refuse the next request once a budget
   spent, with windows longer than a run, per-tenant scopes, and a counter shared across
   worker processes.
 resource: https://pydantic.dev/docs/ai/harness/spend
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Spend
@@ -829,7 +829,7 @@ Defining `__len__` makes an empty store falsy, so write `if store is not None`.
 ```
 def get(key: str) -> Spent
 ```
-What `key` has accumulated. Deprecated in favour of `get_many`.
+What `key` has accumulated. Deprecated in favour of `get_many`; call it with a sequence of keys.
 
 `Spent`
 
@@ -846,7 +846,7 @@ def add(
     ttl: timedelta | None,
 ) -> Spent
 ```
-Add to `key` and return the result. Deprecated in favour of `add_many`.
+Add to `key` and return the result. Deprecated in favour of `add_many`; call it with a sequence of entries.
 
 `Spent`
 
@@ -930,7 +930,7 @@ model request.
 ```
 def get(key: str) -> Spent
 ```
-What `key` has accumulated. Deprecated in favour of `get_many`.
+What `key` has accumulated. Deprecated in favour of `get_many`; call it with a sequence of keys.
 
 `Spent`
 
@@ -947,7 +947,7 @@ def add(
     ttl: timedelta | None,
 ) -> Spent
 ```
-Add to `key` and return the result. Deprecated in favour of `add_many`.
+Add to `key` and return the result. Deprecated in favour of `add_many`; call it with a sequence of entries.
 
 One window per call, so a response counting against a day and a month budget is
 two calls and a failure between them leaves the day counted and the month not.

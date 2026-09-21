@@ -2,7 +2,7 @@
 type: Web Page
 title: Dependencies | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/dependencies
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Dependencies
@@ -11,7 +11,7 @@ Pydantic AI uses a dependency injection system to provide data and services to y
 
 Pydantic AI’s dependency system follows established Python practices, making dependencies type-safe, understandable, easy to test, and easy to deploy in production.
 
-Dependencies can be any python type. While in simple cases you might be able to pass a single object as a dependency (e.g. an HTTP connection), [dataclasses](https://docs.python.org/3/library/dataclasses.html#module-dataclasses) are generally a convenient container when your dependencies included multiple objects.
+Dependencies can be any python type. While in simple cases you might be able to pass a single object as a dependency (e.g. an HTTP connection), [dataclasses](https://docs.python.org/3/library/dataclasses.html#module-dataclasses) are generally a convenient container when your dependencies include multiple objects.
 
 Here’s an example of defining an agent that requires dependencies.
 

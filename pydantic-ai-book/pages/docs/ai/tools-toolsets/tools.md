@@ -2,7 +2,7 @@
 type: Web Page
 title: Function Tools | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/tools-toolsets/tools
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Function Tools
@@ -97,6 +97,49 @@ If a tool has a single parameter that can be represented as an object in JSON sc
 Here’s an example where we use [`TestModel.last_model_request_parameters`](/docs/ai/api/models/test/#pydantic_ai.models.test.TestModel.last_model_request_parameters) to inspect the tool schema that would be passed to the model.
 
 *(This example is complete, it can be run “as is”)*
+
+A docstring written under a parameter, a field, or an enum member is the natural place to say what it means, but not every one of them reaches the model:
+
+| Written under | Describes | Sent to the model | 
+|---|---|---|
+| a tool or [output function](/docs/ai/core-concepts/output/#output-functions) | that tool | always | 
+| an `Args:` entry in its docstring | that parameter | always | 
+| a class used as a parameter or [output type](/docs/ai/core-concepts/output/) | that object | always | 
+| a field of a `dataclass` or`TypedDict` | that field | as a function’s parameter | 
+| a field of a Pydantic model or `pydantic.dataclasses.dataclass` | that field | with `use_attribute_docstrings` on the class | 
+| an `Enum` member | that option | with [`UseEnumMemberDocstrings`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.UseEnumMemberDocstrings) | 
+
+The schema Pydantic AI builds from a function signature — a tool or an output function — turns on Pydantic’s
+[`use_attribute_docstrings`](https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.use_attribute_docstrings),
+and that reaches every type below it that doesn’t bring a config of its own, at any depth. A Pydantic model and
+a `pydantic.dataclasses.dataclass` do bring one, which wins, so they ignore it — for their own fields and for
+anything nested inside them. Set it on the class itself to opt in wherever it’s used, including as an
+[output type](/docs/ai/core-concepts/output/), which is built from the type rather than from a signature and so never inherits it:
+
+A description written as `Field(description=...)` needs no config and takes precedence over the docstring.
+
+An `Enum` parameter reaches the model as the list of its values, which says what the options are but not what
+they mean. Mix [`UseEnumMemberDocstrings`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.UseEnumMemberDocstrings) into the enum to send the
+docstring written under each member as that option’s description. Such an enum renders as `anyOf` of `const`
+values instead of a plain `enum` list:
+
+*(This example is complete, it can be run “as is”)*
+
+`Enum` is the one case that needs a mix-in rather than a config flag: it has no `model_config` to carry one, and
+cannot carry a plain class attribute either — annotated or not, any assigned value becomes a member — so a base
+class is the only marker left. Without it the docstrings are ignored and the schema is exactly the one Pydantic
+generates on its own, so opting an enum in is the only thing that changes what a model sees.
+
+Members without a docstring keep a bare `const`, and a docstring under an alias (`urgent = 'high'` beside
+`high = 'high'`) describes the option it was written for. A `Literal` has nowhere to write a docstring, so it is
+unaffected.
+
+Wherever Pydantic AI describes an opted-in enum to a model — a tool parameter, an [output type](/docs/ai/core-concepts/output/), or a
+field of a model of your own — the descriptions come along.
+
+The docstrings are read from the enum’s source, so an enum built at run time has none. When the options
+themselves are only known once the run is under way, use [`Choices()`](/docs/ai/core-concepts/output/#choices), which describes a
+mapping built where you build it and emits exactly this `anyOf`-of-`const`s schema.
 
 A tool can push extra messages into the conversation via
 [`RunContext.enqueue`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.enqueue) — useful when a tool wants

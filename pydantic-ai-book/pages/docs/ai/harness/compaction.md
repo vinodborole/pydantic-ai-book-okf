@@ -4,12 +4,12 @@ title: Compaction | Pydantic Docs
 description: A menu of strategies -- clear, dedupe, trim, or summarize -- for keeping
   an agent's conversation history within the model's context window.
 resource: https://pydantic.dev/docs/ai/harness/compaction
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Compaction
 
-Compaction is a menu of strategies for keeping an agent’s conversation history within a model’s context window. Most are Pydantic AI `Capability` classes that edit the message history just before each request goes out. `FallbackCompaction` is instead a composing `CompactionStrategy` used through `TieredCompaction` or `compact_now`; it has no request trigger of its own. The edits **persist** into the run’s message history, so a trim, clear, or summary carries forward to later steps — it is not recomputed from the full history every turn.
+Compaction is a menu of strategies for keeping an agent’s conversation history within a model’s context window. These Pydantic AI `Capability` classes edit the message history just before each request goes out. `FallbackCompaction` optionally triggers its chain at a token threshold and also works as a composing `CompactionStrategy`. The edits **persist** into the run’s message history, so a trim, clear, or summary carries forward to later steps — it is not recomputed from the full history every turn.
 
 All strategies preserve tool-call / tool-return **pairing**. Core does not validate this, and a provider rejects an orphaned pair, so the pairing guarantee is what makes these safe to drop into an agent. The zero-LLM strategies never call a model; only `SummarizingCompaction` (and `TieredCompaction` when it escalates that far) spends tokens.
 
@@ -173,18 +173,29 @@ A tier inside `TieredCompaction` is driven directly by the orchestrator, which r
 
 `TieredCompaction` advances when a successful tier does not reclaim enough. `FallbackCompaction` advances only when a strategy raises an exception selected by `fallback_on`, which defaults to Pydantic AI’s `ModelAPIError` and `FallbackExceptionGroup`. The latter is raised when every model in a `FallbackModel` fails. Each attempt receives a fresh list containing the original message objects, so list-level changes by a failed strategy do not affect its fallback. Strategies must still honor the `CompactionStrategy` contract and avoid mutating message objects. If every strategy fails, the last exception is re-raised. Non-matching exceptions, cancellation, and other `BaseException` subclasses pass through immediately; `fallback_on` rejects types that do not derive from `Exception`.
 
-Use it as a tier when summarization should fall back to deterministic truncation:
+Register it directly when summarization should fall back to deterministic truncation:
 
 ```
 from pydantic_ai_harness import FallbackCompaction, SlidingWindowCompaction, SummarizingCompaction
 fallback = FallbackCompaction(
+    max_fraction=0.85,
     fallback_chain=[
         SummarizingCompaction(max_messages=1, keep_tokens=20_000),
         SlidingWindowCompaction(max_messages=1, keep_tokens=20_000),
     ]
 )
 ```
-The strategies’ trigger fields are not consulted when a composing strategy calls `compact` directly. Put `fallback` inside `TieredCompaction` to give the chain a context trigger, or pass it to `compact_now` for manual compaction.
+Register `fallback` directly with `Agent(..., capabilities=[fallback])`. Its optional
+`max_tokens` or `max_fraction` trigger runs the chain only when estimated context tokens
+exceed the threshold. Fractions resolve against the request’s model; `context_window`
+overrides its window and `fallback_context_window` supplies an unknown model’s window.
+`tokenizer` customizes token estimation. The hook preserves pinned parts and persists
+compacted history, emitting the standard `compact_messages` span when history changes.
+
+With neither trigger configured, the request hook does nothing. Direct `compact()` and
+`compact_now()` calls run the chain regardless of its threshold, so it remains usable
+inside other composing strategies and for manual compaction. Each child’s own trigger
+is bypassed when the chain calls its `compact()` method.
 
 A single model response of repeated whitespace, or a single tool call with a giant payload, can produce one part so large the *next* request exceeds the provider’s context cap. None of the other strategies can reach it: `SlidingWindowCompaction` drops the oldest messages but the offender is the newest; `ClearToolResults` only touches tool *results*; `WarnNearLimits` never edits history; and feeding the history to `SummarizingCompaction` hits the same cap.
 

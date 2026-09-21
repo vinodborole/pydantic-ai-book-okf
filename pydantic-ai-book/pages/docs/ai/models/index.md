@@ -16,5 +16,6 @@
 - [OpenRouter | Pydantic Docs](/pages/docs/ai/models/openrouter.md)
 - [Model Providers | Pydantic Docs](/pages/docs/ai/models/overview.md)
 - [Snowflake Cortex | Pydantic Docs](/pages/docs/ai/models/snowflake.md)
+- [TypeSafe (Jev) | Pydantic Docs](/pages/docs/ai/models/typesafe.md)
 - [xAI | Pydantic Docs](/pages/docs/ai/models/xai.md)
 - [Z.AI | Pydantic Docs](/pages/docs/ai/models/zai.md)

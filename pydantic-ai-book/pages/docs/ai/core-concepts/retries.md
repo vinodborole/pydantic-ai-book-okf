@@ -2,7 +2,7 @@
 type: Web Page
 title: Retries | Pydantic Docs
 resource: https://pydantic.dev/docs/ai/core-concepts/retries
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-21T12:25:24.826293+00:00'
 ---
 
 # Retries
@@ -97,7 +97,7 @@ See [Bedrock: Configuring Retries](/docs/ai/models/bedrock/#configuring-retries)
 
 Between the transport and the model sits one more layer the agent never sees: the provider SDK’s own client, which re-issues failed requests before your code hears about them. Its defaults, retryable errors, and configuration differ by provider, so size `M` from the client you use. A [retrying transport](#transport-retries) sits *below* this client, so the two stack rather than replacing each other: configuring one never disables the other.
 
-See the provider-specific settings for [OpenAI](/docs/ai/models/openai/#custom-openai-client), [Anthropic](/docs/ai/models/anthropic/#custom-http-client), [Google](/docs/ai/models/google/#http-retries), [Groq](/docs/ai/models/groq/#sdk-retries), [Cohere](/docs/ai/models/cohere/#sdk-retries), and [AWS Bedrock](/docs/ai/models/bedrock/#configuring-retries).
+See the provider-specific settings for [OpenAI](/docs/ai/models/openai/#custom-openai-client), [Anthropic](/docs/ai/models/anthropic/#custom-http-client), [Google](/docs/ai/models/google/#http-retries), [Groq](/docs/ai/models/groq/#sdk-retries), [Cohere](/docs/ai/models/cohere/#sdk-retries), [TypeSafe](/docs/ai/models/typesafe/#sdk-retries), and [AWS Bedrock](/docs/ai/models/bedrock/#configuring-retries).
 
 [`FallbackModel`](/docs/ai/api/models/fallback/#pydantic_ai.models.fallback.FallbackModel) moves to the *next* model when the current one fails; it never re-attempts the same one. Pair it with transport retries rather than treating it as a substitute: retry the same provider for transient failures, fall back to a different provider when it’s genuinely down. See [Fallback Model](/docs/ai/models/overview/#fallback-model).
 
