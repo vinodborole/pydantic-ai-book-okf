@@ -1,8 +1,11 @@
 ---
 type: Web Page
 title: Bedrock | Pydantic Docs
+description: Use Amazon Bedrock models like Claude, Nova and GPT-OSS with Pydantic
+  AI via the Converse or Mantle API, with guardrails, prompt caching and inference
+  profiles.
 resource: https://pydantic.dev/docs/ai/models/bedrock
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Bedrock
@@ -10,7 +13,7 @@ timestamp: '2026-09-21T12:25:24.826293+00:00'
 [Amazon Bedrock](https://aws.amazon.com/bedrock/) exposes foundation models from many providers, and Pydantic AI reaches it through two separate AWS APIs. Pick the route by model prefix:
 
 - **[Bedrock Converse](#bedrock-converse)** (`bedrock:` ) — the broadest catalog, including Anthropic, Amazon, Cohere, Meta, Mistral, DeepSeek, Qwen, selected OpenAI models, and[many more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) , through the Bedrock Runtime Converse API. This is the route for almost every Bedrock model.
-- **[Bedrock Mantle](#bedrock-mantle)** (`bedrock-mantle:` ) — OpenAI GPT-5.x and GPT-OSS models through[Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html) ’s OpenAI-compatible API.
+- **[Bedrock Mantle](#bedrock-mantle)** (`bedrock-mantle:` ) — OpenAI GPT-5.x, GPT-6, and GPT-OSS models through[Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html) ’s OpenAI-compatible API.
 
 Both routes authenticate with the same AWS credentials. The `bedrock:` prefix always uses Converse; requesting an OpenAI model it doesn’t serve raises an error pointing you to `bedrock-mantle:`.
 
@@ -19,11 +22,11 @@ AWS [recommends the `bedrock-runtime` endpoint for new applications](https://doc
 | Route | Prefix | Models | Optional group | Model class | 
 |---|---|---|---|---|
 | [Converse](#bedrock-converse) | `bedrock:` | Anthropic, Amazon, Cohere, Meta, Mistral, selected OpenAI models, and [more](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockModelName) | `bedrock` | [`BedrockConverseModel`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) | 
-| [Mantle](#bedrock-mantle) | `bedrock-mantle:` | OpenAI GPT-5.x and GPT-OSS | `bedrock-mantle` | [`BedrockMantleResponsesModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleResponsesModel) ,[`BedrockMantleChatModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleChatModel) | 
+| [Mantle](#bedrock-mantle) | `bedrock-mantle:` | OpenAI GPT-5.x, GPT-6, and GPT-OSS | `bedrock-mantle` | [`BedrockMantleResponsesModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleResponsesModel) ,[`BedrockMantleChatModel`](/docs/ai/api/models/bedrock_mantle/#pydantic_ai.models.bedrock_mantle.BedrockMantleChatModel) | 
 
-GPT-OSS and GPT-5.6 Sol, Luna, and Terra are available through both routes. GPT-5.4, GPT-5.5, and GPT-5.6 Cyber are available only through Mantle.
+GPT-OSS, GPT-5.6 Sol/Luna/Terra, and GPT-6 Sol/Luna/Astra are available through both routes. GPT-5.4, GPT-5.5, and GPT-5.6 Cyber are available only through Mantle.
 
-On Converse, GPT-5.6 requires a cross-region inference-profile model ID. Sol supports `us.openai.gpt-5.6-sol` and `global.openai.gpt-5.6-sol`. Luna and Terra support `us.`, `in.`, and `global.` IDs. See the AWS model cards for [Sol](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-sol.html), [Luna](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-luna.html), and [Terra](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-terra.html) for current endpoint and regional availability.
+On Converse, GPT-5.6 requires a cross-region inference-profile model ID. Sol supports `us.openai.gpt-5.6-sol` and `global.openai.gpt-5.6-sol`. Luna and Terra support `us.`, `in.`, and `global.` IDs. GPT-6 Sol, Luna, and Astra support `us.` and `global.` IDs, such as `global.openai.gpt-6-sol`. See the AWS model cards for [GPT-5.6 Sol](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-sol.html), [GPT-5.6 Luna](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-luna.html), [GPT-5.6 Terra](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-terra.html), and [GPT-6 Astra](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html) for current endpoint and regional availability.
 
 [`BedrockConverseModel`](/docs/ai/api/models/bedrock/#pydantic_ai.models.bedrock.BedrockConverseModel) talks to the [Bedrock Runtime Converse API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html), which serves the broadest set of Bedrock models.
 
@@ -114,7 +117,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.bedrock import BedrockModelSettings
 agent = Agent(
     'bedrock:us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    system_prompt='You are a helpful assistant.',
+    instructions='You are a helpful assistant.',
     model_settings=BedrockModelSettings(
         bedrock_cache_messages=True,  # Automatically caches the last message
     ),
@@ -134,7 +137,7 @@ from pydantic_ai.models.bedrock import BedrockConverseModel, BedrockModelSetting
 model = BedrockConverseModel('us.anthropic.claude-sonnet-4-5-20250929-v1:0')
 agent = Agent(
     model,
-    system_prompt='Detailed instructions...',
+    instructions='Detailed instructions...',
     model_settings=BedrockModelSettings(
         bedrock_cache_instructions=True,       # Cache system instructions
         bedrock_cache_tool_definitions='1h',   # Cache tool definitions with 1h TTL
@@ -154,7 +157,7 @@ Use manual `CachePoint` markers to control cache locations precisely:
 from pydantic_ai import Agent, CachePoint
 agent = Agent(
     'bedrock:us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    system_prompt='Instructions...',
+    instructions='Instructions...',
 )
 # Manually control cache points for specific content blocks
 result = agent.run_sync([
@@ -198,7 +201,7 @@ from pydantic_ai import Agent, CachePoint
 from pydantic_ai.models.bedrock import BedrockModelSettings
 agent = Agent(
     'bedrock:us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    system_prompt='Instructions...',
+    instructions='Instructions...',
     model_settings=BedrockModelSettings(
         bedrock_cache_instructions=True,      # 1 cache point
         bedrock_cache_tool_definitions=True,  # 1 cache point
@@ -263,15 +266,15 @@ AWS Bedrock supports [custom application inference profiles](https://docs.aws.am
 
 ```
 from pydantic_ai import Agent
-from pydantic_ai.models.bedrock import BedrockConverseModel
+from pydantic_ai.models.bedrock import BedrockConverseModel, BedrockModelSettings
 from pydantic_ai.providers.bedrock import BedrockProvider
 provider = BedrockProvider(region_name='us-east-2')
 model = BedrockConverseModel(
     'us.anthropic.claude-opus-4-5-20251101-v1:0',
     provider=provider,
-    settings={
-        'bedrock_inference_profile': 'arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/my-profile',
-    },
+    settings=BedrockModelSettings(
+        bedrock_inference_profile='arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/my-profile',
+    ),
 )
 agent = Agent(model)
 ```

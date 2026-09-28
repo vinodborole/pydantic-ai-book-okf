@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: Anthropic | Pydantic Docs
+description: Use Anthropic Claude models with Pydantic AI, with prompt caching, task
+  budgets and compaction, directly or via Bedrock, Vertex AI or Microsoft Foundry.
 resource: https://pydantic.dev/docs/ai/models/anthropic
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Anthropic
@@ -134,7 +136,7 @@ See [Anthropic’s Microsoft Foundry documentation](https://platform.claude.com/
 
 Anthropic’s [task budgets](https://platform.claude.com/docs/en/build-with-claude/task-budgets) let you give Claude an advisory token budget for a full agentic loop — including thinking, tool calls, tool results, and output — so the model can pace itself and finish gracefully as the budget is consumed. Configure them with [`AnthropicModelSettings.anthropic_task_budget`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_task_budget), which takes an [`AnthropicTaskBudget`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicTaskBudget) payload and maps to `output_config.task_budget`.
 
-Pydantic AI automatically enables Anthropic’s required `task-budgets-2026-03-13` beta when this setting is present. Support is currently limited to native Anthropic `claude-fable-5`, `claude-fable-5-1`, `claude-mythos-5`, `claude-mythos-5-1`, `claude-opus-4-7`, `claude-opus-4-8`, `claude-opus-5`, and `claude-sonnet-5` requests, not Bedrock, Vertex, or Microsoft Foundry Anthropic model IDs.
+Pydantic AI automatically enables Anthropic’s required `task-budgets-2026-03-13` beta when this setting is present. Support is currently limited to native Anthropic `claude-fable-5`, `claude-fable-5-1`, `claude-mythos-5`, `claude-mythos-5-1`, `claude-opus-4-7`, `claude-opus-4-8`, `claude-opus-5`, `claude-opus-5-5`, and `claude-sonnet-5` requests, not Bedrock, Vertex, or Microsoft Foundry Anthropic model IDs.
 
 Task budgets compose with [`anthropic_effort`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_effort): effort tunes per-step reasoning depth, while task budgets cap total work across the loop. Both fields end up under the same `output_config` object.
 
@@ -263,6 +265,8 @@ usage = result.usage
 print(f'Cache write tokens: {usage.cache_write_tokens}')
 print(f'Cache read tokens: {usage.cache_read_tokens}')
 ```
+`cache_write_tokens` counts all cache writes. When some of them used a one-hour TTL, which Anthropic bills at a higher rate than five-minute writes, their count is also in `usage.details['ephemeral_1h_input_tokens']`, or in `usage.details['compaction_ephemeral_1h_input_tokens']` for writes made during [message compaction](#message-compaction), and the cost is calculated at the one-hour rate for those tokens.
+
 Anthropic enforces a maximum of 4 cache points per request. Pydantic AI automatically manages this limit to ensure your requests always comply without errors.
 
 Cache points can come from several sources:
@@ -354,7 +358,7 @@ The difference between the two shows up on instructions a model *should* be wary
 
 See [mid-conversation system prompts](/docs/ai/core-concepts/message-history/#mid-conversation-system-prompts) for how these behave across providers, how to phrase one, and why untrusted content doesn’t belong in one.
 
-Fast mode provides higher output tokens per second and is currently supported on **Claude Opus 4.6**, **Claude Opus 4.7**, **Claude Opus 4.8**, and **Claude Opus 5**. It is a research preview. Set [`anthropic_speed`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_speed) to `'fast'` to enable it; Pydantic AI automatically adds the required `fast-mode-2026-02-01` beta. On unsupported models, `anthropic_speed='fast'` is ignored with a `UserWarning`. For pricing, rate limits, and the latest list of supported models, see the [Anthropic fast mode docs](https://platform.claude.com/docs/en/build-with-claude/fast-mode).
+Fast mode provides higher output tokens per second and is currently supported on **Claude Opus 4.6**, **Claude Opus 4.7**, **Claude Opus 4.8**, **Claude Opus 5**, and **Claude Opus 5.5**. It is a research preview. Set [`anthropic_speed`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_speed) to `'fast'` to enable it; Pydantic AI automatically adds the required `fast-mode-2026-02-01` beta. On unsupported models, `anthropic_speed='fast'` is ignored with a `UserWarning`. For pricing, rate limits, and the latest list of supported models, see the [Anthropic fast mode docs](https://platform.claude.com/docs/en/build-with-claude/fast-mode).
 
 ```
 from pydantic_ai import Agent
@@ -365,7 +369,7 @@ agent = Agent(
 )
 ...
 ```
-Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while [extended thinking](/docs/ai/capabilities/thinking/#anthropic) is enabled — [adaptive thinking](/docs/ai/capabilities/thinking/#adaptive-thinking-effort) is compatible with forcing. Anthropic documents **Claude Fable 5.1** and **Claude Mythos 5.1** as rejecting a forced tool choice unconditionally, even without thinking, and Pydantic AI marks those two with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
+Most Anthropic models let you force a tool call via [`tool_choice='required'`](/docs/ai/api/pydantic-ai/settings/#pydantic_ai.settings.ModelSettings.tool_choice) (or a list of tool names), except while [extended thinking](/docs/ai/capabilities/thinking/#anthropic) is enabled — [adaptive thinking](/docs/ai/capabilities/thinking/#adaptive-thinking-effort) is compatible with forcing. Anthropic documents **Claude Fable 5.1**, **Claude Mythos 5.1**, and **Claude Opus 5.5** as rejecting a forced tool choice unconditionally, even without thinking, and Pydantic AI marks those with [`anthropic_supports_forced_tool_choice=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.anthropic.AnthropicModelProfile.anthropic_supports_forced_tool_choice).
 
 On a model that doesn’t support forcing:
 
@@ -374,7 +378,7 @@ On a model that doesn’t support forcing:
 
 Because [Tool Output](/docs/ai/core-concepts/output/#tool-output) resolves to a forced tool choice, extended thinking is also incompatible with it: a bare structured `output_type` switches to [Native Output](/docs/ai/core-concepts/output/#native-output) (or [Prompted Output](/docs/ai/core-concepts/output/#prompted-output) on models without JSON schema support), and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError). Adaptive thinking keeps Tool Output, except on the models above that reject forcing outright — whenever a thinking setting is configured, those behave as they always have: a bare structured `output_type` switches away from Tool Output, and an explicit `ToolOutput(...)` raises a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError).
 
-**Claude Fable 5.1** binds each thinking block to the conversation prefix that produced it. Replaying message history after that prefix changes fails with a 400 (`The block is bound to a different conversation`), and two ordinary Pydantic AI features change it:
+**Claude Fable 5.1** and **Claude Opus 5.5** bind each thinking block to the conversation prefix that produced it. Replaying message history after that prefix changes fails with a 400 (`The block is bound to a different conversation`), and two ordinary Pydantic AI features change it:
 
 - a [dynamic instructions](/docs/ai/core-concepts/agent/#instructions) function whose text differs between runs, and
 - a [filtered toolset](/docs/ai/tools-toolsets/toolsets/#filtering-tools) that advertises a new tool mid-conversation, unless the tool uses[deferred loading](/docs/ai/tools-toolsets/toolsets/#deferred-loading) .

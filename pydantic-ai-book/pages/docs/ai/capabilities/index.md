@@ -2,7 +2,6 @@
 
 - [Compaction | Pydantic Docs](/pages/docs/ai/capabilities/compaction.md)
 - [Building Custom Capabilities | Pydantic Docs](/pages/docs/ai/capabilities/custom.md)
-- [Handle Deferred Tool Calls | Pydantic Docs](/pages/docs/ai/capabilities/handle-deferred-tool-calls.md)
 - [ImageGeneration Capability | Pydantic Docs](/pages/docs/ai/capabilities/image-generation.md)
 - [MCP | Pydantic Docs](/pages/docs/ai/capabilities/mcp.md)
 - [On-Demand Capabilities | Pydantic Docs](/pages/docs/ai/capabilities/on-demand.md)

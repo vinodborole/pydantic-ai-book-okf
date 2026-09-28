@@ -1,11 +1,13 @@
 ---
 type: Web Page
-title: Storage | Pydantic Docs
-resource: https://pydantic.dev/docs/ai/core-concepts/storage
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+title: Persistence | Pydantic Docs
+description: 'Choose how to persist Pydantic AI conversations: store message history
+  in your database, use the Harness for persistence and memory, or use durable execution.'
+resource: https://pydantic.dev/docs/ai/core-concepts/persistence
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
-# Storage
+# Persistence
 
 “Persistence”, “memory”, “sessions”: several different problems go by those names, and they have different answers. Start here:
 
@@ -15,6 +17,8 @@ timestamp: '2026-09-21T12:25:24.826293+00:00'
 | Not write the save-and-load code yourself, and get continue-and-fork for free | [`StepPersistence`](https://pydantic.dev/docs/ai/harness/step-persistence/) | [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) | 
 | The agent to remember what it learned about someone *across* conversations, not just within one | [`Memory`](https://pydantic.dev/docs/ai/harness/memory/) | [Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/) | 
 | A run to survive the process dying mid-tool-call, and resume exactly where it stopped | [Durable execution](/docs/ai/capabilities/durable_execution/overview/) | Core | 
+
+For checkpoint-style persistence, [`StepPersistence`](https://pydantic.dev/docs/ai/harness/step-persistence/) saves a checkpoint after every step of a run, so you can continue the run later or fork it from any step; to resume a run that crashed partway through a step, use [durable execution](/docs/ai/capabilities/durable_execution/overview/).
 
 The first two rows are also the answer to “how do I give my agent memory?” for most of what people mean by it: an agent’s memory of the conversation it is having *is* its message history. There is no separate memory system to add for that — storing the history and passing it back is the whole mechanism. Memory becomes [its own thing](#remembering-across-conversations) only once it has to outlive the thread.
 
@@ -60,8 +64,8 @@ Some providers keep conversation state on their side and reconstruct earlier tur
 
 Weigh it against a store of your own: it is one provider’s feature, OpenAI documents that earlier input tokens in a chain are still billed, and it is unavailable to organizations with Zero Data Retention enabled.
 
-Pydantic AI does not checkpoint graph execution state, so there is no “rewind to step 4 of a half-finished run and replay from there” inside a single run. Snapshots are taken at settled boundaries between runs, not mid-node. For a run that must survive a crash *while it is executing*, that is what [durable execution](/docs/ai/capabilities/durable_execution/overview/) is for.
+Nothing here snapshots state in the middle of a step, so there is no “rewind to step 4 of a half-finished run and replay from there” inside a single run. Snapshots are taken at settled boundaries between runs, not mid-node. For a run that must survive a crash *while it is executing*, that is what [durable execution](/docs/ai/capabilities/durable_execution/overview/) is for.
 
 # Citations
 
-1. Source page: https://pydantic.dev/docs/ai/core-concepts/storage
+1. Source page: https://pydantic.dev/docs/ai/core-concepts/persistence

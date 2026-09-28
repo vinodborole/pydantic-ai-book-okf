@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: Output | Pydantic Docs
+description: Get structured output from Pydantic AI agents as validated Pydantic models
+  or text, with tool, native or prompted output modes, validators and streaming.
 resource: https://pydantic.dev/docs/ai/core-concepts/output
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Output
@@ -32,13 +34,13 @@ Structured outputs (like tools) use Pydantic to build the JSON schema used for t
 
 Here’s an example of returning either text or structured data:
 
-This could also have been a union: `output_type=Box | str`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+This could also have been a union: `output_type=Box | str`. However, as explained in the "Type checking considerations" section above, with mypy or older Pyright versions that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
 
 *(This example is complete, it can be run “as is”)*
 
 Here’s an example of using a union return type, which will register multiple output tools and wrap non-object schemas in an object:
 
-As explained in the "Type checking considerations" section above, using a union rather than a list requires explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+As explained in the "Type checking considerations" section above, with mypy or older Pyright versions, using a union rather than a list requires explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -61,7 +63,7 @@ If desired, this marker class can be used alongside one or more [`ToolOutput`](#
 
 Like other output functions, text output functions can optionally take [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) as the first argument, and can raise [`ModelRetry`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.ModelRetry) to ask the model to try again with modified arguments (or with a different output type).
 
-Some models cannot write text at all, and say so through [`supports_text_output=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output) on their profile — [TypeSafe’s Jev](/docs/ai/models/typesafe/) is one. On those, any `output_type` that leaves text output available is a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) before a request is sent: the default `str`, a `str` among several output types, a `TextOutput` function, and [`PromptedOutput`](#prompted-output), which asks for its structured data as text. Give such a model one structured `output_type`, such as a `BaseModel`, instead.
+Some models cannot write text at all, and say so through [`supports_text_output=False`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output) on their profile — [decision models](/docs/ai/models/decision/) such as [TypeSafe’s Jev](/docs/ai/models/typesafe/) are. On those, any `output_type` that leaves text output available is a [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError) before a request is sent: the default `str`, a `str` among several output types, a `TextOutput` function, and [`PromptedOutput`](#prompted-output), which asks for its structured data as text. Give such a model a structured `output_type`, such as a `BaseModel` or a union of them, instead.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -98,7 +100,7 @@ Native Output mode uses a model’s native “Structured Outputs” feature (aka
 
 To use this mode, you can wrap the output type(s) in the [`NativeOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.NativeOutput) marker class that also lets you specify a `name` and `description` if the name and docstring of the type or function are not sufficient.
 
-This could also have been a union: `output_type=Fruit | Vehicle`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+This could also have been a union: `output_type=Fruit | Vehicle`. However, as explained in the "Type checking considerations" section above, with mypy or older Pyright versions that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -110,7 +112,7 @@ If the model API supports the “JSON Mode” feature (aka “JSON Object respon
 
 To use this mode, you can wrap the output type(s) in the [`PromptedOutput`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.PromptedOutput) marker class that also lets you specify a `name` and `description` if the name and docstring of the type or function are not sufficient. Additionally, `template` lets you specify a custom instructions template to be used instead of the [default](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.prompted_output_template), or `template=False` to disable the schema prompt entirely.
 
-This could also have been a union: `output_type=Vehicle | Device`. However, as explained in the "Type checking considerations" section above, that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
+This could also have been a union: `output_type=Vehicle | Device`. However, as explained in the "Type checking considerations" section above, with mypy or older Pyright versions that would've required explicitly specifying the generic parameters on the `Agent` constructor and adding `# type: ignore` to this line in order to be type checked correctly.
 
 *(This example is complete, it can be run “as is”)*
 
@@ -164,7 +166,7 @@ Sometimes the model has to pick one of a set that doesn’t exist until the run 
 
 The descriptions are what make this worth a helper: each option carries its meaning into the schema the model receives, and the output is one of the keys, validated, and typed `str`. Passing a sequence of keys instead of a mapping describes nothing and asks the same question with a plain `enum`.
 
-Like [`StructuredDict()`](#structured-dict), `Choices()` returns a type rather than a marker, so the same value works as an `output_type`, as a field of a Pydantic model, and as a [tool](/docs/ai/tools-toolsets/tools/) parameter.
+Like [`StructuredDict()`](#structured-dict), `Choices()` returns a type, so the same value works as an `output_type`, as a field of a Pydantic model, and as a [tool](/docs/ai/tools-toolsets/tools/) parameter. A type checker won’t accept a type built at runtime in an annotation, though, so as a field or a parameter, put either one in `Annotated` on the type of the value it gives back: `Annotated[str, Intent]` for choices that don’t [stand for something else](#choices-that-stand-for-something-else), and `Annotated[dict[str, Any], Person]` for a `StructuredDict()`. Pydantic reads the schema and validation from the metadata, and the type checker sees a plain `str` or `dict`:
 
 An option can stand for a value instead of its own key, by giving [`Choice`](/docs/ai/api/pydantic-ai/output/#pydantic_ai.output.Choice) the value alongside the description. The model still picks a key, and the output is what that key stands for:
 
@@ -221,8 +223,8 @@ When the model returns an empty response and `None` is an allowed output type, t
 
 `None` is also supported in the other output modes, with an extra structured commit path in addition to (or in place of) the empty-response fallback:
 
-- **Bare unions including `None` that use tool mode** — e.g.`output_type=int | None` ,`output_type=[int, float, None]` , or`output_type=[ToolOutput(Foo), None]` : a dedicated`final_result_NoneType` output tool is exposed alongside the other output tools, so the model can commit to`None` through a tool call. An empty, blank-text, or thinking-only model response is still also treated as`None` , as with`str | None` .
-- **Explicit output mode markers** — e.g.`output_type=ToolOutput(int | None)` ,`output_type=NativeOutput([int, None])` , or`output_type=PromptedOutput([int, None])` :`None` is included as a branch of the structured schema the wrapper generates. The model commits by calling the tool with`null` (for`ToolOutput` ) or by selecting the`NoneType` branch of the discriminated schema (for`NativeOutput` /`PromptedOutput` ). An empty response is**not** accepted — once you’ve opted into an explicit structured output mode, the model is expected to commit through the schema.
+- **Bare unions including `None` that use tool mode** — e.g.`output_type=int | None` ,`output_type=[int, float, None]` , or`output_type=[ToolOutput(Foo), None]` : a dedicated`final_result_None` output tool is exposed alongside the other output tools, so the model can commit to`None` through a tool call. An empty, blank-text, or thinking-only model response is still also treated as`None` , as with`str | None` .
+- **Explicit output mode markers** — e.g.`output_type=ToolOutput(int | None)` ,`output_type=NativeOutput([int, None])` , or`output_type=PromptedOutput([int, None])` :`None` is included as a branch of the structured schema the wrapper generates. The model commits by calling the tool with`null` (for`ToolOutput` ) or by selecting the`None` branch of the discriminated schema (for`NativeOutput` /`PromptedOutput` ). An empty response is**not** accepted — once you’ve opted into an explicit structured output mode, the model is expected to commit through the schema.
 
 There two main challenges with streamed results:
 

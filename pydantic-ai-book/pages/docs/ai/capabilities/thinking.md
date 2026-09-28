@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: Thinking | Pydantic Docs
+description: Enable thinking and reasoning effort in Pydantic AI with the Thinking
+  capability, or use native settings for OpenAI, Anthropic, Google, Bedrock and more.
 resource: https://pydantic.dev/docs/ai/capabilities/thinking
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Thinking
@@ -29,7 +31,7 @@ The `Thinking` capability maps each effort value to the selected provider’s na
 
 | Provider | `Thinking()` /`Thinking(effort=True)` | `Thinking(effort='high')` | Notes | 
 |---|---|---|---|
-| Anthropic (Opus 4.6+) | `anthropic_thinking={'type': 'adaptive'}` | `{type: 'adaptive'}` +`effort='high'` | Claude Opus 4.7, 4.8, 5, and Sonnet 5 also support `effort='xhigh'` | 
+| Anthropic (Opus 4.6+) | `anthropic_thinking={'type': 'adaptive'}` | `{type: 'adaptive'}` +`effort='high'` | Claude Opus 4.7, 4.8, 5, 5.5, and Sonnet 5 also support `effort='xhigh'` | 
 | Anthropic (older) | `anthropic_thinking={'type': 'enabled', 'budget_tokens': 10000}` | `budget_tokens=16384` | Budget-based; `'low'` → 2048 tokens | 
 | OpenAI | `reasoning_effort='medium'` | `reasoning_effort='high'` | GPT-5.6 maps unified `'minimal'` to`'low'` | 
 | Google (Gemini 3+) | `include_thoughts=True` | `thinking_level='HIGH'` | Unified efforts snap to the nearest documented level — e.g. `gemini-3.1-flash-lite-image` (levels:`minimal` ,`high` ) maps`'low'` to`'MINIMAL'` and`'medium'` /`'xhigh'` to`'HIGH'` — and models without`minimal` map unified`'minimal'` to`'LOW'` | 
@@ -47,7 +49,7 @@ The `Thinking` capability maps each effort value to the selected provider’s na
 | Bedrock (Claude 4.6+) | `thinking.type='adaptive'` | `{type: 'adaptive'}` +`output_config.effort='high'` | Effort lives in the sibling `output_config` field per AWS docs;`xhigh` passes through on the models whose profile supports it (the same ones as the direct Anthropic API, e.g. Opus 4.7+ and Sonnet 5) and maps to`max` on the others (Opus 4.6 and Sonnet 4.6 reject`xhigh` ) | 
 | Bedrock (Claude older) | `thinking.type='enabled'` | `budget_tokens=16384` | Budget-based | 
 | Bedrock (OpenAI GPT-OSS) | `reasoning_effort='medium'` | `reasoning_effort='high'` | Converse rejects `'none'` ;`thinking=False` silently ignored | 
-| Bedrock (OpenAI GPT-5.6) | Not mapped | Not mapped | No verified unified-thinking mapping on Converse | 
+| Bedrock (OpenAI GPT-5.6 and GPT-6) | Not mapped | Not mapped | No verified unified-thinking mapping on Converse | 
 | Bedrock (Qwen) | `reasoning_config='high'` | `reasoning_config='high'` | Only `'low'` and`'high'` ;`thinking=False` silently ignored | 
 | Bedrock Mantle | `reasoning={'effort': 'medium'}` | `reasoning={'effort': 'high'}` | Served on the Responses API, so effort rides the `reasoning` object;`thinking=False` →`effort='none'` | 
 
@@ -72,7 +74,7 @@ Anthropic reports how many thinking tokens it used in [`RunUsage.details`](/docs
 
 To enable [interleaved thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#interleaved-thinking), you need to include the beta header in your model settings:
 
-Starting with `claude-opus-4-6`, Anthropic supports [adaptive thinking](https://docs.anthropic.com/en/docs/build-with-claude/adaptive-thinking), where the model dynamically decides when and how much to think based on the complexity of each request. This replaces extended thinking (`type: 'enabled'` with `budget_tokens`) which is deprecated on Opus 4.6 and removed on Opus 4.7, 4.8, 5, and Sonnet 5. Claude Opus 4.7, 4.8, 5, and Sonnet 5 also add the `xhigh` effort level. Adaptive thinking also automatically enables interleaved thinking.
+Starting with `claude-opus-4-6`, Anthropic supports [adaptive thinking](https://docs.anthropic.com/en/docs/build-with-claude/adaptive-thinking), where the model dynamically decides when and how much to think based on the complexity of each request. This replaces extended thinking (`type: 'enabled'` with `budget_tokens`) which is deprecated on Opus 4.6 and removed on Opus 4.7, 4.8, 5, 5.5, and Sonnet 5. Claude Opus 4.7, 4.8, 5, 5.5, and Sonnet 5 also add the `xhigh` effort level. Adaptive thinking also automatically enables interleaved thinking.
 
 The [`anthropic_effort`](/docs/ai/api/models/anthropic/#pydantic_ai.models.anthropic.AnthropicModelSettings.anthropic_effort) setting controls how much effort the model puts into its response (independent of thinking). See the [Anthropic effort docs](https://docs.anthropic.com/en/docs/build-with-claude/effort) for details.
 

@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: GitHub Copilot | Pydantic Docs
+description: Use Claude, Gemini, GPT and Kimi models from your GitHub Copilot subscription
+  with Pydantic AI, with device login, plan-dependent model IDs and thinking.
 resource: https://pydantic.dev/docs/ai/models/github-copilot
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # GitHub Copilot
@@ -19,6 +21,41 @@ Copilot authenticates with a bearer token. An OAuth user token — what `gh auth
 | Copilot API token ( `tid=…` ) | Works, for plans that issue one. | 
 | Fine-grained PAT ( `github_pat_` ) with**Copilot Requests** | Listed by [GitHub’s Copilot SDK docs](https://docs.github.com/copilot/how-tos/copilot-sdk/authenticate-copilot-sdk/authenticate-copilot-sdk) , but rejected with`401 unauthorized` on the Individual plan we tested. | 
 | Classic PAT ( `ghp_` ) | Not supported by GitHub. | 
+
+Use [`GitHubCopilotOAuthFlow`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.github_copilot.GitHubCopilotOAuthFlow) to obtain a token through GitHub’s device flow:
+
+```
+import os
+import sys
+import anyio
+from pydantic_ai import Agent
+from pydantic_ai.models.github_copilot import GitHubCopilotModel
+from pydantic_ai.providers.github_copilot import (
+    GitHubCopilotOAuthFlow,
+    GitHubCopilotProvider,
+)
+async def main() -> None:
+    flow = GitHubCopilotOAuthFlow(client_id=os.environ['GITHUB_OAUTH_CLIENT_ID'])
+    authorization = await flow.start()
+    sys.stdout.write(f'Open {authorization.verification_uri}\nEnter code: {authorization.user_code}\n')
+    sys.stdout.flush()
+    credentials = await flow.wait_for_authorization()
+    provider = GitHubCopilotProvider(api_key=credentials.access_token)
+    async with provider:
+        agent = Agent(GitHubCopilotModel('claude-haiku-4.5', provider=provider))
+        result = await agent.run('Explain Python context managers in two sentences.')
+    sys.stdout.write(f'{result.output}\n')
+anyio.run(main)
+```
+[`GitHubCopilotOAuthFlow`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.github_copilot.GitHubCopilotOAuthFlow) implements GitHub.com’s [device authorization flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow). Register an OAuth application and enable device flow in its settings. `GITHUB_OAUTH_CLIENT_ID` is application configuration used by this example, not a variable Pydantic AI reads automatically.
+
+The helper requires your application’s `client_id`; it does not borrow another application’s identity. It requests no scopes by default. Pass `scope=` if your application needs GitHub permissions.
+
+`start()` returns a [`GitHubCopilotDeviceAuthorization`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.github_copilot.GitHubCopilotDeviceAuthorization). Display its `user_code` and `verification_uri`, then await `wait_for_authorization()`. Polling respects GitHub’s interval and increases it when GitHub responds with `slow_down`. The local deadline is `expires_in` seconds after the device-code response arrives; time spent displaying the code still counts toward it. Expiry, denial, and invalid responses raise [`UserError`](/docs/ai/api/pydantic-ai/exceptions/#pydantic_ai.exceptions.UserError); transport errors propagate unchanged. Cancellation stops polling. Call `start()` again to retry after any outcome, and use a separate flow instance for each concurrent login.
+
+Your application owns browser opening and credential storage. [`GitHubCopilotCredentials`](/docs/ai/api/pydantic-ai/providers/#pydantic_ai.providers.github_copilot.GitHubCopilotCredentials) excludes tokens from `repr`, but serialized credentials still contain secrets. Keep them in your application’s credential store, not logs. An injected `http_client` stays caller-owned; without one, the helper closes its temporary clients after each request. OAuth redirects are not followed, and this helper supports GitHub.com, not enterprise authorization hosts.
+
+If you already have a token, set `GITHUB_COPILOT_API_KEY` before starting your application:
 
 `GITHUB_COPILOT_API_TOKEN` and `COPILOT_GITHUB_TOKEN` are read as fallbacks, since GitHub’s own tooling uses those names. The general-purpose `GITHUB_TOKEN`, `GH_TOKEN` and `GITHUB_API_KEY` variables are deliberately **not** read, so a token you set for the GitHub API is never sent to Copilot.
 

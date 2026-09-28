@@ -1,8 +1,11 @@
 ---
 type: Web Page
 title: Model Providers | Pydantic Docs
+description: See every LLM provider Pydantic AI supports, how models, providers and
+  profiles relate, and how to add fallback models, concurrency limits or a custom
+  model.
 resource: https://pydantic.dev/docs/ai/models/overview
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Model Providers
@@ -24,7 +27,7 @@ Pydantic AI is model-agnostic and has built-in support for multiple model provid
 - [OpenAI Codex](/docs/ai/models/openai-codex/) (via your ChatGPT/Codex subscription)
 - [OpenRouter](/docs/ai/models/openrouter/)
 - [Snowflake Cortex](/docs/ai/models/snowflake/)
-- [TypeSafe (Jev)](/docs/ai/models/typesafe/)
+- [TypeSafe (Jev)](/docs/ai/models/typesafe/) , a[decision model](/docs/ai/models/decision/)
 - [Z.AI](/docs/ai/models/zai/)
 
 In addition, many providers are compatible with the OpenAI API, and can be used with `OpenAIChatModel` in Pydantic AI:
@@ -73,23 +76,23 @@ When you instantiate an [`Agent`](/docs/ai/api/pydantic-ai/agent/#pydantic_ai.ag
 Pydantic AI will automatically select the appropriate model class, provider, and profile.
 If you want to use a different provider or profile, you can instantiate a model class directly and pass in `provider` and/or `profile` arguments.
 
-A model’s [`ModelProfile`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile) also describes what the model can do. It is a `TypedDict`, so you read capability flags with normal dictionary access via `model.profile` — for example [`supports_text_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output), [`supports_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_tools), [`supports_json_schema_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_json_schema_output), and [`supported_native_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supported_native_tools). This is useful when you want to branch on a capability rather than discover a limitation at request time — for example checking whether a model supports text generation, tool calling, native JSON-schema output, or a specific native tool before relying on it:
+A model’s [`ModelProfile`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile) also describes what the model can do. It is a `TypedDict` whose keys are all optional, so you read capability flags with `.get()` on `model.profile` — for example [`supports_text_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_text_output), [`supports_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_tools), [`supports_json_schema_output`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supports_json_schema_output), and [`supported_native_tools`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.supported_native_tools). This is useful when you want to branch on a capability rather than discover a limitation at request time — for example checking whether a model supports text generation, tool calling, native JSON-schema output, or a specific native tool before relying on it:
 
 ```
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.native_tools import WebSearchTool
 model = TestModel()
 profile = model.profile
-print(profile['supports_tools'])
+print(profile.get('supports_tools'))
 #> True
-print(profile['supports_text_output'])
+print(profile.get('supports_text_output'))
 #> True
-print(profile['supports_json_schema_output'])
+print(profile.get('supports_json_schema_output'))
 #> False
-print(WebSearchTool in profile['supported_native_tools'])
+print(WebSearchTool in profile.get('supported_native_tools', frozenset()))
 #> True
 ```
-`model.profile` is usually the fully *resolved* profile: keys from [`DEFAULT_PROFILE`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.DEFAULT_PROFILE) are merged with the provider’s defaults, so direct key access like `profile['supports_tools']` works. If you supply `profile=` as a callable (or otherwise have a partial profile dict), use `profile.get('supports_tools', DEFAULT_PROFILE['supports_tools'])` (after importing `DEFAULT_PROFILE`) to tolerate missing keys.
+`model.profile` is usually the fully *resolved* profile: keys from [`DEFAULT_PROFILE`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.DEFAULT_PROFILE) are merged with the provider’s defaults, so `profile.get('supports_tools')` returns a value. If you supply `profile=` as a callable (or otherwise have a partial profile dict), pass the default as the fallback, `profile.get('supports_tools', DEFAULT_PROFILE['supports_tools'])` (after importing `DEFAULT_PROFILE`), to tolerate missing keys.
 Individual model adapters expose their resolved profile the same way, so the same check works whether the model was selected automatically from a `<provider>:<model>` name or instantiated directly. A [`FallbackModel`](/docs/ai/api/models/fallback/#pydantic_ai.models.fallback.FallbackModel) is different: it has no single profile because its candidate models may have different capabilities. Inspect the profile of each model in `fallback_model.models` instead. Don’t confuse profiles with [Capabilities](/docs/ai/capabilities/overview/), which are reusable bundles of tools, hooks, and settings you add to an agent — the profile describes what the underlying model itself supports.
 
 The profile also carries the model’s [`context_window`](/docs/ai/api/pydantic-ai/profiles/#pydantic_ai.profiles.ModelProfile.context_window): the maximum number of tokens it can handle in a single request, or `None` when unknown. Every model, including a `FallbackModel` and wrappers like [`InstrumentedModel`](/docs/ai/api/models/instrumented/#pydantic_ai.models.instrumented.InstrumentedModel), exposes it as [`model.context_window`](/docs/ai/api/models/base/#pydantic_ai.models.AbstractModel.context_window); a fallback model reports the smallest window among its candidates, so history that fits it fits whichever candidate answers. Inside a run, [`ctx.context_window_used`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.context_window_used) reports the fraction in use, or `None` when it cannot be calculated. See [Compact when the context window fills](/docs/ai/core-concepts/message-history/#compact-when-the-context-window-fills) for an example that handles this case.

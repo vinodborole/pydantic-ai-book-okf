@@ -5,6 +5,7 @@
 - [Cerebras | Pydantic Docs](/pages/docs/ai/models/cerebras.md)
 - [Cohere | Pydantic Docs](/pages/docs/ai/models/cohere.md)
 - [Crusoe | Pydantic Docs](/pages/docs/ai/models/crusoe.md)
+- [Decision models | Pydantic Docs](/pages/docs/ai/models/decision.md)
 - [GitHub Copilot | Pydantic Docs](/pages/docs/ai/models/github-copilot.md)
 - [Google | Pydantic Docs](/pages/docs/ai/models/google.md)
 - [Groq | Pydantic Docs](/pages/docs/ai/models/groq.md)

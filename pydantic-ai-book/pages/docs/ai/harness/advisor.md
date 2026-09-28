@@ -1,10 +1,10 @@
 ---
 type: Web Page
 title: Advisor | Pydantic Docs
-description: Let an executor model consult a separate advisor model through a provider-native
-  tool or a local Pydantic AI fallback.
+description: Let a Pydantic AI agent consult a second, often stronger model mid-run,
+  via the provider-native advisor tool on Anthropic or OpenRouter, or a local fallback.
 resource: https://pydantic.dev/docs/ai/harness/advisor
-timestamp: '2026-09-14T12:17:54.595402+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Advisor
@@ -35,6 +35,24 @@ print(result.output)
 ```
 The executor decides when to consult. Ask it explicitly in the user prompt or the agent’s instructions when a consultation is required.
 
+Set `output_type` to the output specification you would pass to a Pydantic AI `Agent`, such as a Pydantic model, a scalar type, or `NativeOutput(...)`. It defaults to `str`. The advisor model must support the selected output mode.
+
+Provider-native advisor tools do not accept an output schema. A non-default `output_type` therefore selects local execution in `auto` mode; combining it with `mode='native'` raises `ValueError`.
+
+```
+from pydantic import BaseModel
+from pydantic_ai import Agent
+from pydantic_ai_harness.advisor import Advisor
+class Decision(BaseModel):
+    proceed: bool
+    risk_score: float
+agent = Agent(
+    'openai:gpt-5.4',
+    capabilities=[Advisor('openai:gpt-5.4', output_type=Decision)],
+)
+```
+Successful consultations return the validated object as the tool result, not a string representation. The local advisor’s instructions request the configured output format rather than prose, and the tool description tells the executor to expect a validated answer. Exceeding `max_uses` still returns the limit message instead of a structured answer.
+
 `Advisor` exposes one logical tool through two execution paths:
 
 - **Native:** when the executor and advisor are both on a compatible Anthropic provider, or both use OpenRouter, Pydantic AI’s provider-native[`AdvisorTool`](/docs/ai/tools-toolsets/native-tools/#advisor-tool) runs the consultation.
@@ -57,6 +75,7 @@ Pydantic AI’s resolved executor model profile makes the final support decision
 |---|---|---|
 | `model` | required | Advisor model name or `Model` instance. | 
 | `mode` | `'auto'` | Execution policy: `'auto'` ,`'native'` , or`'local'` . | 
+| `output_type` | `str` | Local advisor output specification. Non-default values require local execution. | 
 | `max_uses` | `None` | Maximum consultations in one executor model request. Must be at least `1` . | 
 | `max_tokens` | `None` | Maximum output tokens for each consultation. Must be at least `1024` . | 
 | `caching` | `None` | Anthropic-native prompt-cache TTL: `'5m'` or`'1h'` . | 
@@ -70,7 +89,7 @@ Use `mode='native'` when the consultation must stay inside the executor provider
 
 `forward_history` only affects the local execution path, whether selected explicitly or as the `auto` fallback. It does not alter native tool configuration or native-versus-local selection. When enabled, the local advisor receives the completed executor message history before the current response. The current response, including partial text and unresolved tool calls, is not forwarded, so the consultation prompt still needs to contain the complete current question.
 
-String model configurations can be loaded from YAML or JSON agent specs by passing `Advisor` in `custom_capability_types`. Runtime `Model` instances remain Python-only.
+String model configurations can be loaded from YAML or JSON agent specs by passing `Advisor` in `custom_capability_types`. Runtime `Model` instances and custom output specifications remain Python-only.
 
 The context depends on the execution path:
 
@@ -86,7 +105,7 @@ For portable behavior, tell the executor to put the question and all relevant ev
 
 The local fallback sends that prompt to the configured advisor model and provider. Native execution uses the executor’s provider configuration. Treat this distinction as a data-routing choice when reviewing credentials, transcript sharing, and provider policies.
 
-Local advisor requests share the parent run’s [`RunUsage`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage) and [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits), so their requests and tokens count toward the agent tree’s normal limits. Native providers report advisor usage according to their own protocol. Anthropic records advisor-specific values in `RequestUsage.details`, while OpenRouter exposes aggregate server-tool counts in response provider details.
+Local advisor requests share the parent run’s [`RunUsage`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.RunUsage) and [`UsageLimits`](/docs/ai/api/pydantic-ai/usage/#pydantic_ai.usage.UsageLimits), so their requests and tokens count toward the agent tree’s normal limits. A local advisor run is also filed under the parent run’s `conversation_id`, so its requests and spans group with the conversation it advises. Native providers report advisor usage according to their own protocol. Anthropic records advisor-specific values in `RequestUsage.details`, while OpenRouter exposes aggregate server-tool counts in response provider details.
 
 Invalid option combinations fail when `Advisor` is constructed. Executor and provider compatibility is validated when a run prepares its model request. Anthropic reports native advisor errors as tool results so the executor can continue. If a local advisor produces invalid model behavior, the executor receives a normal tool retry, matching Pydantic AI’s other subagent-backed tools. Local model resolution, authentication, provider, request, and usage-limit errors otherwise propagate and can stop the run. When a local call exceeds `max_uses`, the tool returns a bounded message telling the executor to continue without more advice.
 
@@ -125,6 +144,14 @@ Declared here rather than only passed up from `__init__`, so the class states it
 — and Pydantic AI, deciding what two of this capability under one `id` mean — can see it.
 
 **Type:** [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `None`**Default:** `'advisor'`
+
+Output specification for local consultations, defaulting to text.
+
+A non-default specification selects local execution in `auto` mode and is
+incompatible with `native` mode. Successful consultations return the
+validated output directly to the executor.
+
+**Type:** `OutputSpec`[[`object`](https://docs.python.org/3/glossary.html#term-object)] **Default:** `output_type`
 
 The model to consult.
 
@@ -166,17 +193,6 @@ Native execution keeps the provider’s transcript behavior unchanged.
 
 **Type:** `bool`**Default:** `forward_history`
 
-```
-def __init__(
-    model: ModelSelection,
-    *,
-    mode: Literal['auto', 'native', 'local'] = 'auto',
-    max_uses: int | None = None,
-    max_tokens: int | None = None,
-    caching: Literal['5m', '1h'] | None = None,
-    forward_history: bool = False,
-) -> None
-```
 `@async`
 
 ```

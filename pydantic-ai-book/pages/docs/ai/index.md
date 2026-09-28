@@ -4,7 +4,6 @@
 - [core-concepts/](/pages/docs/ai/core-concepts/index.md)
 - [guides/](/pages/docs/ai/guides/index.md)
 - [harness/](/pages/docs/ai/harness/index.md)
-- [integrations/](/pages/docs/ai/integrations/index.md)
 - [models/](/pages/docs/ai/models/index.md)
 - [overview/](/pages/docs/ai/overview/index.md)
 - [tools-toolsets/](/pages/docs/ai/tools-toolsets/index.md)

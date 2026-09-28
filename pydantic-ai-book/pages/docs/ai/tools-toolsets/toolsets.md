@@ -1,8 +1,11 @@
 ---
 type: Web Page
 title: Toolsets | Pydantic Docs
+description: Group tools into reusable Pydantic AI toolsets that you can register
+  in one go, swap at runtime or in tests, and compose to filter, rename or wrap tool
+  calls.
 resource: https://pydantic.dev/docs/ai/tools-toolsets/toolsets
-timestamp: '2026-09-07T12:01:58.556264+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Toolsets
@@ -200,9 +203,7 @@ Third-party toolsets can also be wrapped as [capabilities](/docs/ai/capabilities
 
 Pydantic AI provides [`MCPToolset`](/docs/ai/api/pydantic-ai/mcp/#pydantic_ai.mcp.MCPToolset) for connecting to and calling tools on local and remote MCP servers, with the [`MCP` capability](/docs/ai/capabilities/mcp/) as the recommended higher-level entry point. See the [MCP overview](/docs/ai/mcp/overview/) and [MCP client](/docs/ai/mcp/client/) documentation for details.
 
-Toolsets that implement [Agent Skills](https://agentskills.io) support help agents efficiently discover and perform specific tasks:
-
-- [`pydantic-ai-skills`](https://github.com/DougTrajano/pydantic-ai-skills) -`SkillsToolset` implements Agent Skills support with progressive disclosure (load skills on-demand to reduce tokens). Supports filesystem and programmatic skills; compatible with[agentskills.io](https://agentskills.io) .
+[Agent Skills](https://agentskills.io) are loaded as [on-demand capabilities](/docs/ai/capabilities/on-demand/) rather than as toolsets, so each skill can stay collapsed to a catalog entry until the model needs it. See [Agent Skills](/docs/ai/capabilities/third-party/#agent-skills) on the third-party capabilities page.
 
 Toolsets for task planning and progress tracking help agents organize complex work and provide visibility into agent progress:
 

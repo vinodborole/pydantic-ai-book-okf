@@ -4,7 +4,7 @@ title: Pydantic AI | Pydantic Docs
 description: 'How Python does AI: agents, realtime voice, image generation, embeddings.
   Every model, every interface, typed end to end.'
 resource: https://pydantic.dev/docs/ai/overview
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Pydantic AI
@@ -15,7 +15,7 @@ Agents, realtime voice, image generation, embeddings. Every model, every interfa
 
 **Pydantic AI** is the Python AI SDK: a typed, [extensible](/docs/ai/guides/extensibility/) agent loop with [every model](/docs/ai/models/overview/) a string swap away. The same agent [runs everywhere you need it](/docs/ai/overview/interfaces/): behind a [web frontend](/docs/ai/integrations/ui/overview/), in the [terminal](/docs/ai/integrations/cli/), on a [voice call](/docs/ai/realtime/overview/), on a [durable background queue](/docs/ai/capabilities/durable_execution/overview/), in [GitHub Actions](https://pydantic.dev/docs/ai/harness/gh-aw/), or as a plain object you call [`run()`](/docs/ai/core-concepts/agent/#running-agents) on. [Image generation](/docs/ai/guides/image-generation/) and [embeddings](/docs/ai/guides/embeddings/) come in the same box; [Pydantic Graph](/docs/ai/graph/graph/) and [Pydantic Evals](/docs/ai/evals/evals/) are separate packages, for typed control flow and for testing agent behavior the way pytest tests code.
 
-**[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)** has everything an agent needs for complex, long-running work, snapped on as [capabilities](/docs/ai/capabilities/overview/), from [memory](https://pydantic.dev/docs/ai/harness/memory/), [guardrails](https://pydantic.dev/docs/ai/harness/guardrails/), and [sub-agents](https://pydantic.dev/docs/ai/harness/subagents/) to [planning](https://pydantic.dev/docs/ai/harness/planning/), [context management](https://pydantic.dev/docs/ai/harness/compaction/), and [storage](/docs/ai/core-concepts/storage/), up to a complete [coding agent](https://pydantic.dev/docs/ai/harness/coder/).
+**[Pydantic AI Harness](https://pydantic.dev/docs/ai/harness/)** has everything an agent needs for complex, long-running work, snapped on as [capabilities](/docs/ai/capabilities/overview/), from [memory](https://pydantic.dev/docs/ai/harness/memory/), [guardrails](https://pydantic.dev/docs/ai/harness/guardrails/), and [sub-agents](https://pydantic.dev/docs/ai/harness/subagents/) to [planning](https://pydantic.dev/docs/ai/harness/planning/), [context management](https://pydantic.dev/docs/ai/harness/compaction/), and [persistence](/docs/ai/core-concepts/persistence/), up to a complete [coding agent](https://pydantic.dev/docs/ai/harness/coder/).
 
 [Pydantic Logfire](https://pydantic.dev/logfire) is the AI observability platform that sees your whole app, not just the LLM calls, and the [Pydantic AI Gateway](/docs/ai/overview/gateway/) is one key for every model with real-time cost monitoring and budget control; the Gateway self-hosts if you would rather, and our [instrumentation](/docs/ai/integrations/logfire/) is plain OpenTelemetry, so any backend you already run works. Underneath both, [genai-prices](https://github.com/pydantic/genai-prices) keeps model pricing current, and [Monty](https://github.com/pydantic/monty) is the sandboxed Python interpreter that runs model-written code.
 

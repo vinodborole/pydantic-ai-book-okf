@@ -1,11 +1,11 @@
 ---
 type: Web Page
 title: Dynamic Workflow | Pydantic Docs
-description: Let an orchestrator agent coordinate a catalog of sub-agents by writing
-  one sandboxed Python script -- fan-out, chaining, voting, and retry loops in a single
-  tool call.
+description: 'Let a Pydantic AI orchestrator agent coordinate subagents by writing
+  one sandboxed Python script: fan out in parallel, chain, vote, and retry in one
+  tool call.'
 resource: https://pydantic.dev/docs/ai/harness/dynamic-workflow
-timestamp: '2026-08-17T07:03:21.217446+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Dynamic Workflow
@@ -154,12 +154,21 @@ DynamicWorkflow(
 The script runs in Monty, a subset of Python. Knowing the edges matters:
 
 - No third-party libraries.
-- Importable standard-library modules include `sys` ,`typing` ,`asyncio` ,`math` ,`json` ,`re` ,`unicodedata` ,`datetime` ,`os` , and`pathlib` . Import what you use. Filesystem, environment, and clock operations are not configured for workflow scripts.
-- No wall-clock or timing primitives — no `asyncio.sleep` , no`datetime.datetime.now()` , no`datetime.date.today()` , and no`time` module.
+- Importable standard-library modules include `sys` ,`typing` ,`asyncio` ,`math` ,`json` ,`re` ,`unicodedata` ,`datetime` ,`time` ,`random` ,`os` , and`pathlib` . Import what you use. Filesystem, environment, and clock operations are not configured for workflow scripts.
+- No clock or randomness: `datetime.datetime.now()` ,`datetime.date.today()` ,`time.time()` , and
+unseeded`random` fail.`time.sleep` and`asyncio.sleep` really wait; with`max_duration_secs` set,
+a script may sleep for at most that long in total.
 - `asyncio.gather(...)` runs sub-agents concurrently with positional awaitables but no keyword
 arguments, including`return_exceptions=True` . Other task creation and wait APIs are unavailable.
 
 Before a script runs it is statically type-checked against the sub-agent signatures. An ordinary, statically provable mistake such as a misspelled function, a positional `task`, or a wrong-typed argument costs one retry but no sub-agent budget or sandbox execution. Values typed as `Any` can reach runtime validation; they are still rejected before a sub-agent runs.
+
+Attach `TemporalDurability` to the orchestrating agent alongside `DynamicWorkflow`, and to each
+sub-agent whose model requests should run as activities, then register every agent with its own
+`AgentPlugin`. The script runs in workflow code, like [Code Mode’s `run_code`](/docs/ai/harness/code-mode/#temporal-durability),
+and is re-executed during replay against the recorded sub-agent results.
+Unlike Code Mode, a `max_duration_secs` you set still applies inside the workflow, so a script that
+runs close to it can stop at a different point on replay and cause a `NondeterminismError`.
 
 The [Logfire](https://pydantic.dev/logfire) trace is the best way to see what a workflow did. Each sub-agent run appears nested under the `run_workflow` span, and the span carries the exact `code` argument the model wrote, so you can read the script it actually ran. Until first-class progress streaming ships, set `event_stream_handler` on each sub-agent `Agent` to watch sub-agent runs inside the one tool call.
 

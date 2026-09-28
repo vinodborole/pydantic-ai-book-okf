@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: Capabilities | Pydantic Docs
+description: Bundle tools, instructions, model settings and hooks into reusable Pydantic
+  AI capabilities, and browse the built-in capabilities you can add to any agent.
 resource: https://pydantic.dev/docs/ai/capabilities/overview
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Capabilities
@@ -48,6 +50,13 @@ Connections to systems outside the agent’s workspace, and abilities the provid
 | [StackOne](https://pydantic.dev/docs/ai/harness/stackone/) | Harness | Act on linked SaaS accounts (HRIS, ATS, CRM, …) via [StackOne](https://www.stackone.com) | 
 | [LocalStack](https://pydantic.dev/docs/ai/harness/localstack/) | Harness | An emulated AWS environment with AWS CLI tools | 
 | [Macroscope](https://pydantic.dev/docs/ai/harness/macroscope/) | Harness | Run a local [Macroscope](https://docs.macroscope.com/cli) code review and hand the findings to the agent | 
+| [GitHub](https://pydantic.dev/docs/ai/harness/github/) | Harness | Read and change repositories, issues, and pull requests through GitHub’s hosted MCP server | 
+| [Google Workspace](https://pydantic.dev/docs/ai/harness/google-workspace/) | Harness | Use Gmail, Calendar, Drive, Docs, and Sheets through Google’s hosted MCP servers | 
+| [Linear](https://pydantic.dev/docs/ai/harness/linear/) | Harness | Read and update issues, projects, and comments through Linear’s hosted MCP server | 
+| [Logfire MCP](https://pydantic.dev/docs/ai/harness/logfire-mcp/) | Harness | Query traces and telemetry and manage projects through the hosted [Logfire](https://pydantic.dev/logfire) MCP server | 
+| [Notion](https://pydantic.dev/docs/ai/harness/notion/) | Harness | Search and edit pages in a Notion workspace through Notion’s hosted MCP server | 
+| [Ordinal](https://pydantic.dev/docs/ai/harness/ordinal/) | Harness | Draft, schedule, and analyze social posts through [Ordinal](https://www.tryordinal.com) ’s hosted MCP server | 
+| [Slack](https://pydantic.dev/docs/ai/harness/slack/) | Harness | Read and send messages, browse channels, and edit canvases through Slack’s hosted MCP server | 
 
 Finding and reading things on the open web.
 
@@ -58,7 +67,10 @@ Finding and reading things on the open web.
 | [X Search](/docs/ai/capabilities/x-search/) | Core | Search X; native on xAI, subagent fallback elsewhere | 
 | [Exa Search](https://pydantic.dev/docs/ai/harness/exa-search/) | Harness | Web research via [Exa](https://exa.ai) : excerpted search, full-page reads, opt-in cited deep search | 
 | [Exa Agent](https://pydantic.dev/docs/ai/harness/exa-search/) | Harness | Delegate open-ended research to the Exa Agent API | 
+| [You.com Search](https://pydantic.dev/docs/ai/harness/youdotcom/) | Harness | Web search and page reads via [You.com](https://you.com) : query-relevant excerpts or full-page markdown | 
+| [You.com Research](https://pydantic.dev/docs/ai/harness/youdotcom/) | Harness | Cited answers and multi-step research via the You.com Answer, Research, and Finance Research APIs | 
 | [Browser Use](https://pydantic.dev/docs/ai/harness/browser-use/) | Harness | Hand web tasks to an autonomous [browser-use](https://github.com/browser-use/browser-use) agent driving a real browser | 
+| [Playwright Browser](https://pydantic.dev/docs/ai/harness/playwright/) | Harness | Drive a real Chromium page yourself: navigate, click, type, read, and inspect what the page did | 
 
 How the agent thinks and divides the work.
 
@@ -69,6 +81,7 @@ How the agent thinks and divides the work.
 | [Subagents](https://pydantic.dev/docs/ai/harness/subagents/) | Harness | Delegate self-contained tasks to named child agents | 
 | [Dynamic Workflow](https://pydantic.dev/docs/ai/harness/dynamic-workflow/) | Harness | The model orchestrates sub-agents from one Python script: fan-out, chain, vote in a single tool call, with hard `max_agent_calls` budgets | 
 | [Advisor](https://pydantic.dev/docs/ai/harness/advisor/) | Harness | Let an executor consult a stronger model mid-run | 
+| [Background Tools](https://pydantic.dev/docs/ai/harness/background-tools/) | Harness | Run selected tools concurrently; results arrive as follow-up messages | 
 
 How the agent spends its context window: the difference between an agent that degrades over a long run and one that doesn’t, and between paying for tokens N times or once.
 
@@ -81,7 +94,7 @@ How the agent spends its context window: the difference between an agent that de
 | [Tool Output Limits](https://pydantic.dev/docs/ai/harness/tool-output-limits/) | Harness | Truncate, spill to a queryable file, or summarize oversized tool returns at the source | 
 | [Warn On Cache Busts](https://pydantic.dev/docs/ai/harness/warn-on-cache-busts/) | Harness | Detect prompt-cache prefix collapses between requests, from the provider’s own numbers | 
 
-What the agent knows and remembers, loaded when relevant instead of carried in every prompt. [Storage](/docs/ai/core-concepts/storage/) covers how these sit next to the conversation history itself, which is an agent’s memory of the run it is in.
+What the agent knows and remembers, loaded when relevant instead of carried in every prompt. [Persistence](/docs/ai/core-concepts/persistence/) covers how these sit next to the conversation history itself, which is an agent’s memory of the run it is in.
 
 | Capability | Package | What it does | 
 |---|---|---|
@@ -96,10 +109,13 @@ Bounding what the agent may do, and keeping it on-instructions.
 | Capability | Package | What it does | 
 |---|---|---|
 | [Guardrails](https://pydantic.dev/docs/ai/harness/guardrails/) | Harness | Validate/block/redact user input, tool calls, tool results, and output, including secret masking and parallel async guards | 
+| [Prompt Injection Defender](https://pydantic.dev/docs/ai/harness/prompt-injection-defender/) | Harness | Classify local tool results for indirect prompt injection and optionally withhold high-risk results | 
 | [Spend Limits](https://pydantic.dev/docs/ai/harness/spend/) | Harness | Cross-window USD/token budgets and per-response cost tracking, per model and per tenant | 
+| [Ask User](https://pydantic.dev/docs/ai/harness/ask-user/) | Harness | Let the model ask the user multiple-choice questions mid-run; you supply the answerer (terminal, web, test) | 
 | [Tool approval](/docs/ai/tools-toolsets/deferred-tools/#human-in-the-loop-tool-approval) | Core | Flag tool calls that need human approval before they run | 
 | [Handle Deferred Tool Calls](/docs/ai/capabilities/handle-deferred-tool-calls/) | Core | Resolve approval-deferred tool calls programmatically | 
 | [System Reminders](https://pydantic.dev/docs/ai/harness/system-reminders/) | Harness | Cache-safe re-injection of guidance mid-run to counter instruction fade | 
+| [Trajectory Judge](https://pydantic.dev/docs/ai/harness/trajectory-judge/) | Harness | A second model reviews the live run every N requests over a sliding token window and steers it mid-run | 
 
 | Capability | Package | What it does | 
 |---|---|---|
@@ -110,9 +126,11 @@ Outside the loop: how runs persist, survive failures, and get observed and confi
 | Capability | Package | What it does | 
 |---|---|---|
 | [Durable execution](/docs/ai/capabilities/durable_execution/overview/) | Core | Runs that survive restarts and failures on [Temporal](/docs/ai/capabilities/durable_execution/temporal/) ,[DBOS](/docs/ai/capabilities/durable_execution/dbos/) , or[Prefect](/docs/ai/capabilities/durable_execution/prefect/) , with[Restate](/docs/ai/capabilities/durable_execution/restate/) ,[Kitaru](/docs/ai/capabilities/durable_execution/kitaru/) , and[Airflow](/docs/ai/capabilities/durable_execution/airflow/) integrations | 
+| [AWS Lambda durability](https://pydantic.dev/docs/ai/harness/aws-lambda/) | Harness | Checkpoint model requests and tool calls into AWS Lambda durable function steps | 
 | [Step Persistence](https://pydantic.dev/docs/ai/harness/step-persistence/) | Harness | Save, restore, resume ( `continue_run` ), and fork (`fork_run` ) runs; file/SQLite/Mongo backends | 
 | [Instrumentation](/docs/ai/capabilities/instrumentation/) | Core | OpenTelemetry GenAI spans for every model and tool call; the raw material for [Logfire](https://pydantic.dev/logfire) traces | 
 | [Managed Prompt](https://pydantic.dev/docs/ai/harness/managed-prompt/) | Harness | Back instructions with a [Logfire](https://pydantic.dev/logfire) -managed prompt; version and roll out without redeploying | 
+| [Repair Tool Arguments](https://pydantic.dev/docs/ai/harness/repair-tool-arguments/) | Harness | Repair malformed JSON tool arguments before schema validation | 
 | [Thread Executor](/docs/ai/capabilities/thread-executor/) | Core | Run sync tools on a shared thread pool | 
 
 Core also ships capabilities for customizing the agent loop itself, mostly for production servers:

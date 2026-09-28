@@ -2,7 +2,7 @@
   "generator": "okf-kit",
   "okf_version": "0.1",
   "root_url": "https://pydantic.dev/docs/ai/overview",
-  "updated_at": "2026-09-21T12:25:24.910550+00:00",
+  "updated_at": "2026-09-28T13:22:55.630873+00:00",
   "config": {
     "max_depth": 3,
     "max_pages": 90,
@@ -10,7 +10,7 @@
     "respect_robots": true,
     "path_prefix": "/docs/ai/"
   },
-  "page_count": 90,
+  "page_count": 89,
   "pages": [
     {
       "path": "pages/docs/ai/capabilities/compaction.md",
@@ -22,13 +22,7 @@
       "path": "pages/docs/ai/capabilities/custom.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/custom",
       "title": "Building Custom Capabilities | Pydantic Docs",
-      "hash": "25596f11f867d37dcc7affdec6833622ab5c0081694fc9136e87802b7e01b16f"
-    },
-    {
-      "path": "pages/docs/ai/capabilities/handle-deferred-tool-calls.md",
-      "url": "https://pydantic.dev/docs/ai/capabilities/handle-deferred-tool-calls",
-      "title": "Handle Deferred Tool Calls | Pydantic Docs",
-      "hash": "543c06954a2d8961defd9e6e12a1cdc0fc9b8c534cee8830485b35feb30d9520"
+      "hash": "f6c33a38d861d49933c99054adcdecd42ab8979f2813a7c787b114a54fcd5e09"
     },
     {
       "path": "pages/docs/ai/capabilities/image-generation.md",
@@ -52,13 +46,13 @@
       "path": "pages/docs/ai/capabilities/overview.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/overview",
       "title": "Capabilities | Pydantic Docs",
-      "hash": "271b57c7842b10576d24af599f99670d9cc7f20c93ced2e819fbec08194d7b29"
+      "hash": "87ab7de1189e6789a516b87ff77ba0ef411928ebb82bbd47e1d9f0c0def0361f"
     },
     {
       "path": "pages/docs/ai/capabilities/thinking.md",
       "url": "https://pydantic.dev/docs/ai/capabilities/thinking",
       "title": "Thinking | Pydantic Docs",
-      "hash": "fc7fc783bafba6d5e285ce33d3e04dd0a90e02a9e97bfb2bad6b584c4c638d05"
+      "hash": "ef1e105b7d7a860bd20ebb8471b89b229313578d6da449a9d4cd5a2f21af28d7"
     },
     {
       "path": "pages/docs/ai/capabilities/tool-search.md",
@@ -100,7 +94,7 @@
       "path": "pages/docs/ai/core-concepts/dependencies.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/dependencies",
       "title": "Dependencies | Pydantic Docs",
-      "hash": "17510bcffa3d7c82887e389d4913332658ffb7c38e219167dd342f5101920536"
+      "hash": "ff8b4a2333fb57dc6894565d4038bd321be588f71651bc9bfd3d76caf821e2b9"
     },
     {
       "path": "pages/docs/ai/core-concepts/direct.md",
@@ -124,25 +118,25 @@
       "path": "pages/docs/ai/core-concepts/message-history.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/message-history",
       "title": "Messages and chat history | Pydantic Docs",
-      "hash": "080f40569dd22cbc4650c13da6fcc66eff1ae308af767675108723bd55575a2c"
+      "hash": "d088f76f8681ba7ca9285af91cbecf792d1f18e2176c9e42766e105b16ff4e72"
     },
     {
       "path": "pages/docs/ai/core-concepts/output.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/output",
       "title": "Output | Pydantic Docs",
-      "hash": "9bca70c5605bdf5aebdef6c2cdb1b7c12519a9a457a9200f350f3c2de4023ab7"
+      "hash": "05d23480930efc98e7ff3dd5d04f25611efa2277d4adbde55440e3f36f2fd961"
+    },
+    {
+      "path": "pages/docs/ai/core-concepts/persistence.md",
+      "url": "https://pydantic.dev/docs/ai/core-concepts/persistence",
+      "title": "Persistence | Pydantic Docs",
+      "hash": "9f5f59c754783bdb4900c8719cf29eaa7ac2494e3609e9db6aa7bbdd7d5c8d9c"
     },
     {
       "path": "pages/docs/ai/core-concepts/retries.md",
       "url": "https://pydantic.dev/docs/ai/core-concepts/retries",
       "title": "Retries | Pydantic Docs",
       "hash": "8b3f59d02d4381432574f3e24f09331203748194f1fdf1f987eaaefbcdc0908a"
-    },
-    {
-      "path": "pages/docs/ai/core-concepts/storage.md",
-      "url": "https://pydantic.dev/docs/ai/core-concepts/storage",
-      "title": "Storage | Pydantic Docs",
-      "hash": "6577f9f14daf63ee5a7fdd3483c4f9d92e3cc660c30559c026e5471681941669"
     },
     {
       "path": "pages/docs/ai/core-concepts/timeouts.md",
@@ -160,19 +154,19 @@
       "path": "pages/docs/ai/harness.md",
       "url": "https://pydantic.dev/docs/ai/harness",
       "title": "Pydantic AI Harness | Pydantic Docs",
-      "hash": "e8ad906f061035bcd2c20f388f957b9393b044b50ed71aedab639e6f8e491c93"
+      "hash": "054dc23f5cb1f5cd421895997a314ce1b66fd348955ee8fba6a544e9d833492d"
     },
     {
       "path": "pages/docs/ai/harness/advisor.md",
       "url": "https://pydantic.dev/docs/ai/harness/advisor",
       "title": "Advisor | Pydantic Docs",
-      "hash": "34a6c6ac31d0ee8ec6ffdc248f0146a7d575e52aa78453fa43a5dd4fad62c2e4"
+      "hash": "6cde685e31ab3371a9b1c28b61aba8673933e659e205040a00f32aa5a30b79b9"
     },
     {
-      "path": "pages/docs/ai/harness/ask-user.md",
-      "url": "https://pydantic.dev/docs/ai/harness/ask-user",
-      "title": "Ask User | Pydantic Docs",
-      "hash": "6e0573b706e5d027e1c6d4d46aa9bbb7d4a24bb31b0b5a826929d10b70c5f937"
+      "path": "pages/docs/ai/harness/background-tools.md",
+      "url": "https://pydantic.dev/docs/ai/harness/background-tools",
+      "title": "Background Tools | Pydantic Docs",
+      "hash": "777ebf46c75d1dee4f6ebd998ce089303f1777fd13f3aa13872f1172cc82d47a"
     },
     {
       "path": "pages/docs/ai/harness/browser-use.md",
@@ -184,19 +178,19 @@
       "path": "pages/docs/ai/harness/code-mode.md",
       "url": "https://pydantic.dev/docs/ai/harness/code-mode",
       "title": "Code Mode | Pydantic Docs",
-      "hash": "1259c4785537176ca5b54c77813e857bc88c2428093c22123235e73190b027bf"
+      "hash": "38dea7e2adada6e7851cddc39d1fd233b05bd5aba0030ee89a024c40e0b26731"
     },
     {
       "path": "pages/docs/ai/harness/coder.md",
       "url": "https://pydantic.dev/docs/ai/harness/coder",
       "title": "Coder | Pydantic Docs",
-      "hash": "ecea85be37978446a8673abe6fe2c06ca8288bb8f97de91b9ca39e52be10e683"
+      "hash": "0cb435e597cff580e609ac2b17527c1500ff1ebaebbae6479faa0c781ca5636e"
     },
     {
       "path": "pages/docs/ai/harness/compaction.md",
       "url": "https://pydantic.dev/docs/ai/harness/compaction",
       "title": "Compaction | Pydantic Docs",
-      "hash": "7b34ce4537f82e41a0438a56a4ae9887a217ca8be1ac994e12922b7b5c8dd776"
+      "hash": "fddfd44dfb93a478d399f8052884c1336c1732e9aae9ecd3afaf01fd213474c8"
     },
     {
       "path": "pages/docs/ai/harness/conversation-search.md",
@@ -208,7 +202,7 @@
       "path": "pages/docs/ai/harness/dynamic-workflow.md",
       "url": "https://pydantic.dev/docs/ai/harness/dynamic-workflow",
       "title": "Dynamic Workflow | Pydantic Docs",
-      "hash": "b03e8e68cf9dae5ae5acf008ef30231b0f47eb7d5dc1b212cab3dd8669bd7ad8"
+      "hash": "7e90ca89960a7213f26cfda934190d120012f51c3e310e3b8619e16b466e3134"
     },
     {
       "path": "pages/docs/ai/harness/exa-search.md",
@@ -220,19 +214,37 @@
       "path": "pages/docs/ai/harness/filesystem.md",
       "url": "https://pydantic.dev/docs/ai/harness/filesystem",
       "title": "FileSystem | Pydantic Docs",
-      "hash": "d0280e9e30c5299a64b110d1d5fa0eb53f2f5b1392c90f425de70f44510d238b"
+      "hash": "30610e019338938b0e2addeaeb5b63bd1d594a610850302be15d3f190cff2a75"
     },
     {
-      "path": "pages/docs/ai/harness/guardrails.md",
-      "url": "https://pydantic.dev/docs/ai/harness/guardrails",
-      "title": "Input, Output & Tool Guardrails | Pydantic Docs",
-      "hash": "38581f5bf34c2998350fe9e337ba2bb4b156ede8d7c3752921b214a6d6ae4767"
+      "path": "pages/docs/ai/harness/github.md",
+      "url": "https://pydantic.dev/docs/ai/harness/github",
+      "title": "GitHub | Pydantic Docs",
+      "hash": "97fa8dab157e1d0a442e30dd0ee3bde1c46ac5ea9d2f0fb614498153b0634a1b"
+    },
+    {
+      "path": "pages/docs/ai/harness/google-workspace.md",
+      "url": "https://pydantic.dev/docs/ai/harness/google-workspace",
+      "title": "Google Workspace | Pydantic Docs",
+      "hash": "d317e303e909d2461bd52bf67d5dfbc3e70d34ffcf0893f8cb48a7c773f770d3"
+    },
+    {
+      "path": "pages/docs/ai/harness/linear.md",
+      "url": "https://pydantic.dev/docs/ai/harness/linear",
+      "title": "Linear | Pydantic Docs",
+      "hash": "6bb32d96ce38ea51e46bb6cd116e9c844abaac8e2e5b799a361ade38f359302a"
     },
     {
       "path": "pages/docs/ai/harness/localstack.md",
       "url": "https://pydantic.dev/docs/ai/harness/localstack",
       "title": "LocalStack | Pydantic Docs",
       "hash": "63ef2f8d5fce68518e2b11faf5dd55d233e85c22639cdd9f0f4a1cc61797c277"
+    },
+    {
+      "path": "pages/docs/ai/harness/logfire-mcp.md",
+      "url": "https://pydantic.dev/docs/ai/harness/logfire-mcp",
+      "title": "Logfire MCP | Pydantic Docs",
+      "hash": "3c686f2b78f7e3749969b552f6fe7bc2127094c18f96c2bcc2d57d222db70f11"
     },
     {
       "path": "pages/docs/ai/harness/macroscope.md",
@@ -253,6 +265,18 @@
       "hash": "ab3ec91b440509e757667a8231ab9b8ea2f26be97e7453f56787f98d192f3362"
     },
     {
+      "path": "pages/docs/ai/harness/notion.md",
+      "url": "https://pydantic.dev/docs/ai/harness/notion",
+      "title": "Notion | Pydantic Docs",
+      "hash": "a031383bdcb8a1b27b5f66ae80cbe38892f82dd99f1cd87d2ef15a2ae5b95588"
+    },
+    {
+      "path": "pages/docs/ai/harness/ordinal.md",
+      "url": "https://pydantic.dev/docs/ai/harness/ordinal",
+      "title": "Ordinal | Pydantic Docs",
+      "hash": "a9dbe44eeff39af13ac59fee9bd0b45fefda1fc4ac73def6671da5d1ecb1bcb4"
+    },
+    {
       "path": "pages/docs/ai/harness/planning.md",
       "url": "https://pydantic.dev/docs/ai/harness/planning",
       "title": "Planning | Pydantic Docs",
@@ -265,24 +289,6 @@
       "hash": "f41a7b2bd6e158e68d0cb6f9dca9be585793721d7b401341fe19b648be31b26b"
     },
     {
-      "path": "pages/docs/ai/harness/prompt-injection-defender.md",
-      "url": "https://pydantic.dev/docs/ai/harness/prompt-injection-defender",
-      "title": "Prompt Injection Defender | Pydantic Docs",
-      "hash": "e9019c5b3447e7dcbd98d2cf6d235cc59811a43e741c8b45993fbf83681e9ca4"
-    },
-    {
-      "path": "pages/docs/ai/harness/pydantic-ai-docs.md",
-      "url": "https://pydantic.dev/docs/ai/harness/pydantic-ai-docs",
-      "title": "Pydantic AI Docs | Pydantic Docs",
-      "hash": "38e583df45cb89f7abdd888ca43d3086ec75852bb947ab2ec118818432b8d7bd"
-    },
-    {
-      "path": "pages/docs/ai/harness/repo-context.md",
-      "url": "https://pydantic.dev/docs/ai/harness/repo-context",
-      "title": "Repo Context | Pydantic Docs",
-      "hash": "48308843ff7b9f6ff4f8ef5840d4b414c56e8bb748a6f9d628d89ff3e6db2a78"
-    },
-    {
       "path": "pages/docs/ai/harness/researcher.md",
       "url": "https://pydantic.dev/docs/ai/harness/researcher",
       "title": "Researcher | Pydantic Docs",
@@ -292,7 +298,7 @@
       "path": "pages/docs/ai/harness/shell.md",
       "url": "https://pydantic.dev/docs/ai/harness/shell",
       "title": "Shell | Pydantic Docs",
-      "hash": "6df0c86c3676e7c8cdf4f978ea9310769d0ccd1c96723caa094eeda3a173517b"
+      "hash": "6e74e44f4116f2a1e1823ca45a7e202939732aee3b1d528cf7c6c42a767060f9"
     },
     {
       "path": "pages/docs/ai/harness/skills.md",
@@ -301,10 +307,10 @@
       "hash": "0f77b2b3a65306365158bdd9d23f7b6f3761b267ac023893400bd7b1d46f8c26"
     },
     {
-      "path": "pages/docs/ai/harness/spend.md",
-      "url": "https://pydantic.dev/docs/ai/harness/spend",
-      "title": "Spend | Pydantic Docs",
-      "hash": "5f9ad77b62bad70477766a08b53684c908eab483cf77ccee37d84dfea1e8225f"
+      "path": "pages/docs/ai/harness/slack.md",
+      "url": "https://pydantic.dev/docs/ai/harness/slack",
+      "title": "Slack | Pydantic Docs",
+      "hash": "58e6783e2ff6fdbe28ff790e84ae173773bcfed50505ad322c88dce71be0c0cd"
     },
     {
       "path": "pages/docs/ai/harness/stackone.md",
@@ -316,25 +322,13 @@
       "path": "pages/docs/ai/harness/subagents.md",
       "url": "https://pydantic.dev/docs/ai/harness/subagents",
       "title": "Subagents | Pydantic Docs",
-      "hash": "6ecdff417537f2c6cb277e91a70a69ae0612ba1b8998320ee58e04de28947d56"
-    },
-    {
-      "path": "pages/docs/ai/harness/system-reminders.md",
-      "url": "https://pydantic.dev/docs/ai/harness/system-reminders",
-      "title": "System Reminders | Pydantic Docs",
-      "hash": "253db7deb43d3219aea37a8758fc091ee2f8a3b96667877b5224cfcaee1e462e"
+      "hash": "5c3ab3334f7ad34f8fc881722f567c81aef215e6d52fe9d78506d4ad6e0c6f9a"
     },
     {
       "path": "pages/docs/ai/harness/tool-output-limits.md",
       "url": "https://pydantic.dev/docs/ai/harness/tool-output-limits",
       "title": "Tool Output Limits | Pydantic Docs",
-      "hash": "343aa942ff921fe316a590349a593d2904cea73053e1a036d1c950486441e28a"
-    },
-    {
-      "path": "pages/docs/ai/harness/trajectory-judge.md",
-      "url": "https://pydantic.dev/docs/ai/harness/trajectory-judge",
-      "title": "Trajectory Judge | Pydantic Docs",
-      "hash": "147c82847ecfaf86c83ebc2e33486667e263800ef9d98f663ab466c318647c07"
+      "hash": "ae001e1afc7986760d36e500f42442e016d2abc5ac2c37667b08130a61848a00"
     },
     {
       "path": "pages/docs/ai/harness/warn-on-cache-busts.md",
@@ -349,22 +343,16 @@
       "hash": "a38bed1295b3756500327587f75f28411335e851fa78199e526bfea4a89c0a64"
     },
     {
-      "path": "pages/docs/ai/integrations/cli.md",
-      "url": "https://pydantic.dev/docs/ai/integrations/cli",
-      "title": "Command Line Interface (CLI) | Pydantic Docs",
-      "hash": "231a7039483d76063ad8dd82b9bc82ba20666cb12e1a7e24a2d69df013a05e2e"
-    },
-    {
       "path": "pages/docs/ai/models/anthropic.md",
       "url": "https://pydantic.dev/docs/ai/models/anthropic",
       "title": "Anthropic | Pydantic Docs",
-      "hash": "0e4797b49d071ccddb3962fd047bb0c4c3038d74ecc9d52f2fabf0545940129d"
+      "hash": "052374205ca3dc1f3ccb639ef6d1a8dfae68de7b449f85975465181b4823c86d"
     },
     {
       "path": "pages/docs/ai/models/bedrock.md",
       "url": "https://pydantic.dev/docs/ai/models/bedrock",
       "title": "Bedrock | Pydantic Docs",
-      "hash": "d396bb415cdb3ac33734ace239e8b9c7d608ee58b71806f237c072772a3895fb"
+      "hash": "a101cfc77479a1589d2deb46d719d5e388d71546b8b876aa01e6a470090ed8e5"
     },
     {
       "path": "pages/docs/ai/models/cerebras.md",
@@ -385,16 +373,22 @@
       "hash": "b2e28ff2b7438c8863cc076eddfff1076ee5838413b1409cdb8e2fab495f32fd"
     },
     {
+      "path": "pages/docs/ai/models/decision.md",
+      "url": "https://pydantic.dev/docs/ai/models/decision",
+      "title": "Decision models | Pydantic Docs",
+      "hash": "55f6183f6eb1137f46a1211bc9b62bea52d83f7af0196e33220097f4ef4ccf36"
+    },
+    {
       "path": "pages/docs/ai/models/github-copilot.md",
       "url": "https://pydantic.dev/docs/ai/models/github-copilot",
       "title": "GitHub Copilot | Pydantic Docs",
-      "hash": "bd56ae92273a91f943931b005d4e28631133dacd04cfdfffb43c7db29ed2c964"
+      "hash": "24a288720cef8fb2fa5da1c2cece5336c95f7a801537de0653ce1ac2840bc1f2"
     },
     {
       "path": "pages/docs/ai/models/google.md",
       "url": "https://pydantic.dev/docs/ai/models/google",
       "title": "Google | Pydantic Docs",
-      "hash": "f6c265010fab0fb966a7bf84bc6c9ecfa3ca8f4aaf910c4e5a5f2c206e7b9848"
+      "hash": "80bb554057cf73af857bf1084228d4cc4f8fdde7c68286274ce8dd6ffbaefefd"
     },
     {
       "path": "pages/docs/ai/models/groq.md",
@@ -430,7 +424,7 @@
       "path": "pages/docs/ai/models/openai.md",
       "url": "https://pydantic.dev/docs/ai/models/openai",
       "title": "OpenAI | Pydantic Docs",
-      "hash": "53b852b1923246d5fcd4a8bac93125fa90185eda025a683936891fee6656e675"
+      "hash": "2512bc884abd0975a6e8394d6a1bbf151201577fac95b767b75e5a67bc355411"
     },
     {
       "path": "pages/docs/ai/models/openrouter.md",
@@ -442,7 +436,7 @@
       "path": "pages/docs/ai/models/overview.md",
       "url": "https://pydantic.dev/docs/ai/models/overview",
       "title": "Model Providers | Pydantic Docs",
-      "hash": "580b7d4381179da915b6ca3e12aded968c0b718619361691ca26c3d463f684e5"
+      "hash": "cda1f49c978f147031a893b2b5dc25fc64fb395d0d70e55960c7e513fcf570bb"
     },
     {
       "path": "pages/docs/ai/models/snowflake.md",
@@ -454,7 +448,7 @@
       "path": "pages/docs/ai/models/typesafe.md",
       "url": "https://pydantic.dev/docs/ai/models/typesafe",
       "title": "TypeSafe (Jev) | Pydantic Docs",
-      "hash": "abd812c899602650811b335286fb1cb4072e63e886de3c1b674096d007e03607"
+      "hash": "2e910fb57095a0b396dd9556aa0c70ca3efdcb99a4fcac8c57fee8239cb18702"
     },
     {
       "path": "pages/docs/ai/models/xai.md",
@@ -472,7 +466,7 @@
       "path": "pages/docs/ai/overview.md",
       "url": "https://pydantic.dev/docs/ai/overview",
       "title": "Pydantic AI | Pydantic Docs",
-      "hash": "93c5f411281c9bb125ccbe131afe380a222d39047027fc6da30a4c8ef62e130a"
+      "hash": "a7ccd216e1031e843543273326f9bb76fc960bcb675e3e9eb20a00bfad4de7e2"
     },
     {
       "path": "pages/docs/ai/overview/coding-agent-skills.md",
@@ -550,7 +544,7 @@
       "path": "pages/docs/ai/tools-toolsets/toolsets.md",
       "url": "https://pydantic.dev/docs/ai/tools-toolsets/toolsets",
       "title": "Toolsets | Pydantic Docs",
-      "hash": "49217b769b03de14dde6b7e1a643baaf7ae063bcee24bad3fdeb1ae268fa0349"
+      "hash": "7c9d8149aafe8f3a090789460cebff7a7b7d10a0484c427b36da8d33f04c5483"
     }
   ],
   "edges": [
@@ -631,14 +625,6 @@
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
-      "pages/docs/ai/capabilities/handle-deferred-tool-calls.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/capabilities/handle-deferred-tool-calls.md",
-      "pages/docs/ai/tools-toolsets/deferred-tools.md"
-    ],
-    [
       "pages/docs/ai/capabilities/image-generation.md",
       "pages/docs/ai/capabilities/overview.md"
     ],
@@ -692,10 +678,6 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/capabilities/handle-deferred-tool-calls.md"
-    ],
-    [
-      "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/capabilities/image-generation.md"
     ],
     [
@@ -744,7 +726,7 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/core-concepts/storage.md"
+      "pages/docs/ai/core-concepts/persistence.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -753,6 +735,10 @@
     [
       "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/harness/advisor.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/background-tools.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -788,11 +774,23 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/harness/guardrails.md"
+      "pages/docs/ai/harness/github.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/google-workspace.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/linear.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/harness/localstack.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/logfire-mcp.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -808,15 +806,19 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/notion.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/ordinal.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/harness/planning.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/harness/pydantic-ai-docs.md"
-    ],
-    [
-      "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/harness/repo-context.md"
+      "pages/docs/ai/harness/playwright.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -832,7 +834,7 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/harness/spend.md"
+      "pages/docs/ai/harness/slack.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -844,15 +846,15 @@
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
-      "pages/docs/ai/harness/system-reminders.md"
-    ],
-    [
-      "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/harness/tool-output-limits.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
       "pages/docs/ai/harness/warn-on-cache-busts.md"
+    ],
+    [
+      "pages/docs/ai/capabilities/overview.md",
+      "pages/docs/ai/harness/youdotcom.md"
     ],
     [
       "pages/docs/ai/capabilities/overview.md",
@@ -1124,7 +1126,7 @@
     ],
     [
       "pages/docs/ai/core-concepts/message-history.md",
-      "pages/docs/ai/core-concepts/storage.md"
+      "pages/docs/ai/core-concepts/persistence.md"
     ],
     [
       "pages/docs/ai/core-concepts/message-history.md",
@@ -1196,6 +1198,10 @@
     ],
     [
       "pages/docs/ai/core-concepts/output.md",
+      "pages/docs/ai/models/decision.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/output.md",
       "pages/docs/ai/models/typesafe.md"
     ],
     [
@@ -1209,6 +1215,38 @@
     [
       "pages/docs/ai/core-concepts/output.md",
       "pages/docs/ai/tools-toolsets/tools.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/capabilities/compaction.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/core-concepts/dependencies.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/harness/conversation-search.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/harness/memory.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/core-concepts/persistence.md",
+      "pages/docs/ai/tools-toolsets/native-tools.md"
     ],
     [
       "pages/docs/ai/core-concepts/retries.md",
@@ -1275,38 +1313,6 @@
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/capabilities/compaction.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/core-concepts/dependencies.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/core-concepts/message-history.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/harness.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/harness/conversation-search.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/harness/memory.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/models/openai.md"
-    ],
-    [
-      "pages/docs/ai/core-concepts/storage.md",
-      "pages/docs/ai/tools-toolsets/native-tools.md"
-    ],
-    [
       "pages/docs/ai/core-concepts/timeouts.md",
       "pages/docs/ai/capabilities/overview.md"
     ],
@@ -1369,10 +1375,6 @@
     [
       "pages/docs/ai/harness.md",
       "pages/docs/ai/capabilities/custom.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/capabilities/handle-deferred-tool-calls.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1420,7 +1422,7 @@
     ],
     [
       "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/ask-user.md"
+      "pages/docs/ai/harness/background-tools.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1456,11 +1458,23 @@
     ],
     [
       "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/guardrails.md"
+      "pages/docs/ai/harness/github.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/google-workspace.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/linear.md"
     ],
     [
       "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/localstack.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/logfire-mcp.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1476,23 +1490,19 @@
     ],
     [
       "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/notion.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
+      "pages/docs/ai/harness/ordinal.md"
+    ],
+    [
+      "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/planning.md"
     ],
     [
       "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/playwright.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/prompt-injection-defender.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/pydantic-ai-docs.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/repo-context.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1508,7 +1518,7 @@
     ],
     [
       "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/spend.md"
+      "pages/docs/ai/harness/slack.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1520,15 +1530,7 @@
     ],
     [
       "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/system-reminders.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/tool-output-limits.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/harness/trajectory-judge.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1537,10 +1539,6 @@
     [
       "pages/docs/ai/harness.md",
       "pages/docs/ai/harness/youdotcom.md"
-    ],
-    [
-      "pages/docs/ai/harness.md",
-      "pages/docs/ai/integrations/cli.md"
     ],
     [
       "pages/docs/ai/harness.md",
@@ -1575,7 +1573,15 @@
       "pages/docs/ai/tools-toolsets/tools-advanced.md"
     ],
     [
-      "pages/docs/ai/harness/ask-user.md",
+      "pages/docs/ai/harness/background-tools.md",
+      "pages/docs/ai/capabilities/overview.md"
+    ],
+    [
+      "pages/docs/ai/harness/background-tools.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/harness/background-tools.md",
       "pages/docs/ai/harness.md"
     ],
     [
@@ -1616,6 +1622,10 @@
     ],
     [
       "pages/docs/ai/harness/code-mode.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/harness/code-mode.md",
       "pages/docs/ai/harness.md"
     ],
     [
@@ -1636,11 +1646,11 @@
     ],
     [
       "pages/docs/ai/harness/coder.md",
-      "pages/docs/ai/harness/repo-context.md"
+      "pages/docs/ai/harness/shell.md"
     ],
     [
       "pages/docs/ai/harness/coder.md",
-      "pages/docs/ai/harness/shell.md"
+      "pages/docs/ai/harness/subagents.md"
     ],
     [
       "pages/docs/ai/harness/coder.md",
@@ -1657,6 +1667,10 @@
     [
       "pages/docs/ai/harness/compaction.md",
       "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/compaction.md",
+      "pages/docs/ai/models/overview.md"
     ],
     [
       "pages/docs/ai/harness/conversation-search.md",
@@ -1735,12 +1749,56 @@
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
-      "pages/docs/ai/harness/guardrails.md",
+      "pages/docs/ai/harness/github.md",
+      "pages/docs/ai/capabilities/custom.md"
+    ],
+    [
+      "pages/docs/ai/harness/github.md",
       "pages/docs/ai/harness.md"
     ],
     [
-      "pages/docs/ai/harness/guardrails.md",
+      "pages/docs/ai/harness/github.md",
       "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/github.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/github.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/harness/google-workspace.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/google-workspace.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/google-workspace.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/google-workspace.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/harness/linear.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/linear.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/linear.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/linear.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
       "pages/docs/ai/harness/localstack.md",
@@ -1756,6 +1814,26 @@
     ],
     [
       "pages/docs/ai/harness/localstack.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/harness/logfire-mcp.md",
+      "pages/docs/ai/capabilities/custom.md"
+    ],
+    [
+      "pages/docs/ai/harness/logfire-mcp.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/logfire-mcp.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/logfire-mcp.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/logfire-mcp.md",
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
@@ -1796,6 +1874,38 @@
     ],
     [
       "pages/docs/ai/harness/modal-sandbox.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/harness/notion.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/notion.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/notion.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/notion.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
+    ],
+    [
+      "pages/docs/ai/harness/ordinal.md",
+      "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/ordinal.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/ordinal.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/ordinal.md",
       "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
@@ -1825,34 +1935,6 @@
     [
       "pages/docs/ai/harness/playwright.md",
       "pages/docs/ai/harness/browser-use.md"
-    ],
-    [
-      "pages/docs/ai/harness/prompt-injection-defender.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/harness/prompt-injection-defender.md",
-      "pages/docs/ai/harness.md"
-    ],
-    [
-      "pages/docs/ai/harness/pydantic-ai-docs.md",
-      "pages/docs/ai/core-concepts/agent-spec.md"
-    ],
-    [
-      "pages/docs/ai/harness/pydantic-ai-docs.md",
-      "pages/docs/ai/harness.md"
-    ],
-    [
-      "pages/docs/ai/harness/repo-context.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/harness/repo-context.md",
-      "pages/docs/ai/core-concepts/hooks.md"
-    ],
-    [
-      "pages/docs/ai/harness/repo-context.md",
-      "pages/docs/ai/harness.md"
     ],
     [
       "pages/docs/ai/harness/researcher.md",
@@ -1927,12 +2009,24 @@
       "pages/docs/ai/harness.md"
     ],
     [
-      "pages/docs/ai/harness/spend.md",
-      "pages/docs/ai/core-concepts/agent.md"
+      "pages/docs/ai/harness/slack.md",
+      "pages/docs/ai/capabilities/custom.md"
     ],
     [
-      "pages/docs/ai/harness/spend.md",
+      "pages/docs/ai/harness/slack.md",
       "pages/docs/ai/harness.md"
+    ],
+    [
+      "pages/docs/ai/harness/slack.md",
+      "pages/docs/ai/harness/tool-output-limits.md"
+    ],
+    [
+      "pages/docs/ai/harness/slack.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/harness/slack.md",
+      "pages/docs/ai/tools-toolsets/toolsets.md"
     ],
     [
       "pages/docs/ai/harness/stackone.md",
@@ -1971,24 +2065,8 @@
       "pages/docs/ai/harness.md"
     ],
     [
-      "pages/docs/ai/harness/system-reminders.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/harness/system-reminders.md",
-      "pages/docs/ai/core-concepts/agent-spec.md"
-    ],
-    [
-      "pages/docs/ai/harness/system-reminders.md",
-      "pages/docs/ai/core-concepts/hooks.md"
-    ],
-    [
-      "pages/docs/ai/harness/system-reminders.md",
-      "pages/docs/ai/harness.md"
-    ],
-    [
-      "pages/docs/ai/harness/system-reminders.md",
-      "pages/docs/ai/harness/planning.md"
+      "pages/docs/ai/harness/subagents.md",
+      "pages/docs/ai/harness/coder.md"
     ],
     [
       "pages/docs/ai/harness/tool-output-limits.md",
@@ -1997,30 +2075,6 @@
     [
       "pages/docs/ai/harness/tool-output-limits.md",
       "pages/docs/ai/harness/compaction.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/core-concepts/agent-spec.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/core-concepts/hooks.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/harness.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/harness/guardrails.md"
-    ],
-    [
-      "pages/docs/ai/harness/trajectory-judge.md",
-      "pages/docs/ai/harness/system-reminders.md"
     ],
     [
       "pages/docs/ai/harness/warn-on-cache-busts.md",
@@ -2053,10 +2107,6 @@
     [
       "pages/docs/ai/harness/youdotcom.md",
       "pages/docs/ai/tools-toolsets/toolsets.md"
-    ],
-    [
-      "pages/docs/ai/integrations/cli.md",
-      "pages/docs/ai/tools-toolsets/native-tools.md"
     ],
     [
       "pages/docs/ai/models/anthropic.md",
@@ -2101,6 +2151,46 @@
     [
       "pages/docs/ai/models/crusoe.md",
       "pages/docs/ai/models/openai.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/capabilities/compaction.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/capabilities/overview.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/core-concepts/agent.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/core-concepts/hooks.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/core-concepts/message-history.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/core-concepts/output.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/models/overview.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/models/typesafe.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+    ],
+    [
+      "pages/docs/ai/models/decision.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
     ],
     [
       "pages/docs/ai/models/github-copilot.md",
@@ -2196,6 +2286,10 @@
     ],
     [
       "pages/docs/ai/models/overview.md",
+      "pages/docs/ai/models/decision.md"
+    ],
+    [
+      "pages/docs/ai/models/overview.md",
       "pages/docs/ai/models/github-copilot.md"
     ],
     [
@@ -2252,18 +2346,6 @@
     ],
     [
       "pages/docs/ai/models/typesafe.md",
-      "pages/docs/ai/capabilities/compaction.md"
-    ],
-    [
-      "pages/docs/ai/models/typesafe.md",
-      "pages/docs/ai/capabilities/overview.md"
-    ],
-    [
-      "pages/docs/ai/models/typesafe.md",
-      "pages/docs/ai/core-concepts/hooks.md"
-    ],
-    [
-      "pages/docs/ai/models/typesafe.md",
       "pages/docs/ai/core-concepts/message-history.md"
     ],
     [
@@ -2276,11 +2358,15 @@
     ],
     [
       "pages/docs/ai/models/typesafe.md",
-      "pages/docs/ai/models/overview.md"
+      "pages/docs/ai/harness/compaction.md"
     ],
     [
       "pages/docs/ai/models/typesafe.md",
-      "pages/docs/ai/tools-toolsets/deferred-tools.md"
+      "pages/docs/ai/models/decision.md"
+    ],
+    [
+      "pages/docs/ai/models/typesafe.md",
+      "pages/docs/ai/tools-toolsets/tools.md"
     ],
     [
       "pages/docs/ai/models/xai.md",
@@ -2344,7 +2430,7 @@
     ],
     [
       "pages/docs/ai/overview.md",
-      "pages/docs/ai/core-concepts/storage.md"
+      "pages/docs/ai/core-concepts/persistence.md"
     ],
     [
       "pages/docs/ai/overview.md",
@@ -2368,19 +2454,11 @@
     ],
     [
       "pages/docs/ai/overview.md",
-      "pages/docs/ai/harness/guardrails.md"
-    ],
-    [
-      "pages/docs/ai/overview.md",
       "pages/docs/ai/harness/memory.md"
     ],
     [
       "pages/docs/ai/overview.md",
       "pages/docs/ai/harness/planning.md"
-    ],
-    [
-      "pages/docs/ai/overview.md",
-      "pages/docs/ai/harness/repo-context.md"
     ],
     [
       "pages/docs/ai/overview.md",
@@ -2393,10 +2471,6 @@
     [
       "pages/docs/ai/overview.md",
       "pages/docs/ai/harness/subagents.md"
-    ],
-    [
-      "pages/docs/ai/overview.md",
-      "pages/docs/ai/integrations/cli.md"
     ],
     [
       "pages/docs/ai/overview.md",
@@ -2477,10 +2551,6 @@
     [
       "pages/docs/ai/overview/install.md",
       "pages/docs/ai/core-concepts/retries.md"
-    ],
-    [
-      "pages/docs/ai/overview/install.md",
-      "pages/docs/ai/integrations/cli.md"
     ],
     [
       "pages/docs/ai/overview/install.md",
@@ -2748,6 +2818,10 @@
     ],
     [
       "pages/docs/ai/tools-toolsets/toolsets.md",
+      "pages/docs/ai/capabilities/on-demand.md"
+    ],
+    [
+      "pages/docs/ai/tools-toolsets/toolsets.md",
       "pages/docs/ai/capabilities/overview.md"
     ],
     [
@@ -2784,10 +2858,10 @@
     ]
   ],
   "last_sync": {
-    "synced_at": "2026-09-21T12:25:24.846118+00:00",
-    "added": 3,
-    "changed": 28,
-    "removed": 3,
-    "pages": 90
+    "synced_at": "2026-09-28T13:22:55.570525+00:00",
+    "added": 10,
+    "changed": 25,
+    "removed": 11,
+    "pages": 89
   }
 }

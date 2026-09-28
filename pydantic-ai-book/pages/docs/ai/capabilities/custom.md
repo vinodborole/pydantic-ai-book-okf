@@ -1,8 +1,10 @@
 ---
 type: Web Page
 title: Building Custom Capabilities | Pydantic Docs
+description: Write your own Pydantic AI capability by subclassing AbstractCapability
+  to bundle tools, instructions, settings and hooks, for guardrails or middleware.
 resource: https://pydantic.dev/docs/ai/capabilities/custom
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Building Custom Capabilities
@@ -61,7 +63,7 @@ The callable receives a [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_
 
 Override [`get_model()`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_model) when model selection is one part of a larger custom capability. Return a [`Model`](/docs/ai/api/models/base/#pydantic_ai.models.Model), a model ID string, or a sync/async callable taking [`ModelSelectionContext`](/docs/ai/api/models/base/#pydantic_ai.models.ModelSelectionContext). This example chooses a model from dependencies on every request step:
 
-[`get_model()`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_model) is a synchronous configuration method, but the [`ModelSelector`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ModelSelector) it returns may be synchronous or asynchronous. [`ModelSelectionContext`](/docs/ai/api/models/base/#pydantic_ai.models.ModelSelectionContext) is separate from [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) because a complete run context requires the model currently being selected. It includes dependencies, the request step, message history, and usage. Keep `get_model()` itself cheap; perform I/O in an async selector.
+[`get_model()`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.get_model) is a synchronous configuration method, but the [`ModelSelector`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.ModelSelector) it returns may be synchronous or asynchronous. [`ModelSelectionContext`](/docs/ai/api/models/base/#pydantic_ai.models.ModelSelectionContext) is separate from [`RunContext`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext) because a complete run context requires the model currently being selected. It includes dependencies, the request step, the run’s prompt, the messages the selected model will be sent (ending with the request being routed), and usage. Keep `get_model()` itself cheap; perform I/O in an async selector.
 
 A model or model ID returned directly from `get_model()` is resolved once per run. A selector returned from `get_model()` is evaluated before every logical model request step.
 
@@ -307,13 +309,13 @@ implementing an engine.
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.capabilities import AbstractCapability, durable_operation
 from pydantic_ai.models.test import TestModel
-class Summaries(AbstractCapability[None]):
+class Summaries(AbstractCapability):
     id = 'summaries'
-    async def before_run(self, ctx: RunContext[None]) -> None:
+    async def before_run(self, ctx: RunContext) -> None:
         summary = await self.summarize(ctx, ['one', 'two'])
         assert summary == '2 messages'
     @durable_operation(name='summarize')
-    async def summarize(self, ctx: RunContext[None], messages: list[str]) -> str:
+    async def summarize(self, ctx: RunContext, messages: list[str]) -> str:
         return f'{len(messages)} messages'
 agent = Agent(TestModel(), capabilities=[Summaries()])
 ```
@@ -322,6 +324,8 @@ Mark each operation method with `@durable_operation(name='...')`. The required n
 A [`for_run`](/docs/ai/api/pydantic-ai/capabilities/#pydantic_ai.capabilities.AbstractCapability.for_run) override may return a fresh instance — the operation dispatches on whichever instance the run is using, from `before_run` and from per-request hooks alike. The replacement has to keep the capability’s `id`, since that is what dispatch and worker-side recovery resolve it by; Pydantic AI raises a `UserError` at the start of the run if a bound capability’s ID is no longer present. Dispatch is established once `for_run()` has returned, so an operation called from inside `for_run()` itself runs directly rather than durably.
 
 Arguments and results must follow the same serialization rules as durable tools. Temporal sends them through its data converter; JSON-journal engines require JSON-compatible values. Operation names are scoped by capability ID. Changing either identity creates a different persisted operation, and on Prefect it also creates a different cache key.
+
+To branch on whether a hook is running in durable workflow code, check [`ctx.in_durable_context`](/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.RunContext.in_durable_context). It is `True` inside a durable workflow or flow (like a Temporal or DBOS workflow) when the agent has a durability capability. It is `False` outside durable execution and inside the Temporal activities and DBOS steps where tools and model requests run. Prefect tasks inherit their flow’s context, so it is `True` inside a Prefect task too.
 
 The live-value hooks `get_toolset`, `get_wrapper_toolset`, `wrap_run`, `wrap_node_run`, `wrap_model_request`, `wrap_tool_validate`, `wrap_tool_execute`, `wrap_output_validate`, `wrap_output_process`, and `wrap_run_event_stream` cannot be decorated because their handlers or values cannot cross a durable boundary. Pydantic AI raises a `UserError` naming the incompatible hook during agent construction.
 

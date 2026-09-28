@@ -1,10 +1,11 @@
 ---
 type: Web Page
 title: Tool Output Limits | Pydantic Docs
-description: Reduce oversized tool returns when they are produced -- truncate, spill
-  to a queryable file, or summarize -- so a large payload does not persist in history.
+description: 'Keep large tool outputs from filling a Pydantic AI agent''s context
+  window: truncate them, spill them to a file the model can page through, or summarize
+  them.'
 resource: https://pydantic.dev/docs/ai/harness/tool-output-limits
-timestamp: '2026-09-21T12:25:24.826293+00:00'
+timestamp: '2026-09-28T13:22:55.549191+00:00'
 ---
 
 # Tool Output Limits
@@ -271,7 +272,7 @@ for path in root.rglob('*'):
 A built-in `Summarize` call is a real request to the model, so its full usage — tokens and the
 request itself — folds into the run’s `ctx.usage`, exactly like `SummarizingCompaction`. Its nested
 run receives the parent limits unchanged except that a finite request limit reserves one request for
-the pending parent request.
+the pending parent request, and is filed under the parent run’s `conversation_id`.
 
 By default `Summarize` inherits the running agent’s model (`ctx.model`). Pass a model id or
 instance to `Summarize(model=...)` to override, or a `summarize` callable to bypass the
